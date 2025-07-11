@@ -12,9 +12,13 @@ interface IExpressionResult {
   equalSymbol: string;
 }
 
-export function prepare(englishWords: string[], seed = 12345) {
-  const sentence: string = "The quick brown fox jumps over the lazy dog";
+const sentenceDefault: string = "The quick brown fox jumps over the lazy dog";
 
+export function prepare(
+  englishWords: string[],
+  seed = 12345,
+  sentence: string = sentenceDefault,
+) {
   // Split into words
   const words: string[] = sentence.split(/\s+/);
 
@@ -38,6 +42,7 @@ export function prepare(englishWords: string[], seed = 12345) {
     tokenMap[word] = popToken();
   });
 
+  // TODO: englishWords may have a captials..
   const partialTokenizedSentence: string = words
     .slice(0, -1)
     .map((word) => tokenMap[word.toLowerCase()])
@@ -94,7 +99,6 @@ export function print(
   expression: IExpressionResult,
   outputFunc: (...outs: { toString(): string }[]) => void,
 ) {
-  // Input sentence
   function randomizeRecord(
     record: Record<string, string>,
   ): Record<string, string> {
@@ -114,7 +118,7 @@ export function print(
 
   // Output
   outputFunc(
-    `\n\nThe symbol ${symbol} defines a mapping between two character sequences in a table seperated by newline characters.`,
+    `\n\nThe symbol '${symbol}' defines a mapping between two character sequences in a table, with each maping separated by a newline characters.`,
   );
   outputFunc("\n\n🗺️ Table of mappings:\n");
 
@@ -132,12 +136,12 @@ export function print(
   });
 
   const msg =
-    "\n\nTaking into account a given symbolized sentence, and\n" +
+    "\n\nTake into account the given symbolized sentence and\n" +
     "other contextual information. Complete the following tasks: \n\n" +
     "- Finish the symbolised sentence.\n" +
     "- Print your answer as concisely as possible.\n" +
-    "- Providing only the result as a symbolized sequence of character. And show the input sentence also symbolized.\n" +
-    "- Do not provide the answer in english, provide the answer in the symbolised form.\n\n";
+    "- Providing only the result as a symbolized sequence of character. And show the input sentence symbolized.\n" +
+    "- Do not provide the answer in english. Provide the answer in the symbolised form.\n\n";
 
   outputFunc(msg);
 

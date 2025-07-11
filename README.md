@@ -1,12 +1,11 @@
-# nodellm-test
+# node-llm-test
 
 I noticed that all AIs seem to fail using the tools that I use. I wondered if
 this was because of the lack of public information to train them on. This test
 proves it.
 
-See the video I made this for at youtube.com/@snowdon-dev.
-
-See the web app at https://marketeer.snowdon.dev/tools/llmtest-online/
+- See the video I made this for at: youtube.com/@snowdon-dev.
+- See the web app at: https://marketeer.snowdon.dev/tools/llmtest-online/
 
 Here's a punchy YouTube Short title that aligns with current SEO trends:
 
