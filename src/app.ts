@@ -22,28 +22,29 @@ export function prepare(
   // Split into words
   const words: string[] = sentence.split(/\s+/);
 
-  const uniqueWords = new Set(words);
-
   // Map each unique word to a token
   const tokenMap: Record<string, string> = {};
 
   const randH = mulberry32(seed);
   const rand = (len: number) => Math.floor(randH() * (len + 1));
 
+  const subUsedWords = -words.length;
+  const inputDeduped = new Set(
+    words.concat(inputWords.slice(0, subUsedWords)),
+  );
+
   /* pop from the input words to ensure zero mappings to sentence words */
   function popToken(): string {
-    const idx = rand(inputWords.length - words.length);
+    const idx = rand(inputWords.length);
     // TODO: Sometimes get two words
-    const word = inputWords.splice(idx, 1)[0];
+    const word = inputWords.splice(idx - 1, 1)[0];
     return word;
   }
 
-  new Set(
-    Array.from(uniqueWords).concat(inputWords.slice(0, -words.length)),
-  ).forEach((word) => {
+  inputDeduped.forEach((word) => {
     const token = popToken();
     if (token === undefined) {
-      throw new Error("Token error");
+      throw new Error("Token error + " + word);
     }
     tokenMap[word] = token;
   });
