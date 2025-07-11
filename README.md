@@ -4,6 +4,8 @@ I noticed that all AIs seem to fail using the tools that I use. I wondered if
 this was because of the lack of public information to train them on. This test
 proves it.
 
+See the video I made this for at youtube.com/@snowdon-dev
+
 Here's a punchy YouTube Short title that aligns with current SEO trends:
 
 "If Piracy Is Theft… AI Is a Crime Scene 💀 (Try the Web App!)"
@@ -23,7 +25,7 @@ that tests AI’s flaws live! If piracy is theft, AI might just be the whole
 crime scene. Ready to see the results? Tap in and find out!
 Hashtags:
 
-```
+```text
 #AIExposed #LLMFails #DigitalTheft #AICrime #AIBusted #WebApp #TechTruth
 #AIFail #AIvsHuman #AIRealityCheck #PiracyVsAI #Shorts
 ```
