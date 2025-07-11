@@ -1,10 +1,25 @@
 {
   "name": "node-llm-test",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Generate tests to evaluate the intelligence of large language models.",
   "author": "hello@snowdon.dev",
   "files": [
     "./"
+  ],
+  "keywords": [
+    "node-llm-test",
+    "llm-test",
+    "prompt-testing",
+    "llm-testing",
+    "llm-pipeline",
+    "prompt-engineering",
+    "context-engineering",
+    "langchain",
+    "openai",
+    "gpt",
+    "typescript",
+    "nodejs",
+    "npm"
   ],
   "repository": {
     "type": "git",
