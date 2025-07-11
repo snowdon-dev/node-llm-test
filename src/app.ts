@@ -37,6 +37,8 @@ export function prepare(
   function popToken(): string {
     const idx = rand(inputWords.length);
     // TODO: Sometimes get two words
+    const getDuplicateWord = rand(1);
+    console.log(getDuplicateWord);
     const word = inputWords.splice(idx - 1, 1)[0];
     return word;
   }
@@ -60,7 +62,7 @@ export function prepare(
 
   const equalSymblsSet = ["%", "!", "+", "-", "_"];
 
-  const equalSymIdx = rand(equalSymblsSet.length) - 1;
+  const equalSymIdx = rand(equalSymblsSet.length);
   const equalSymbol = equalSymblsSet[equalSymIdx];
   const expressionDefinition = [
     ExpressionParts.OLD_OPARAND,
