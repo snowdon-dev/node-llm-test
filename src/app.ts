@@ -39,7 +39,7 @@ export function prepare(englishWords: string[], seed = 12345) {
   });
 
   const partialTokenizedSentence: string = words
-    .toSpliced(-1)
+    .slice(0, -1)
     .map((word) => tokenMap[word.toLowerCase()])
     .join(" ");
 
