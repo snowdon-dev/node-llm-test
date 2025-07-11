@@ -180,20 +180,20 @@ export function print(
   // Output
   output(
     `The symbol '${symbol}' defines a mapping between two character ` +
-      "sequences in a table, with each mapping separated by newline " +
-      "(\\n) characters.",
+      "sequences enclosed within ''. Each mapping is separated by newline " +
+      "(\\n) characters within a table.",
   );
   output("\n\n🗺️ Table of mappings:\n");
 
   Object.entries(randomizeRecord(tokenMap)).forEach(([old, newS]) => {
     const parts = {
-      [ExpressionParts.NEW_OPARAND]: newS,
-      [ExpressionParts.OLD_OPARAND]: old,
+      [ExpressionParts.NEW_OPARAND]: `'${newS}'`,
+      [ExpressionParts.OLD_OPARAND]: `'${old}'`,
       [ExpressionParts.OPERATOR]: ` ${symbol} `,
     };
     const msg = expression.expressionDefinition
       .map((key) => parts[key])
-      .join(" ");
+      .join("");
 
     output(msg + "\n");
   });
