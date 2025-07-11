@@ -37,6 +37,37 @@ const equalSymblsSet = [
   "=>",
 ];
 
+const panagrams = [
+  "The quick brown fox jumps over the lazy dog",
+  "Pack my box with five dozen liquor jugs",
+  "How vexingly quick daft zebras jump",
+  "The five boxing wizards jump quickly",
+  "Jackdaws love my big sphinx of quartz",
+  "Two driven jocks help fax my big quiz",
+  "Grumpy wizards make toxic brew for the evil queen and Jack",
+  "Just keep examining every low bid quoted for zinc etchings",
+  "Big fjords vex quick waltz nymph",
+
+  // Can't use this because comma breaks the words.join(' ') logic
+  //"Sphinx of black quartz, judge my vow",
+  //"Quick zephyrs blow, vexing daft Jim",
+  //"Waltz, bad nymph, for quick jigs vex",
+];
+
+const panagramsWords = panagrams.map((s) =>
+  s.split(/\s+/).map((str) => str.replace(",", "")),
+);
+
+if (
+  panagramsWords
+    .map((arr) => new Set(arr.join("").toLowerCase().split("")).size)
+    .some((v) => v !== 26)
+) {
+  throw new Error();
+}
+
+const panagramWordList = new Set(panagramsWords.flat());
+
 enum ExpressionParts {
   NEW_OPARAND,
   OPERATOR,
@@ -49,40 +80,39 @@ interface IExpressionResult {
   equalSymbol: string;
 }
 
-const sentenceDefault: string = "The quick brown fox jumps over the lazy dog";
+export function prepare(inputWords: string[], seed = 12345) {
+  const randH = mulberry32(seed);
+  const rand = (len: number) => Math.floor(randH() * (len + 1));
 
-export function prepare(
-  inputWords: string[],
-  seed = 12345,
-  sentence: string = sentenceDefault,
-) {
+  const sentenceIdx = rand(panagrams.length - 1);
+  const sentence = panagrams[sentenceIdx];
+
   // Split into words
   const words: string[] = sentence.split(/\s+/);
 
   // Map each unique word to a token
   const tokenMap: Record<string, string> = {};
 
-  const randH = mulberry32(seed);
-  const rand = (len: number) => Math.floor(randH() * (len + 1));
-
   const subUsedWords = -words.length;
-  const inputDeduped = new Set(words.concat(inputWords.slice(0, subUsedWords)));
+  const totalWords = Array.from(panagramWordList).concat(inputWords);
+  const inputDeduped = new Set(totalWords.slice(0, subUsedWords));
 
   /* pop from the input words to ensure zero mappings to sentence words */
   function popToken(): string {
-    const idx = rand(inputWords.length);
+    const idx = rand(totalWords.length - 1);
     return (
-      inputWords.splice(idx - 1, 1)[0] +
+      totalWords.splice(idx, 1)[0] +
       // read a second word sometimes
-      (rand(4) === 0 ? " " + inputWords[idx % inputWords.length] : "")
+      (rand(4) === 0 ? " " + totalWords[(idx + 1) % totalWords.length] : "")
     );
   }
 
   inputDeduped.forEach((word) => {
     const token = popToken();
-    if (token === undefined) {
+    if (token === undefined || (token !== undefined && token.trim() === "")) {
       throw new Error("Token error + " + word);
     }
+
     tokenMap[word] = token;
   });
 
@@ -128,6 +158,8 @@ export function prepare(
     tokenizedWords,
     tokenizedSentence,
     partialTokenizedSentence,
+    sentence,
+    sentenceWords: words,
 
     expression,
   };
