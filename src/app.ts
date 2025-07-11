@@ -179,7 +179,9 @@ export function print(
 
   // Output
   output(
-    `The symbol '${symbol}' defines a mapping between two character sequences in a table, with each mapping separated by a newline characters.`,
+    `The symbol '${symbol}' defines a mapping between two character ` +
+      "sequences in a table, with each mapping separated by newline " +
+      "(\\n) characters.",
   );
   output("\n\n🗺️ Table of mappings:\n");
 
