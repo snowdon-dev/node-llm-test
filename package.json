@@ -1,0 +1,27 @@
+{
+  "name": "node-llm-test",
+  "version": "0.1.0",
+  "description": "Generate tests to evaluate the intelligence of large language models.",
+  "author": "hello@snowdon.dev",
+  "files": [
+    "./"
+  ],
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "commonjs",
+  "bin": {
+    "nodellmtest": "src/cli.js"
+  },
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "prepare": "npm run build",
+    "run": "npx tsx cli.ts",
+    "genwords": "npx tsx genwords.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.12",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3"
+  }
+}
