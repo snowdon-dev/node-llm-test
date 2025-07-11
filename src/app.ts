@@ -15,38 +15,36 @@ interface IExpressionResult {
 const sentenceDefault: string = "The quick brown fox jumps over the lazy dog";
 
 export function prepare(
-  englishWords: string[],
+  inputWords: string[],
   seed = 12345,
   sentence: string = sentenceDefault,
 ) {
   // Split into words
   const words: string[] = sentence.split(/\s+/);
 
-  // Create a Set of unique lowercase words
-  const uniqueWords: Set<string> = new Set(
-    words.map((word) => word.toLowerCase()),
-  );
+  const uniqueWords = new Set(words);
 
   // Map each unique word to a token
   const tokenMap: Record<string, string> = {};
 
   const randH = mulberry32(seed);
   const rand = (len: number) => Math.floor(randH() * (len + 1));
-
+  
+  /* pop from the input words to ensure zero mappings to sentence words */
   function popToken(): string {
-    const idx = rand(englishWords.length);
+    const idx = rand(inputWords.length);
     // TODO: Sometimes get two words
-    const word = englishWords.splice(idx, 1)[0];
+    const word = inputWords.splice(idx, 1)[0];
     return word;
   }
 
-  new Set(Array.from(uniqueWords).concat(englishWords)).forEach((word) => {
+  new Set(Array.from(uniqueWords).concat(inputWords)).forEach((word) => {
     const token = popToken();
     if (token === undefined) return;
     tokenMap[word] = token;
   });
 
-  // TODO: englishWords may have a captials..
+  // TODO: englishWords may have captials..
   const partialTokenizedSentence: string = words
     .slice(0, -1)
     .map((word) => tokenMap[word.toLowerCase()])
