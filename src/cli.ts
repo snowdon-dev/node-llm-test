@@ -45,30 +45,47 @@ const rl = createInterface({
 });
 process.on("exit", () => rl.close());
 
+
+const args = process.argv.slice(2);
+const idx = args.indexOf('--number');
+
+let wordListNum = 200;
+if (!(idx === -1 || !args[idx+1])) {
+  const num = parseInt(args[idx+1], 10);
+  wordListNum = num;
+  if (Number.isNaN(num)) {
+    console.error('Error: --number must be a valid integer');
+    process.exit(1);
+  }
+}
+
+
+
 readSeed(rl).then(async (seed) => {
-  const englishWords = await getRandomWords(200);
+  const englishWords = await getRandomWords(wordListNum);
+
+  const result = prepare(englishWords, seed);
+
   const {
     tokenMap,
     partialTokenizedSentence,
     tokenizedSentence,
     correctAnswer,
     expression,
-  } = prepare(englishWords, seed);
 
-  console.log('\n')
+    sentence
+  } = result;
 
-  print(
-    partialTokenizedSentence,
-    tokenMap,
-    expression,
-    (...outs: string[]) => {
-      outs.forEach((str) => console.log(str));
-    },
-  );
+  console.log("\n");
+
+  print(partialTokenizedSentence, tokenMap, expression, (...outs: string[]) => {
+    outs.forEach((str) => console.log(str));
+  });
 
   console.log("\n\n");
   console.log("---- do not copy the following into the LLM");
   console.log("The correct answer is:\n" + tokenizedSentence);
+  console.log("The real sentence is:\n" + sentence);
 
   checkAnswer(rl, correctAnswer);
 });

@@ -1,1 +1,1 @@
-export * from "./app";
+export {print, prepare} from "./app";

@@ -1,6 +1,6 @@
 {
   "name": "node-llm-test",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Generate tests to evaluate the intelligence of large language models.",
   "author": "hello@snowdon.dev",
   "files": [
@@ -28,19 +28,24 @@
   "license": "SEE LICENSE IN LICENSE",
   "type": "commonjs",
   "bin": {
-    "nodellmtest": "src/cli.js"
+    "nodellmtest": "dist/cli.js"
   },
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
+    "test": "jest",
+    "build": "tsc --project tsconfig.build.json",
     "prepare": "npm run build",
-    "run": "npx tsx src/cli.ts",
-    "genwords": "npx tsx src/genwords.ts"
+    "run": "npx tsx --tsconfig tsconfig.build.json src/cli.ts",
+    "genwords": "npx tsx --tsconfig tsconfig.build.json src/genwords.ts"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.28.0",
+    "@babel/preset-typescript": "^7.27.1",
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.0.12",
+    "jest": "^30.0.4",
     "prettier": "^3.6.2",
+    "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
   }
 }
