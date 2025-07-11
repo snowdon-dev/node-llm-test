@@ -30,10 +30,11 @@ export function prepare(
   // Map each unique word to a token
   const tokenMap: Record<string, string> = {};
 
-  const rand = mulberry32(seed);
+  const randH = mulberry32(seed);
+  const rand = (len: number) => Math.floor(randH() * (len + 1));
 
   function popToken(): string {
-    const idx = Math.floor(rand() * englishWords.length);
+    const idx = rand(englishWords.length);
     // TODO: Sometimes get two words
     const word = englishWords.splice(idx, 1)[0];
     return word;
@@ -58,7 +59,7 @@ export function prepare(
 
   const equalSymblsSet = ["%", "!", "+", "-", "_"];
 
-  const equalSymIdx = Math.floor(rand() * equalSymblsSet.length);
+  const equalSymIdx = rand(equalSymblsSet.length);
   const equalSymbol = equalSymblsSet[equalSymIdx];
   const expressionDefinition = [
     ExpressionParts.OLD_OPARAND,
@@ -69,7 +70,7 @@ export function prepare(
   // randomize expression parts
   for (let k = 0; k < 4; k++) {
     for (let i = expressionDefinition.length - 1; i >= 0; i--) {
-      const j = Math.floor(rand() * (i + 1));
+      const j = rand(i);
       [expressionDefinition[i], expressionDefinition[j]] = [
         expressionDefinition[j],
         expressionDefinition[i],
