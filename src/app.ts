@@ -60,7 +60,7 @@ export function prepare(
 
   const equalSymblsSet = ["%", "!", "+", "-", "_"];
 
-  const equalSymIdx = rand(equalSymblsSet.length);
+  const equalSymIdx = rand(equalSymblsSet.length - 1);
   const equalSymbol = equalSymblsSet[equalSymIdx];
   const expressionDefinition = [
     ExpressionParts.OLD_OPARAND,
