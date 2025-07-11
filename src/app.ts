@@ -37,8 +37,6 @@ export function prepare(
   function popToken(): string {
     const idx = rand(inputWords.length);
     // TODO: Sometimes get two words
-    const getDuplicateWord = rand(1);
-    console.log(getDuplicateWord);
     const word = inputWords.splice(idx - 1, 1)[0];
     return word;
   }
