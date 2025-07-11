@@ -8,7 +8,7 @@ export function mulberry32(seed: number) {
   };
 }
 
-const simpleRandom = (len: number) => Math.floor(Math.random() * (i + 1));
+const simpleRandom = (len: number) => Math.floor(Math.random() * (len + 1));
 
 export function randomizeRecord(
   record: Record<string, string>,
