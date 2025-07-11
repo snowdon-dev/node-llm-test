@@ -1,5 +1,42 @@
 import { mulberry32, randomizeRecord } from "./random";
 
+const equalSymblsSet = [
+  "+",
+  "-",
+  "*",
+  "/",
+  "%",
+  "**",
+  "++",
+  "--",
+  "!=",
+  "!==",
+  ">",
+  "<",
+  ">=",
+  "<=",
+  "&&",
+  "||",
+  "!",
+  "??",
+  "&",
+  "|",
+  "^",
+  "~",
+  "<<",
+  ">>",
+  ">>>",
+  "?",
+  ":",
+  "...",
+  ",",
+  ".",
+  "[]",
+  "()",
+  "{}",
+  "=>",
+];
+
 enum ExpressionParts {
   NEW_OPARAND,
   OPERATOR,
@@ -29,16 +66,16 @@ export function prepare(
   const rand = (len: number) => Math.floor(randH() * (len + 1));
 
   const subUsedWords = -words.length;
-  const inputDeduped = new Set(
-    words.concat(inputWords.slice(0, subUsedWords)),
-  );
+  const inputDeduped = new Set(words.concat(inputWords.slice(0, subUsedWords)));
 
   /* pop from the input words to ensure zero mappings to sentence words */
   function popToken(): string {
     const idx = rand(inputWords.length);
-    // TODO: Sometimes get two words
-    const word = inputWords.splice(idx - 1, 1)[0];
-    return word;
+    return (
+      inputWords.splice(idx - 1, 1)[0] +
+      // read a second word sometimes
+      (rand(4) === 0 ? " " + inputWords[idx % inputWords.length] : "")
+    );
   }
 
   inputDeduped.forEach((word) => {
@@ -57,8 +94,6 @@ export function prepare(
 
   const tokenizedWords: string[] = words.map((word) => tokenMap[word]);
   const tokenizedSentence: string = tokenizedWords.join(" ");
-
-  const equalSymblsSet = ["%", "!", "+", "-", "_"];
 
   const equalSymIdx = rand(equalSymblsSet.length - 1);
   const equalSymbol = equalSymblsSet[equalSymIdx];
