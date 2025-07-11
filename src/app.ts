@@ -33,13 +33,16 @@ export function prepare(
   const rand = mulberry32(seed);
 
   function popToken(): string {
-    const idx = Math.floor(rand() * words.length);
+    const idx = Math.floor(rand() * englishWords.length);
     // TODO: Sometimes get two words
-    return englishWords.splice(idx, 1)[0];
+    const word = englishWords.splice(idx, 1)[0];
+    return word;
   }
 
   new Set(Array.from(uniqueWords).concat(englishWords)).forEach((word) => {
-    tokenMap[word] = popToken();
+    const token = popToken();
+    if (token === undefined) return;
+    tokenMap[word] = token;
   });
 
   // TODO: englishWords may have a captials..

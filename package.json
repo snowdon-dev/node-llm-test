@@ -6,9 +6,9 @@
   "files": [
     "./"
   ],
-   "repository": {
+  "repository": {
     "type": "git",
-    "url": "https://github.com/snowdon-dev/node-llm-test.git"
+    "url": "git+https://github.com/snowdon-dev/node-llm-test.git"
   },
   "license": "SEE LICENSE IN LICENSE",
   "type": "commonjs",
