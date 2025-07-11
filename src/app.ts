@@ -29,30 +29,32 @@ export function prepare(
 
   const randH = mulberry32(seed);
   const rand = (len: number) => Math.floor(randH() * (len + 1));
-  
+
   /* pop from the input words to ensure zero mappings to sentence words */
   function popToken(): string {
-    const idx = rand(inputWords.length);
+    const idx = rand(inputWords.length - words.length);
     // TODO: Sometimes get two words
     const word = inputWords.splice(idx, 1)[0];
     return word;
   }
 
-  new Set(Array.from(uniqueWords).concat(inputWords)).forEach((word) => {
+  new Set(
+    Array.from(uniqueWords).concat(inputWords.slice(0, -words.length)),
+  ).forEach((word) => {
     const token = popToken();
-    if (token === undefined) return;
+    if (token === undefined) {
+      throw new Error("Token error");
+    }
     tokenMap[word] = token;
   });
 
   // TODO: englishWords may have captials..
   const partialTokenizedSentence: string = words
     .slice(0, -1)
-    .map((word) => tokenMap[word.toLowerCase()])
+    .map((word) => tokenMap[word])
     .join(" ");
 
-  const tokenizedWords: string[] = words.map(
-    (word) => tokenMap[word.toLowerCase()],
-  );
+  const tokenizedWords: string[] = words.map((word) => tokenMap[word]);
   const tokenizedSentence: string = tokenizedWords.join(" ");
 
   const equalSymblsSet = ["%", "!", "+", "-", "_"];
@@ -95,14 +97,12 @@ export function prepare(
   };
 }
 
-
 export function print(
   partialTokenizedSentence: string,
   tokenMap: Record<string, string>,
   expression: IExpressionResult,
   output: (...outs: { toString(): string }[]) => void,
 ) {
-
   const symbol = expression.equalSymbol;
 
   // Output
