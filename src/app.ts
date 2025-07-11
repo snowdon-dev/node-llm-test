@@ -60,7 +60,7 @@ export function prepare(
 
   const equalSymblsSet = ["%", "!", "+", "-", "_"];
 
-  const equalSymIdx = rand(equalSymblsSet.length);
+  const equalSymIdx = rand(equalSymblsSet.length) - 1;
   const equalSymbol = equalSymblsSet[equalSymIdx];
   const expressionDefinition = [
     ExpressionParts.OLD_OPARAND,
@@ -108,7 +108,7 @@ export function print(
 
   // Output
   output(
-    `\n\nThe symbol '${symbol}' defines a mapping between two character sequences in a table, with each mapping separated by a newline characters.`,
+    `The symbol '${symbol}' defines a mapping between two character sequences in a table, with each mapping separated by a newline characters.`,
   );
   output("\n\n🗺️ Table of mappings:\n");
 

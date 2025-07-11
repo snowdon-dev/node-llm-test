@@ -55,6 +55,8 @@ readSeed(rl).then(async (seed) => {
     expression,
   } = prepare(englishWords, seed);
 
+  console.log('\n')
+
   print(
     partialTokenizedSentence,
     tokenMap,
