@@ -116,18 +116,21 @@ export function prepare(inputWords: string[], seed = 12345) {
 
     // TODO:
     // At random a lookup references another table column.
-    // word = {{reference "test"}}
+    // token = {{reference "test"}}
     tokenMap[word] = token;
   });
 
-  // TODO: englishWords may have captials..
-  const partialTokenizedSentence: string = words
-    .slice(0, -1)
-    .map((word) => tokenMap[word])
-    .join(" ");
+  const removedWordIdx = rand(words.length - 1);
 
   const tokenizedWords: string[] = words.map((word) => tokenMap[word]);
   const tokenizedSentence: string = tokenizedWords.join(" ");
+  const correctAnswer = tokenizedWords[removedWordIdx];
+  const realAnswer = words[removedWordIdx];
+
+  const partialTokenizedSentenceAsArray = [...tokenizedWords];
+  partialTokenizedSentenceAsArray[removedWordIdx] = "[...]";
+
+  const partialTokenizedSentence = partialTokenizedSentenceAsArray.join(" ");
 
   const equalSymIdx = rand(equalSymblsSet.length - 1);
   const equalSymbol = equalSymblsSet[equalSymIdx];
@@ -165,6 +168,9 @@ export function prepare(inputWords: string[], seed = 12345) {
     sentence,
     sentenceWords: words,
 
+    correctAnswer,
+    realAnswer,
+
     expression,
   };
 }
@@ -201,12 +207,14 @@ export function print(
   const msg =
     "\n\nTake into account the given symbolized sentence and\n" +
     "other contextual information. Complete the following tasks: \n\n" +
-    "- Finish the symbolised sentence.\n" +
+    "- Find the missing word in the symbolized sentence.\n" +
     "- Print your answer as concisely as possible.\n" +
-    "- Providing only your answer to complete the sentence. And show the input sentence in symbolized form.\n" +
+    "- Providing only your answer for the missing word. And show the input sentence in symbolized form.\n" +
     "- Do not provide the answer in english. Provide the answer in the symbolised form.\n\n";
 
   output(msg);
 
-  output("Incomplete symbolized sentence:\n" + partialTokenizedSentence);
+  output(
+    "Symbolized sentence with missing word:\n" + partialTokenizedSentence,
+  );
 }

@@ -51,7 +51,7 @@ readSeed(rl).then(async (seed) => {
     tokenMap,
     partialTokenizedSentence,
     tokenizedSentence,
-    tokenizedWords,
+    correctAnswer,
     expression,
   } = prepare(englishWords, seed);
 
@@ -70,5 +70,5 @@ readSeed(rl).then(async (seed) => {
   console.log("---- do not copy the following into the LLM");
   console.log("The correct answer is:\n" + tokenizedSentence);
 
-  checkAnswer(rl, tokenizedWords[tokenizedWords.length - 1]);
+  checkAnswer(rl, correctAnswer);
 });
