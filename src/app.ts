@@ -90,6 +90,8 @@ export function prepare(inputWords: string[], seed = 12345) {
   // Split into words
   const words: string[] = sentence.split(/\s+/);
 
+  // TODO: Don't always remove the last word
+
   // Map each unique word to a token
   const tokenMap: Record<string, string> = {};
 
@@ -97,7 +99,6 @@ export function prepare(inputWords: string[], seed = 12345) {
   const totalWords = Array.from(panagramWordList).concat(inputWords);
   const inputDeduped = new Set(totalWords.slice(0, subUsedWords));
 
-  /* pop from the input words to ensure zero mappings to sentence words */
   function popToken(): string {
     const idx = rand(totalWords.length - 1);
     return (
@@ -113,6 +114,9 @@ export function prepare(inputWords: string[], seed = 12345) {
       throw new Error("Token error + " + word);
     }
 
+    // TODO:
+    // At random a lookup references another table column.
+    // word = {{reference "test"}}
     tokenMap[word] = token;
   });
 
@@ -197,7 +201,7 @@ export function print(
     "other contextual information. Complete the following tasks: \n\n" +
     "- Finish the symbolised sentence.\n" +
     "- Print your answer as concisely as possible.\n" +
-    "- Providing only the result as a symbolized sequence of character. And show the input sentence symbolized.\n" +
+    "- Providing only your answer to complete the sentence. And show the input sentence in symbolized form.\n" +
     "- Do not provide the answer in english. Provide the answer in the symbolised form.\n\n";
 
   output(msg);
