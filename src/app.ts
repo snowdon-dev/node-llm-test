@@ -1,4 +1,4 @@
-import { mulberry32 } from "./random";
+import { mulberry32, randomizeRecord } from "./random";
 
 enum ExpressionParts {
   NEW_OPARAND,
@@ -95,34 +95,21 @@ export function prepare(
   };
 }
 
+
 export function print(
   partialTokenizedSentence: string,
   tokenMap: Record<string, string>,
   expression: IExpressionResult,
-  outputFunc: (...outs: { toString(): string }[]) => void,
+  output: (...outs: { toString(): string }[]) => void,
 ) {
-  function randomizeRecord(
-    record: Record<string, string>,
-  ): Record<string, string> {
-    const entries = Object.entries(record);
-    for (let step = 0; step < 2; step++) {
-      // Shuffle using Fisher-Yates algorithm
-      for (let i = entries.length - 1; i >= 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [entries[i], entries[j]] = [entries[j], entries[i]];
-      }
-    }
-    // Convert back to a Record
-    return Object.fromEntries(entries);
-  }
 
   const symbol = expression.equalSymbol;
 
   // Output
-  outputFunc(
-    `\n\nThe symbol '${symbol}' defines a mapping between two character sequences in a table, with each maping separated by a newline characters.`,
+  output(
+    `\n\nThe symbol '${symbol}' defines a mapping between two character sequences in a table, with each mapping separated by a newline characters.`,
   );
-  outputFunc("\n\n🗺️ Table of mappings:\n");
+  output("\n\n🗺️ Table of mappings:\n");
 
   Object.entries(randomizeRecord(tokenMap)).forEach(([old, newS]) => {
     const parts = {
@@ -134,7 +121,7 @@ export function print(
       .map((key) => parts[key])
       .join(" ");
 
-    outputFunc(msg + "\n");
+    output(msg + "\n");
   });
 
   const msg =
@@ -145,7 +132,7 @@ export function print(
     "- Providing only the result as a symbolized sequence of character. And show the input sentence symbolized.\n" +
     "- Do not provide the answer in english. Provide the answer in the symbolised form.\n\n";
 
-  outputFunc(msg);
+  output(msg);
 
-  outputFunc("Incomplete symbolized sentence:\n" + partialTokenizedSentence);
+  output("Incomplete symbolized sentence:\n" + partialTokenizedSentence);
 }
