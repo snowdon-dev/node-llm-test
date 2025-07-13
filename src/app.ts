@@ -194,8 +194,8 @@ export function getInitialDescription(symbol: string, expressionDefinition: Expr
 
   return (
     `The symbol '${symbol}' defines a mapping between two character ` +
-    "sequences enclosed within ''. Each mapping is separated by a newline " +
-    "(\\n) character within the table.\n" +
+    "sequences enclosed within ''\n. Each mapping in the table is separated by a newline " +
+    "(\\n) character.\n" +
     "The order of the mapping is: " + order
   );
 }
