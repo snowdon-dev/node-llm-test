@@ -6,7 +6,7 @@ import {
   getTableMappingHeader,
   getMappingMessage,
   getInstructionsMessage,
-  getSymbolizedSentenceOutput,
+  getSymbolisedSentenceOutput,
 } from "../app";
 
 function replaceCharAt(str: string, index: number, newChar: string): string {
@@ -112,7 +112,7 @@ describe("print", () => {
 
     expect(allOutputCalls).toContain(getInstructionsMessage());
     expect(allOutputCalls).toContain(
-      getSymbolizedSentenceOutput(mockPartialTokenizedSentence),
+      getSymbolisedSentenceOutput(mockPartialTokenizedSentence),
     );
   });
 });
