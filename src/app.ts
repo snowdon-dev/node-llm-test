@@ -1,4 +1,4 @@
-import { mulberry32, randomizeRecord } from "./random";
+import { getRandomOrder, mulberry32, randomizeRecord } from "./random";
 
 const equalSymblsSet = [
   "+",
@@ -66,7 +66,7 @@ if (
   throw new Error();
 }
 
-const panagramWordList = new Set(panagramsWords.flat());
+const panagramWordList = panagramsWords.flat();
 
 export enum ExpressionParts {
   NEW_OPARAND,
@@ -90,16 +90,24 @@ export function prepare(inputWords: string[], seed = 12345) {
   const words: string[] = sentence.split(/\s+/);
 
   // Map each unique word to a token
-  const totalWords = new Set([...panagramWordList, ...inputWords]);
+  const totalWords = new Set<string>();
+  for (let i = 0; i < panagramWordList.length; i++) {
+    totalWords.add(panagramWordList[i]);
+  }
+  for (let i = 0; i < inputWords.length; i++) {
+    totalWords.add(inputWords[i]);
+  }
   const inputDeduped = Array.from(totalWords);
+  const randomArr = getRandomOrder(inputDeduped, rand);
   const tokenMap: Record<string, string> = {};
 
   function popToken(): string {
-    const idx = rand(inputDeduped.length - 1);
+    const idx = rand(randomArr.length - 1);
     return (
-      inputDeduped[idx] +
-      // read a second word sometimes
-      // TODO: return tokens or add tokens. Either remove the current (maps to
+      // token without duplicates
+      randomArr.pop() +
+      // read a second (possible duplicate) word sometimes
+      // TODO: remove or add tokens. Either remove the current (maps to
       //  ''), or add tokens.
       (rand(4) < 2 ? " " + inputDeduped[(idx + 1) % inputDeduped.length] : "")
     );
@@ -173,31 +181,39 @@ export function prepare(inputWords: string[], seed = 12345) {
 }
 
 /**
- * - read a single single answer
+ * TOOD:
+ * - read a single answer
  * - read all the chatgpt ouutput
  */
-export function answer(): boolean {
+export function answer(strIn: string): boolean {
+  void strIn;
   return false;
 }
 
-export function getInitialDescription(symbol: string, expressionDefinition: ExpressionParts[]): string {
-  const order = expressionDefinition.map(item => {
-    switch (item) {
-      case ExpressionParts.NEW_OPARAND:
-        return "new word";
-      case ExpressionParts.OLD_OPARAND:
-        return "old word";
-      case ExpressionParts.OPERATOR:
-        return null; 
-    } 
-  }).filter(v => v !== null).join(' - ');
+export function getInitialDescription(
+  symbol: string,
+  expressionDefinition: ExpressionParts[],
+): string {
+  const order = expressionDefinition
+    .map((item) => {
+      switch (item) {
+        case ExpressionParts.NEW_OPARAND:
+          return "new word";
+        case ExpressionParts.OLD_OPARAND:
+          return "old word";
+        case ExpressionParts.OPERATOR:
+          return null;
+      }
+    })
+    .filter((v) => v !== null);
 
   return (
-    'The following describes a puzzle. To complete the game you must figure out the missing word without asking any questions.\n\n' +
-    `The symbol '${symbol}' defines a mapping between two character ` +
-    "sequences enclosed within ''\n. Each mapping in the table is separated by a newline " +
+    "The following describes a puzzle. To complete the game you must figure out the missing word without asking any questions.\n\n" +
+    "You will be given a sentence that has a missing word and has been converted into a symbolised form.\n" +
+    `The operator '${symbol}' defines a mapping between two character ` +
+    "sequences enclosed within ''.\nEach mapping in the table is separated by a newline " +
     "(\\n) character.\n" +
-    "The order of the mapping expression is: " + order + '.'
+    `The ${order[0]} comes before ${order[1]} in the mapping expression.`
   );
 }
 
@@ -216,22 +232,21 @@ export function getMappingMessage(
     [ExpressionParts.OLD_OPARAND]: `'${oldS}'`,
     [ExpressionParts.OPERATOR]: `${symbol}`,
   };
-  const build = expressionDefinition
-    .map((key) => parts[key]);
+  const build = expressionDefinition.map((key) => parts[key]);
 
-  build.splice(1, 0, ' ');
-  build.splice(3, 0, ' ')
-  
-  return build.join("") + "\n";
+  build.splice(1, 0, " ");
+  build.splice(3, 0, " ");
+
+  return build.join("");
 }
 
 export function getInstructionsMessage(): string {
   return (
     "\n\nTake into account the given symbolised sentence and\n" +
     "other contextual information. Complete the following tasks: \n\n" +
-    "- Find the missing word in the symbolised sentence.\n" +
+    "- Find the missing word in the sentence.\n" +
     "- Print your answer as concisely as possible.\n" +
-    "- Providing only your answer for the missing word. And show the input sentence in symbolised form.\n" +
+    "- Provide your answer for the missing word. And show the input sentence in symbolised form.\n" +
     "- Do not provide the answer in english. Provide the answer in the symbolised form.\n\n"
   );
 }

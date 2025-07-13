@@ -1,4 +1,7 @@
 import { createInterface, Interface } from "readline";
+import { join } from "path";
+import { tmpdir } from "os";
+import { createWriteStream } from "fs";
 import { getRandomWords } from "./randomfile";
 import { prepare, print } from "./app";
 
@@ -45,21 +48,24 @@ const rl = createInterface({
 });
 process.on("exit", () => rl.close());
 
-
 const args = process.argv.slice(2);
-const idx = args.indexOf('--number');
 
+const idx = args.indexOf("--number");
 let wordListNum = 200;
-if (!(idx === -1 || !args[idx+1])) {
-  const num = parseInt(args[idx+1], 10);
+if (!(idx === -1 || !args[idx + 1])) {
+  const num = parseInt(args[idx + 1], 10);
   wordListNum = num;
   if (Number.isNaN(num)) {
-    console.error('Error: --number must be a valid integer');
+    console.error("Error: --number must be a valid integer");
     process.exit(1);
   }
 }
 
-
+let write = false;
+const writeIdx = args.indexOf("--write");
+if (writeIdx !== -1) {
+  write = true;
+}
 
 readSeed(rl).then(async (seed) => {
   const englishWords = await getRandomWords(wordListNum);
@@ -73,17 +79,46 @@ readSeed(rl).then(async (seed) => {
     correctAnswer,
     expression,
 
-    sentence
+    sentence,
   } = result;
 
   console.log("\n");
 
-  print(partialTokenizedSentence, tokenMap, expression, (...outs: string[]) => {
+  function setupFileWriter() {
+    const tempDir = tmpdir();
+    const fileName = `sd_llmtest_${Date.now()}.txt`;
+    const tempFilePath = join(tempDir, fileName);
+    return tempFilePath;
+  }
+  const fileWriter = (tempFilePath: string) => {
+    const writeStream = createWriteStream(tempFilePath, {
+      flags: "a",
+    });
+    process.on("exit", () => writeStream.close());
+    return function (...outs: string[]) {
+      outs.forEach((line) => {
+        writeStream.write(line + "\n");
+      });
+    };
+  };
+  const consolePrinter = (...outs: string[]) => {
     outs.forEach((str) => console.log(str));
-  });
+  };
+
+  let writerFn: (...outs: string[]) => void;
+  let msg = '';
+  if (write) {
+    const path = setupFileWriter();
+    msg += 'Writing the test to the file:\n' + path + "\n\n";
+    writerFn = fileWriter(path);
+  } else {
+    writerFn = consolePrinter;
+  }
+
+  print(partialTokenizedSentence, tokenMap, expression, writerFn);
 
   console.log("\n\n");
-  console.log("---- do not copy the following into the LLM");
+  console.log("---- do not copy the following into the LLM\n\n" + msg);
   console.log("The correct answer is:\n" + tokenizedSentence);
   console.log("The real sentence is:\n" + sentence);
 

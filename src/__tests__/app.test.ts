@@ -95,7 +95,10 @@ describe("print", () => {
     const allOutputCalls = output.mock.calls.flat();
 
     expect(allOutputCalls[0]).toBe(
-      getInitialDescription(mockExpression.equalSymbol),
+      getInitialDescription(
+        mockExpression.equalSymbol,
+        mockExpression.expressionDefinition,
+      ),
     );
     expect(allOutputCalls[1]).toBe(getTableMappingHeader());
 

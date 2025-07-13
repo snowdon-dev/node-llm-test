@@ -12,7 +12,7 @@ const simpleRandom = (len: number) => Math.floor(Math.random() * (len + 1));
 
 export function randomizeRecord(
   record: Record<string, string>,
-  rand: (len: number) => number = simpleRandom
+  rand: (len: number) => number = simpleRandom,
 ): Record<string, string> {
   const entries = Object.entries(record);
   for (let step = 0; step < 2; step++) {
@@ -26,3 +26,14 @@ export function randomizeRecord(
   return Object.fromEntries(entries);
 }
 
+export function getRandomOrder<T>(
+  array: T[],
+  rand: (len: number) => number,
+) {
+  const shuffled = array.slice(); // make a copy
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = rand(shuffled.length - 1);
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}

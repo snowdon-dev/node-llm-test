@@ -1,11 +1,29 @@
 # node-llm-test
 
+<!--toc:start-->
+- [node-llm-test](#node-llm-test)
+  - [CLI usage](#cli-usage)
+  - [An example of deep reason failure](#an-example-of-deep-reason-failure)
+    - [ChatGPTs answer](#chatgpts-answer)
+    - [Thoughts](#thoughts)
+    - [ChatGPTs thinking](#chatgpts-thinking)
+<!--toc:end-->
+
 I noticed that all AIs seem to fail using the tools that I use. I wondered if
 this was because of the lack of public information to train them on. This test
 proves it.
 
-- See the video I made this for at: youtube.com/@snowdon-dev.
-- See the web app at: https://marketeer.snowdon.dev/tools/llmtest-online/
+- See the video I made this for at: <https://youtube.com/@snowdon-dev>.
+- See the web app at: <https://marketeer.snowdon.dev/tools/llmtest-online/>.
+
+## CLI usage
+
+To run the CLI `npm run run`.
+
+| Argument | Parameters | Description |
+| -------------- | --------------- | ------------- |
+| `--number <number>` | Integer (I.e. 600), defafult 200 | The number of words in the wordlist |
+| `--write` | Boolean, default false | write to a temporary file |
 
 ---
 
@@ -29,12 +47,13 @@ Symbolised: subtext beshag fifteen jump [...] dozen currant
 The answer is: subtext beshag fifteen jump starch dozen currant
 ```
 
-ChatGPT notes that `'subtext' to 'sterve'`, but in-fact `'port' 'subtext'`, and
-it never corrects itself. However, it does figure outs the decoded sentence is
-a panagram. Which is technically impossible. However, it concluded that it's
-the wrong panagram. I have no idea how it figured that out, chances are it just
-guessed (perhaps based on the sentence size, since there was no multiple word
-mapping included). Often it just assumes its the quick brown fox.. panagram.
+ChatGPT notes that `'subtext' to 'sterve'`, but in-fact `'Big' to 'subtext'`,
+and it never corrects itself. However, it does figure outs the decoded sentence
+is a panagram, which is technically impossible. But, it somehow concluded
+that it's the wrong panagram. I have no idea how it figured that out, chances
+are it just guessed (perhaps based on the sentence size, since there was no
+multiple word mapping included) or from the memories that I have told it not to
+use. Often it just assumes its the quick brown fox.. panagram.
 
 ### ChatGPTs thinking
 
