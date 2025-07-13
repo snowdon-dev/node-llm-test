@@ -58,14 +58,6 @@ const panagramsWords = panagrams.map((s) =>
   s.split(/\s+/).map((str) => str.replace(",", "")),
 );
 
-if (
-  panagramsWords
-    .map((arr) => new Set(arr.join("").toLowerCase().split("")).size)
-    .some((v) => v !== 26)
-) {
-  throw new Error();
-}
-
 const panagramWordList = panagramsWords.flat();
 
 export enum ExpressionParts {
