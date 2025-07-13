@@ -226,19 +226,19 @@ export function getMappingMessage(
 
 export function getInstructionsMessage(): string {
   return (
-    "\n\nTake into account the given symbolized sentence and\n" +
+    "\n\nTake into account the given symbolised sentence and\n" +
     "other contextual information. Complete the following tasks: \n\n" +
-    "- Find the missing word in the symbolized sentence.\n" +
+    "- Find the missing word in the symbolised sentence.\n" +
     "- Print your answer as concisely as possible.\n" +
-    "- Providing only your answer for the missing word. And show the input sentence in symbolized form.\n" +
+    "- Providing only your answer for the missing word. And show the input sentence in symbolised form.\n" +
     "- Do not provide the answer in english. Provide the answer in the symbolised form.\n\n"
   );
 }
 
-export function getSymbolizedSentenceOutput(
+export function getSymbolisedSentenceOutput(
   partialTokenizedSentence: string,
 ): string {
-  return "Symbolized sentence with missing word:\n" + partialTokenizedSentence;
+  return "Symbolised sentence with missing word:\n" + partialTokenizedSentence;
 }
 
 export function print(
@@ -261,5 +261,5 @@ export function print(
 
   output(getInstructionsMessage());
 
-  output(getSymbolizedSentenceOutput(partialTokenizedSentence));
+  output(getSymbolisedSentenceOutput(partialTokenizedSentence));
 }
