@@ -26,7 +26,8 @@ Real: Big fjords vex quick waltz nymph
 
 Symbolised: subtext beshag fifteen jump [...] dozen currant
 
-The answer is: subtext beshag fifteen jump starch dozen currant ```
+The answer is: subtext beshag fifteen jump starch dozen currant
+```
 
 ChatGPT notes that `'subtext' to 'sterve'`, but in-fact `'port' 'subtext'`, and
 it never corrects itself. However, it does figure outs the decoded sentence is
