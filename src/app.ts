@@ -90,16 +90,18 @@ export function prepare(inputWords: string[], seed = 12345) {
   const words: string[] = sentence.split(/\s+/);
 
   // Map each unique word to a token
+  const totalWords = new Set([...panagramWordList, ...inputWords]);
+  const inputDeduped = Array.from(totalWords);
   const tokenMap: Record<string, string> = {};
-  const totalWords = Array.from(panagramWordList).concat(inputWords);
-  const inputDeduped = new Set(totalWords);
 
   function popToken(): string {
-    const idx = rand(totalWords.length - 1);
+    const idx = rand(inputDeduped.length - 1);
     return (
-      totalWords.splice(idx, 1)[0] +
+      inputDeduped[idx] +
       // read a second word sometimes
-      (rand(4) < 2 ? " " + totalWords[(idx + 1) % totalWords.length] : "")
+      // TODO: return tokens or add tokens. Either remove the current (maps to
+      //  ''), or add tokens.
+      (rand(4) < 2 ? " " + inputDeduped[(idx + 1) % inputDeduped.length] : "")
     );
   }
 
@@ -170,11 +172,31 @@ export function prepare(inputWords: string[], seed = 12345) {
   };
 }
 
-export function getInitialDescription(symbol: string): string {
+/**
+ * - read a single single answer
+ * - read all the chatgpt ouutput
+ */
+export function answer(): boolean {
+  return false;
+}
+
+export function getInitialDescription(symbol: string, expressionDefinition: ExpressionParts[]): string {
+  const order = expressionDefinition.map(item => {
+    switch (item) {
+      case ExpressionParts.NEW_OPARAND:
+        return "new word";
+      case ExpressionParts.OLD_OPARAND:
+        return "old word";
+      case ExpressionParts.OPERATOR:
+        return null; 
+    } 
+  }).filter(v => v !== null).join(' - ');
+
   return (
     `The symbol '${symbol}' defines a mapping between two character ` +
     "sequences enclosed within ''. Each mapping is separated by a newline " +
-    "(\\n) character within the table."
+    "(\\n) character within the table.\n" +
+    "The order of the mapping is: " + order
   );
 }
 
@@ -191,9 +213,15 @@ export function getMappingMessage(
   const parts = {
     [ExpressionParts.NEW_OPARAND]: `'${newS}'`,
     [ExpressionParts.OLD_OPARAND]: `'${oldS}'`,
-    [ExpressionParts.OPERATOR]: ` ${symbol} `,
+    [ExpressionParts.OPERATOR]: `${symbol}`,
   };
-  return expressionDefinition.map((key) => parts[key]).join(" ") + "\n";
+  const build = expressionDefinition
+    .map((key) => parts[key]);
+
+  build.splice(1, 0, ' ');
+  build.splice(3, 0, ' ')
+  
+  return build.join("") + "\n";
 }
 
 export function getInstructionsMessage(): string {
@@ -222,7 +250,7 @@ export function print(
   const symbol = expression.equalSymbol;
 
   // Output
-  output(getInitialDescription(symbol));
+  output(getInitialDescription(symbol, expression.expressionDefinition));
   output(getTableMappingHeader());
 
   Object.entries(randomizeRecord(tokenMap)).forEach(([old, newS]) => {
