@@ -1,7 +1,13 @@
 # node-llm-test
 
+- See the video I made this for at: <https://youtube.com/@snowdon-dev>.
+- See the web app at: <https://marketeer.snowdon.dev/tools/llmtest-online/>.
+
 <!--toc:start-->
 - [node-llm-test](#node-llm-test)
+  - [The puzzle](#the-puzzle)
+  - [Notes about the implementation](#notes-about-the-implementation)
+  - [Why was this created](#why-was-this-created)
   - [CLI usage](#cli-usage)
   - [An example of deep reason failure](#an-example-of-deep-reason-failure)
     - [ChatGPTs answer](#chatgpts-answer)
@@ -9,12 +15,41 @@
     - [ChatGPTs thinking](#chatgpts-thinking)
 <!--toc:end-->
 
-I noticed that all AIs seem to fail using the tools that I use. I wondered if
+## The puzzle
+
+LLMs cannot solve this puzzle effectively because they rely on statistical
+patterns, which this test disrupts by introducing a constructed language with
+minimal statistical grounding. If an LLM could truly reason, the task would be
+trivial. While identifying the missing word is difficult for a human, especially
+someone like me who doesn’t typically engage with grammatical puzzles, it
+should, in theory, be simple for an LLM.
+
+For example, given the sequence “the quick brown `[..]`”, an LLM will almost
+always guess the correct next word based purely on probability. However, to
+pass this test, the LLM must go beyond prediction. It must first reason through
+the encoded sentence, translate it into natural English, complete the sentence,
+and then convert it back to the encoded form to select the correct missing
+word.
+
+## Notes about the implementation
+
+I’ve also introduced randomness into the puzzle generation process. This
+ensures that even if an LLM has access to solved examples, any newly generated
+test will differ significantly in its wording and structure, making
+memorization ineffective.
+
+Importantly, while each test is deterministic given a fixed wordlist, seed, and
+code version—meaning the same inputs will always produce the same encoded and
+decoded sentences—this determinism can break if the code version changes or the
+underlying wordlist is updated. To preserve reproducibility, I can provide
+options for using a static wordlist and locking the process to a specific code
+tag. Let me know if you'd like support for that.
+
+## Why was this created
+
+I noticed that all AIs seem to fail using the tools that I use. I wondered if",
 this was because of the lack of public information to train them on. This test
 proves it.
-
-- See the video I made this for at: <https://youtube.com/@snowdon-dev>.
-- See the web app at: <https://marketeer.snowdon.dev/tools/llmtest-online/>.
 
 ## CLI usage
 
@@ -47,13 +82,15 @@ Symbolised: subtext beshag fifteen jump [...] dozen currant
 The answer is: subtext beshag fifteen jump starch dozen currant
 ```
 
-ChatGPT notes that `'subtext' to 'sterve'`, but in-fact `'Big' to 'subtext'`,
-and it never corrects itself. However, it does figure outs the decoded sentence
-is a panagram, which is technically impossible. But, it somehow concluded
-that it's the wrong panagram. I have no idea how it figured that out, chances
-are it just guessed (perhaps based on the sentence size, since there was no
-multiple word mapping included) or from the memories that I have told it not to
-use. Often it just assumes its the quick brown fox.. panagram.
+ChatGPT incorrectly notes a mapping from `'subtext'` to `'sterve'`, when in
+fact the correct mapping is from `'Big'` to `'subtext'`. It never corrects this
+mistake. Interestingly, it does recognize that the decoded sentence is a
+pangram, which should be technically impossible under the constraints of the
+puzzle. However, it concludes that it’s the *wrong* pangram. I have no idea how
+it arrived at that conclusion; it likely guessed, perhaps based on the sentence
+length (since no multi-word mappings were present), or possibly from memories
+it was instructed not to use. Frequently, it simply assumes the sentence is the
+classic "The quick brown fox..." pangram.
 
 ### ChatGPTs thinking
 
