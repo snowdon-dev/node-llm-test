@@ -193,10 +193,11 @@ export function getInitialDescription(symbol: string, expressionDefinition: Expr
   }).filter(v => v !== null).join(' - ');
 
   return (
+    'The following describes a puzzle. To complete the game you must figure out the missing word without asking any questions.\n\n' +
     `The symbol '${symbol}' defines a mapping between two character ` +
     "sequences enclosed within ''\n. Each mapping in the table is separated by a newline " +
     "(\\n) character.\n" +
-    "The order of the mapping is: " + order
+    "The order of the mapping expression is: " + order + '.'
   );
 }
 
