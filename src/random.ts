@@ -32,7 +32,7 @@ export function getRandomOrder<T>(
 ) {
   const shuffled = array.slice(); // make a copy
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = rand(shuffled.length - 1);
+    const j = rand(shuffled.length);
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   return shuffled;
