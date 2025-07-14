@@ -134,7 +134,6 @@ export function prepare(
       // token without duplicates
       randomArr.pop() +
       // read a second (possible duplicate) word sometimes
-      // TODO: remove or add tokens. Either remove (maps to ''), or add tokens.
       (rand(4) < 2 ? " " + inputDeduped[idx] : "")
     );
   }
@@ -145,9 +144,13 @@ export function prepare(
       throw new Error("Token error + " + word);
     }
 
+    // TODO: remove or add tokens. Either remove (maps to ''), or add tokens.
+
     // TODO:
     // At random a lookup references another table column.
     // token = {{reference "test"}}
+    
+    // TODO: word should not be a capital - since it gives away to much info
     tokenMap[word] = token;
   });
 

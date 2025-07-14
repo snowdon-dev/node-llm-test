@@ -67,8 +67,7 @@ const {
   tokenMap,
   partialTokenizedSentence,
   expression,
-} = prepare();
-
+} = prepare([/*someWordList*/], Math.random() * (2^31 - 1));
 
 print(partialTokenizedSentence, tokenMap, expression, console.log);
 ```

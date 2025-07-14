@@ -79,7 +79,7 @@ if (write) {
 }
 
 readSeed(rl).then(async (seed) => {
-  const englishWords = await getRandomWords(wordListNum);
+  const englishWords = await getRandomWords(wordListNum, seed);
 
   const result = prepare(englishWords, seed);
 
@@ -130,5 +130,6 @@ readSeed(rl).then(async (seed) => {
   console.log("The correct answer is:\n" + tokenizedSentence);
   console.log("The real sentence is:\n" + sentence);
 
+  // TODO: await input from an LLM, allow the llm to check its output
   checkAnswer(rl, correctAnswer);
 });
