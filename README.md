@@ -3,7 +3,10 @@
 - See the video I made this for at: <https://youtube.com/@snowdon-dev>.
 - See the web app at: <https://marketeer.snowdon.dev/tools/llmtest-online/>.
 
-To use this package commercially, please contact me at hello@snowdon.dev. You are also welcome to review the documentation or explore the web app at your convenience. To learn more see a from the Oxford AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
+Commercial use of this code package requires permission—please contact me at
+<hello@snowdon.dev> if you intend to use it for such purposes. The web app,
+however, is freely available for you to explore at your convenience.
+To learn more from the Oxford AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
 
 <!--toc:start-->
 - [node-llm-test](#node-llm-test)
