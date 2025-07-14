@@ -12,6 +12,7 @@
   - [Programmatic Usage](#programmatic-usage)
   - [CLI usage](#cli-usage)
   - [An example of deep reason failure](#an-example-of-deep-reason-failure)
+    - [Gemini 2.5 Pro (gets close)](#gemini-25-pro-gets-close)
     - [ChatGPTs answer](#chatgpts-answer)
     - [Thoughts](#thoughts)
     - [ChatGPTs thinking](#chatgpts-thinking)
