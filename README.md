@@ -8,6 +8,8 @@
   - [The puzzle](#the-puzzle)
   - [Notes about the implementation](#notes-about-the-implementation)
   - [Why was this created](#why-was-this-created)
+  - [Install](#install)
+  - [Programmatic Usage](#programmatic-usage)
   - [CLI usage](#cli-usage)
   - [An example of deep reason failure](#an-example-of-deep-reason-failure)
     - [ChatGPTs answer](#chatgpts-answer)
@@ -47,9 +49,28 @@ tag. Let me know if you'd like support for that.
 
 ## Why was this created
 
-I noticed that all AIs seem to fail using the tools that I use. I wondered if",
-this was because of the lack of public information to train them on. This test
+I noticed that all AIs seem to fail using the tools that I use. I wondered if
+it was because of the lack of public information to train them on. This test
 proves it.
+
+## Install
+
+`npm install node-llm-test`
+
+## Programmatic Usage
+
+```javascript
+import { prepare, print } from 'node-llm-test';
+
+const {
+  tokenMap,
+  partialTokenizedSentence,
+  expression,
+} = prepare();
+
+
+print(partialTokenizedSentence, tokenMap, expression, console.log);
+```
 
 ## CLI usage
 
@@ -58,17 +79,596 @@ To run the CLI `npm run run`.
 | Argument | Parameters | Description |
 | -------------- | --------------- | ------------- |
 | `--number <number>` | Integer (I.e. 600), defafult 200 | The number of words in the wordlist |
-| `--write` | Boolean, default false | write to a temporary file |
+| `--write [filepath]` | Boolean or string, default false | write to a temporary file or the target path|
 
 ---
 
 ## An example of deep reason failure
 
+### Gemini 2.5 Pro (gets close)
+
+For some reason it picks - `'protege' ** 'veinage'`
+
+```txt
+The correct answer is:
+fear jaunt librate pyic Yuan of examining protege
+The real sentence is:
+Big fjords vex quick waltz nymph
+```
+
+```txt
+Dissecting the Substitution
+
+I've been examining the table to decipher the substitution cipher. The format
+is clear: "word1" ** "word2", indicating a direct mapping. My focus now is on
+identifying patterns within the mappings, specifically recurring words or
+sequences, to determine the underlying structure of the cipher. I'm looking for
+clues to crack it.
+
+Decoding the Sentence
+
+I'm now focused on working backwards through the mapping table to decode the
+provided symbolised sentence.  My strategy is to find the source words that map
+to each of the encoded words in the sequence.  This requires a reverse lookup
+in the mapping table, which I've started to construct. The goal is to identify
+the source pattern and then determine the missing "symbolised" word. I believe
+identifying the pattern is the key.
+
+Deciphering the Sequence
+
+I've made significant progress by focusing on the sequences within the mapping
+table. Examining "examining protege" together reveals its origin, "nymph",
+indicating these words function as a unit within the cipher. This confirms the
+importance of identifying phrases. Next, I need to analyze the beginning of the
+sequence to solve the puzzle, and determine where the missing word should
+originate.
+
+Identifying the Root Phrase
+
+I'm now focusing on a more exhaustive search of the mapping table, specifically
+looking for multi-word mappings that might correspond to longer sequences
+within the symbolised sentence. The goal is to identify a source phrase that,
+through a series of substitutions, produces the target sequence. By starting
+with the known phrase, "examining protege," and working backwards through the
+mappings, I hope to uncover the pattern that can be extended to find the
+missing initial segment. This reverse mapping table is becoming increasingly
+important.
+
+Mapping the Puzzle Pieces
+
+I'm now tracing the symbolised sentence back to its original form using the
+mapping table. It appears that the source words don't map directly, but are
+likely the results of sequential, or overlapping mappings.  I'm focusing on the
+"examining protege" sequence, which decodes to "nymph," to better understand
+how the mapping operates on word groups within the overall phrase.
+
+Solving the Cipher
+
+I'm now focusing on a more systematic approach to decode the cipher,
+concentrating on identifying longer phrases and their corresponding mappings.
+My goal is to work backwards from the known sequence "jaunt librate pyic Yuan
+of examining protege" and uncover the source phrase that corresponds to it.
+This requires a deeper dive into the relationship between the words. I'm trying
+to determine if there are single mappings for word groups.
+
+Revising the Decoding Approach
+
+I've shifted my focus to a chain-of-thought strategy, assuming a sequential
+substitution process. The goal is to work through the mappings to identify the
+initial word. I'm prioritizing the end of the symbolised sentence, tracing the
+steps back. This feels like the right track. I'm focusing on the sequential
+nature of the mappings. I believe I am close to solving it.
+
+Analyzing the Mapping Table
+
+I'm now focused on the underlying structure of the word mappings. Initially, I
+thought that I had to trace each word independently. But with more analysis, I
+can see now that the sequence must map to a complete, final string. So I'm now
+testing for source strings. My new focus is to identify the root phrase in the
+mappings.
+
+Tracing the Transformations
+
+I'm now analyzing the output string to identify a series of transformations. It
+appears the mappings don't directly substitute words, but instead, sequences of
+them. I'm looking at 'jaunt librate pyic Yuan of examining protege' to see if a
+combination of source strings will create it. Currently, it's not clear which
+mapping provides the correct source.
+
+Re-evaluating the Cipher
+
+I'm now focusing on a combined approach, using a combination of the mapping
+table and examining word patterns. I'm focusing on the sequence jaunt librate
+pyic Yuan of examining protege and trying to find the source phrase by tracing
+backwards from the sequence examining protege. I believe that the answer is
+found within the mappings, but not directly. The key is in identifying the
+correct group of words.
+
+Tracing the Decryption Path
+
+I've been re-evaluating the decoding strategy, focusing on identifying the core
+transformation that results in the sentence. Given the mappings' nature, I'm
+now certain there is an initial string to the symbolised phrase and that the
+sequence of words builds up to form the overall phrase. Using this pattern
+should help me.
+
+Examining the Mappings
+
+I've been meticulously analyzing the mappings to understand how words are
+transformed into sequences. I've noted that certain word groups, such as
+"examining protege," are consistently treated as cohesive units, which suggests
+a hidden structure. I'm focusing on the sequential nature of the mappings and
+believe I am close.
+
+Decoding the Source Sequence
+
+I'm now focused on understanding the original phrase, working backward from the
+symbolised sentence. The key is in identifying the originating word sequence
+that produces jaunt librate pyic Yuan of examining protege. I'm systematically
+tracing each term in the sentence to find its source mapping, and then trying
+to chain them together to determine the root phrase. This looks like the right
+approach.
+
+Decoding the Sequence
+
+I've been working through the mapping table to understand the transformation
+process. It's clear now that sequences of words map to other sequences, not
+single words. I've successfully identified "examining protege" as "nymph" and
+now I'm attempting to decode the remaining segments of the sentence, working
+from the known mappings. I need to understand how the sentence transforms in
+reverse.
+
+Decoding the Source
+
+I've traced the entire sentence backward, breaking it down into smaller,
+traceable parts, and their likely origins. By meticulously reversing the
+transformations, I've narrowed down the beginning of the symbolised sentence,
+which is now clear. I've found a sequence of key words.
+
+Decoding the Sequence
+
+I'm now applying a chain-of-thought approach, attempting to trace the mappings
+backward to identify the starting point. I've begun unraveling the end of the
+symbolised sentence and am looking at the words that create the final string. I
+have identified "examining protege" as "nymph", and I'm using this as a
+starting point.
+
+Deciphering the Path
+
+I'm focused on tracing the symbolised sentence back to its source, using the
+mappings to understand the transformations at each stage. Starting from the
+known sequence "jaunt librate pyic Yuan of examining protege," I'm now
+exploring the potential of a sequential transformation process. I'm getting
+closer to unlocking the initial phrase.
+
+Mapping the Cipher
+
+I'm now refining the decoding strategy by identifying the core root of the
+cipher's sentence. I have analyzed the entire "jaunt librate pyic Yuan of
+examining protege" sentence to isolate the starting word. The key is to find
+the original source words for each mapping. I am close.
+
+Decoding the Sequence
+
+I'm now tracing the path from the end of the symbolised sentence back to its
+origin. Each word in the sequence has a corresponding mapping. I need to
+reverse these to decode the source and identify the missing starting word. I am
+focusing on the phrase "examining protege" as a key.
+
+Decoding the Sequence
+
+I'm now tracing the path from the end of the symbolised sentence back to its
+origin, leveraging the mapping table and a chain-of-thought approach. I've
+broken down the sentence into components and am working backwards to identify
+the corresponding mappings. The phrase "examining protege" maps directly to
+"nymph," which provides a key anchor for decoding.
+
+Decoding the Root
+
+I'm now back at the mapping table to figure out the origin of the initial
+phrase. I've broken down the symbolised sentence into core components: fjords
+vex quick waltz nymph. Now I'm focusing on tracing the mappings to understand
+the starting point. I believe uncovering the sequence's genesis is key to
+unlocking the puzzle.
+
+Decoding the Origin
+
+I'm now tracing the root phrase, focusing on the mappings. The starting phrase
+is key, which I've isolated as a chain of words in their own right. From these
+words, my goal is to trace the transformations needed to derive the entire
+symbolised sentence.  I'm confident I am getting closer to the solution.
+
+Decoding the Puzzle's Genesis
+
+I'm now tracing the symbolised sentence back to its source, meticulously
+building the chain of transformations.  I've pinpointed "fjords vex quick waltz
+nymph" as the intermediate step, but I'm still working towards decoding the
+root phrase, employing the mapping table as my guide. I'm focusing on the first
+word in the sentence.
+
+Refining the Mapping
+
+I'm revisiting the initial mapping breakdown, recognizing the sentence isn't a
+direct word-for-word translation. Instead, I'm focusing on the sequential
+transformation, aiming to decode backwards from 'examining protege' to identify
+the source word. I'm building a more robust reverse lookup to validate the
+starting hypothesis. This approach feels more promising.
+
+Decoding the Root
+
+I've been meticulously tracing the transformation process, now focusing on
+identifying the starting point of the symbolised sentence, which is the
+sequence jaunt librate pyic Yuan of examining protege. By working backwards
+through the mappings, I've isolated the core words in the initial sequence:
+fjords vex quick waltz nymph. Now I must find the original source of this.
+
+Refining the Approach
+
+I'm now refining the decoding strategy by identifying the root sequence.  My
+goal is to find the original words that map to jaunt librate pyic Yuan of
+examining protege. I am confident that the key lies within the mappings.
+
+Identifying the Genesis
+
+I've traced the symbolised sentence back to its source, using the mappings to
+understand the transformations at each stage. Starting from the known phrase,
+"examining protege", I'm now exploring the potential of a sequential
+transformation process to unravel the phrase.
+
+Deciphering the Path
+
+I'm now certain the solution lies in a multi-step decoding process. After
+numerous iterations, I've tracked the symbolised phrase back, word by word,
+through numerous, complex mappings. While the initial word eludes me, I'm
+confident in the overall chain of transformations now.
+
+Reconstructing the Sequence
+
+I'm now tracing the symbolised sentence back to its root. Starting with the
+visible components, jaunt librate pyic Yuan of examining protege, I'm
+methodically unravelling the mappings, aiming to find the initial sequence.
+Each step reveals the origins of the next, leading me closer to identifying the
+missing initial word.
+
+Refining the Path
+
+I'm revisiting the initial mapping breakdown, recognizing the sentence isn't a
+direct word-for-word translation. Instead, I'm focusing on the sequential
+transformation, aiming to decode backwards from "jaunt librate pyic Yuan of
+examining protege" to identify the source word. I am certain that identifying
+this word is key to solving the problem.
+
+Decoding the Root
+
+I'm now certain I've traced the symbolised sentence back to its source, using
+the mappings to understand the transformations at each stage. Starting from
+"examining protege," and working backwards I'm now exploring the potential of a
+sequential transformation process to unravel the phrase.
+
+Deciphering the Origin
+
+I've been meticulously tracing the symbolised sentence, dissecting the mappings
+to understand the initial word. Focusing on the word groups, it seems
+"examining protege" transforms into "nymph." Now, I'm working to identify if
+any other group transformations could be the missing start.
+
+Identifying the Root Word
+
+I've been meticulously tracing the symbolised sentence, recognizing "jaunt
+librate" originates from "fjords." Building upon this, I'm now certain the
+complete source sentence begins with a word which is mapped to the final
+sequence and thus is the solution. My focus is now on identifying this initial
+root.
+
+Re-examining the Decoding
+
+I'm now focusing on the known sequence to find the underlying chain. By
+scrutinizing the mappings and working backwards from the symbolised words, I'm
+getting closer to deducing the origins of the sentence. Using the key mappings,
+my analysis concentrates on the genesis of the transformation, leading me
+closer.
+
+Analyzing the Transformation
+
+I'm now back at the mapping table to focus on the structure of the sentence,
+particularly tracing the path from the end to understand the mappings. I
+believe the answer is contained in the transformations. By looking at the [...]
+jaunt librate pyic Yuan of examining protege sequence, I hope to isolate the
+core word.
+
+Decoding the Origin
+
+I'm now certain the correct sequence is a chain. Beginning with the key words,
+I've broken down "jaunt librate pyic Yuan of examining protege" into individual
+component mappings. This strategy now hinges on meticulously reconstructing the
+full, starting phrase from these transformations.
+
+Analyzing the Cipher
+
+I'm now diving into the underlying mappings, focusing on how the sequence
+builds. I'm exploring different patterns and attempting to identify a core
+group of key words and then reverse engineer how it fits into the "jaunt"
+sentence. This will hopefully help uncover the original sentence.
+
+Analyzing the Transformations
+
+I've been meticulously analyzing the mappings to understand the sentence's
+building blocks. Starting with the end and working backward, I hope to decipher
+how "jaunt librate pyic Yuan of examining protege" was constructed. The pattern
+seems to involve sequential mapping, making the puzzle a complex chain.
+
+Decoding the Puzzle's Genesis
+
+I'm now tracing the symbolised sentence back to its source, meticulously
+building the chain of transformations.  I've pinpointed "fjords vex quick waltz
+nymph" as the intermediate step, but I'm still working towards decoding the
+root phrase, employing the mapping table as my guide.
+
+Decoding the Sequence
+
+I'm now certain the "symbolised" sentence is a coded sequence, not a direct
+translation. Recognizing that "examining protege" maps to "nymph" is key. My
+strategy shifts to deconstructing this sequence. The challenge is tracing the
+transformation from an unknown source to the words I can see. I will break this
+puzzle down.
+
+Reconstructing the Solution
+
+After extensive decoding and pattern recognition, I'm confident I've traced the
+solution's core. The key phrase 'jaunt librate pyic Yuan of examining protege'
+likely originated from a series of sequential transformations, with 'fjords'
+acting as the root word. Now, my focus is solidifying the path from 'fjords' to
+the final sequence.
+
+I'm focusing on the sequential transformation, aiming to decode backwards from
+"jaunt librate pyic Yuan of examining protege". I've broken down the mappings
+and their dependencies. I'm building a system to interpret multi-word mappings.
+This approach feels promising, but the complexity of the reverse process
+remains a challenge.
+
+Decoding the Final Step
+
+I'm now tracing the symbolised sentence back. I've broken down jaunt librate
+pyic Yuan of examining protege to the sequence fjords vex quick waltz nymph.
+Decoding further to find the original words: 'zincous' ** 'fjords' and 'nymph'
+** 'examining protege'. I'm close to uncovering the key initial word.
+
+Deciphering the Code
+
+I've been working through the mappings to identify the base pattern. It's
+becoming clear that the symbolised sentence isn't directly a word-for-word
+substitution, but a result of a sequence of chained substitutions. I'm focusing
+on "anthine" to see if I can isolate a clear, initial word from the table.
+
+I'm now focusing on re-evaluating the decoding path and trying to determine the
+pattern using a systematic, reverse-mapping process. It looks like "anthine"
+plays a key role, which should map to the missing phrase. The challenge is in
+the multi-word mappings that might hide a simple underlying pattern.
+
+I'm now attempting to use the existing analysis to work backwards. I'm building
+a system to interpret multi-word mappings more cleanly, by tracking all
+sequences and their components. With more focus, I can solve for "jaunt librate
+pyic Yuan of examining protege" and get the solution.
+
+Reconstructing the Original
+
+I'm focusing on the puzzle's crux: identifying the initial word from the
+complete, given sequence. My goal is to work backwards through the established
+mappings, recognizing patterns in the symbol substitutions and multi-word
+transformations. I'm close to a solution.
+
+Reaching the Source
+
+I'm now tracing the symbolised sentence back. I've broken down "jaunt librate
+pyic Yuan of examining protege" to "fjords vex quick waltz nymph," and found
+its pre-mapping: "zincous kiddush whorish cise dronage." Now I must trace these
+words to their origin, looking for a clear starting point in the mappings.
+
+Analyzing the Transformation
+
+I've been meticulously analyzing the mappings to understand the sentence's
+building blocks. Starting with the end and working backward, I hope to decipher
+how "jaunt librate pyic Yuan of examining protege" was constructed. The pattern
+seems to involve sequential mapping, making the puzzle a complex chain.
+
+I've been working backward, meticulously tracing the symbolised sentence: jaunt
+librate pyic Yuan of examining protege. By deconstructing each word's mapping,
+I've narrowed it down to fjords, vex, quick, waltz, nymph. I believe this
+sequence is the origin, but I'm now tasked with discerning the initial mapping
+for the complete phrase, and there's a strong belief that the answer, W1, is
+near.
+
+Analyzing the Transformation
+
+I'm now tracing the symbolised sentence back to its original form, focusing on
+identifying the starting word by meticulously retracing the multi-step
+transformation process encoded in the table. By mapping the final sequence to
+its origins, I'm confident I can identify the missing component. It's a complex
+puzzle.
+
+Re-evaluating the Path
+
+I'm now focusing on a combined approach, meticulously tracing the entire
+symbolised sequence. I've re-evaluated my decoding method, concentrating on a
+key, initial mapping. Using the sequence "jaunt librate pyic Yuan of examining
+protege," I'm analyzing the relationships within the table to decode the
+cipher, determining that the solution lies within a reverse transformation of
+the target string.
+
+Deciphering the Path
+
+I'm now tracing the symbolised sentence backwards, meticulously reversing the
+transformations to identify the initial segment. Examining the chain, I believe
+each word has a definitive source. I have now isolated the symbolised sequence
+as it builds from the initial word. This approach will allow for more concise
+answers.
+
+Mapping the Origin
+
+I've traced the symbolised sentence back to a core sequence: "fjords vex quick
+waltz nymph". This leads me to believe the final solution hinges on identifying
+the initial transformation within the mappings. Focusing on the sequence, I'm
+now certain this is the crux of the problem.
+
+Mapping the Origin
+
+I'm now certain the target sentence's structure hinges on sequential
+transformations. I've broken it into "fjords vex quick waltz nymph," generated
+by "zincous kiddush revisal cise dronage." Now I'm working to isolate the
+original sequence that generates this intermediate state to solve for the
+missing word.
+
+Analyzing the Genesis
+
+I'm focused on retracing the full symbolised sequence, step by step, from the
+terminal phrase. Starting with "jaunt librate pyic Yuan of examining protege",
+I've identified key mappings and their component parts.  This approach is
+proving crucial in determining the original sequence.
+
+Analyzing the Mapping Table
+
+I'm revisiting the sentence structure, convinced that an iterative mapping
+process is key. I believe there's a starting "seed" that transforms into
+"fjords vex quick waltz nymph". My current focus is on identifying a single
+word that maps to this sequence, which, in turn, maps to the visible sentence.
+It's an interesting challenge!
+
+Reconstructing the Genesis
+
+I'm revisiting the strategy of decoding the symbolised sentence. The goal is to
+identify how the known sequence, "jaunt librate pyic Yuan of examining
+protege," was formed. I'm focusing on tracing back the mappings to understand
+the sentence's initial construction. The starting word holds the key.
+
+Identifying the Origin
+
+I'm focused on tracing back the entire symbolised phrase, using all available
+mappings to identify the base sequence from which it arose. I need to
+understand the relationship between "jaunt librate" and "nymph".
+
+Analyzing the Cipher's Structure
+
+I'm now tracing the symbolised sequence, step by step, from right to left, to
+figure out the mappings and find the original phrase. My goal is to use the
+existing data to establish the sequence.
+
+Mapping the Solution
+
+After re-evaluating the table, I've determined the initial word maps to fjords.
+My focus is on tracing back to the starting sequence by re-examining how fjords
+functions in the puzzle. The reverse lookup is becoming clear, and the answer
+is forming.
+
+I've been meticulously analyzing the mapping table to decode the symbolised
+sentence. Initial decoding of phrases like "examining protege" to "nymph"
+offered a foothold. Current focus centers on reverse-engineering the known
+sequence to identify a root phrase, assuming a chain-of-thought strategy.
+Identifying the starting word for the symbolised sequence is key, and I believe
+I'm close to unlocking this puzzle's genesis.
+
+Analyzing the Transformation
+
+I'm now certain the key to solving the cipher lies in understanding the
+relationships between the original words and their mapped sequences. The
+challenge is in determining the initial mapping that sets off the sequential
+transformation, leading to the complete symbolised sentence. The goal is now
+focused on finding that initial word.
+
+Re-evaluating the Solution
+
+I'm now focusing on a combined approach, using a combination of the mapping
+table and examining word patterns. I'm focusing on the sequence jaunt librate
+pyic Yuan of examining protege and trying to find the source phrase by tracing
+backwards from the sequence examining protege. I believe that the answer is
+found within the mappings, but not directly. The key is in identifying the
+correct group of words.
+
+Re-evaluating the Puzzle
+
+I've been re-evaluating the approach, focusing on finding a direct or
+sequential link between the words. I'm starting from the final sentence and
+looking to break down each word using a reverse mapping table to understand the
+transformation process. The key is in tracing the dependencies.
+
+Re-evaluating the Sentence
+
+I've been re-assessing the problem and I think the solution is right in front
+of me. After all these steps I have to find a word, a single word to be put on
+the start of the phrase jaunt librate pyic Yuan of examining protege, a full
+transformation. I see now that it must be the key word that transforms into the
+full sequence.
+
+Analyzing the Cipher's Structure
+
+I'm now tracing the symbolised sentence back to its source, using the mappings
+to decode the word sequences. By reversing the process I hope to identify the
+initial segment. I am getting closer to the solution.
+
+Mapping the Cipher's Roots
+
+I'm now focusing on a combined strategy, working backwards and tracing the
+sequence to pinpoint the original word. The focus is on reversing the known
+chain, with attention on how to isolate the starting word. The answer may lie
+within the mappings.
+
+Analyzing the Cipher
+
+I've been meticulously analyzing the mappings to understand the connections
+between sequences. My focus is now on identifying how the word group, jaunt
+librate pyic Yuan of examining protege, is constructed through sequential
+substitutions. I'm carefully searching for a root phrase.
+
+Analyzing the Cipher's Logic
+
+I'm now tracing the symbolised sentence back to its original source. After
+extensive analysis, it seems that to solve this puzzle, I needed to identify
+zincous, which then maps to fjords, thus being the starting word that the
+symbolised phrase is constructed from.
+
+Mapping the Solution
+
+I'm now certain that the solution requires a specific, single starting word
+that creates a cascading effect through the mapping table. By focusing on the
+word 'zincous', which maps directly to 'fjords', I believe I've identified the
+key to unlocking the puzzle. This initial mapping then chains into the target
+sentence.
+
+Deciphering the Cipher
+
+I've been analyzing the mappings table to trace the complete chain. I'm
+focusing on "zincous" as a possible source. The goal is to identify how this
+leads to the sentence, and the transformation that will uncover the initial
+word.
+
+Unveiling the Decoded Phrase
+
+I'm now certain the decoded phrase begins with the word that maps to "fjords."
+This word, a single entity within the provided table, represents the key. I am
+refining my strategy to find the start and then decode the rest of the puzzle.
+
+Reaching the Solution
+
+After an exhaustive analysis, I've concluded that the puzzle's missing word is
+indeed a starting point in a chain, likely "Just," as it uniquely acts as a
+key. This leads me to believe the missing "symbolised" word is protege, which
+fits the sentence structure and my findings.
+
+I've focused on mapping the pre-final state, fjords vex quick waltz nymph, to
+its origins. My working theory is the missing word initiates a chain that
+culminates in the visible sentence.  After a thorough analysis of all mappings,
+it appears the initial word is protege.
+
+protege
+[...] jaunt librate pyic Yuan of examining protege
+```
+
 ### ChatGPTs answer
 
+```text
 Solve Symbolised Sentence Puzzle with Missing Word
 
 % 'subtext' 'sterve' beshag fifteen jump oneyer dozen currant
+```
 
 ### Thoughts
 
@@ -424,8 +1024,10 @@ AI might be the biggest “crime” in tech today. Plus, check out our free web 
 that tests AI’s flaws live! If piracy is theft, AI might just be the whole
 crime scene. Ready to see the results? Tap in and find out! Hashtags:
 
-```text #AIExposed #LLMFails #DigitalTheft #AICrime #AIBusted #WebApp
-#TechTruth #AIFail #AIvsHuman #AIRealityCheck #PiracyVsAI #Shorts ```
+```text
+#AIExposed #LLMFails #DigitalTheft #AICrime #AIBusted #WebApp
+#TechTruth #AIFail #AIvsHuman #AIRealityCheck #PiracyVsAI #Short
+```
 
 Notes:
 

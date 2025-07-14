@@ -37,7 +37,7 @@ const equalSymblsSet = [
   "=>",
 ];
 
-const panagrams = [
+const pangrams = [
   "The quick brown fox jumps over the lazy dog",
   "Pack my box with five dozen liquor jugs",
   "How vexingly quick daft zebras jump",
@@ -54,11 +54,11 @@ const panagrams = [
   //"Waltz, bad nymph, for quick jigs vex",
 ];
 
-const panagramsWords = panagrams.map((s) =>
+const pangramsWords = pangrams.map((s) =>
   s.split(/\s+/).map((str) => str.replace(",", "")),
 );
 
-const panagramWordList = panagramsWords.flat();
+const pangramWordList = pangramsWords.flat();
 
 export enum ExpressionParts {
   NEW_OPARAND,
@@ -72,36 +72,35 @@ interface IExpressionResult {
   equalSymbol: string;
 }
 
-export function prepare(inputWords: string[], seed = 12345) {
-  const randH = mulberry32(seed);
+export function prepare(inputWords: string[], seed: number|null = 12345) {
+  const randH = seed ? mulberry32(seed) : Math.random;
   const rand = (len: number) => Math.floor(randH() * (len + 1));
 
-  const sentenceIdx = rand(panagrams.length - 1);
-  const sentence = panagrams[sentenceIdx];
+  const sentenceIdx = rand(pangrams.length - 1);
+  const sentence = pangrams[sentenceIdx];
 
   const words: string[] = sentence.split(/\s+/);
 
   // Map each unique word to a token
   const totalWords = new Set<string>();
-  for (let i = 0; i < panagramWordList.length; i++) {
-    totalWords.add(panagramWordList[i]);
+  for (let i = 0; i < pangramWordList.length; i++) {
+    totalWords.add(pangramWordList[i]);
   }
   for (let i = 0; i < inputWords.length; i++) {
     totalWords.add(inputWords[i]);
   }
   const inputDeduped = Array.from(totalWords);
-  const randomArr = getRandomOrder(inputDeduped, rand);
+  const randomArr = getRandomOrder(inputDeduped.slice(), rand);
   const tokenMap: Record<string, string> = {};
 
   function popToken(): string {
-    const idx = rand(randomArr.length - 1);
+    const idx = rand(inputDeduped.length - 1);
     return (
       // token without duplicates
       randomArr.pop() +
       // read a second (possible duplicate) word sometimes
-      // TODO: remove or add tokens. Either remove the current (maps to
-      //  ''), or add tokens.
-      (rand(4) < 2 ? " " + inputDeduped[(idx + 1) % inputDeduped.length] : "")
+      // TODO: remove or add tokens. Either remove (maps to ''), or add tokens.
+      (rand(4) < 2 ? " " + inputDeduped[idx] : "")
     );
   }
 
@@ -129,24 +128,13 @@ export function prepare(inputWords: string[], seed = 12345) {
 
   const partialTokenizedSentence = partialTokenizedSentenceAsArray.join(" ");
 
-  const equalSymIdx = rand(equalSymblsSet.length - 1);
-  const equalSymbol = equalSymblsSet[equalSymIdx];
-  const expressionDefinition = [
+  const equalSymbol = equalSymblsSet[rand(equalSymblsSet.length - 1)];
+
+  const expressionDefinition = getRandomOrder([
     ExpressionParts.OLD_OPARAND,
     ExpressionParts.OPERATOR,
     ExpressionParts.NEW_OPARAND,
-  ];
-
-  // randomize expression parts
-  for (let k = 0; k < 4; k++) {
-    for (let i = expressionDefinition.length - 1; i >= 0; i--) {
-      const j = rand(i);
-      [expressionDefinition[i], expressionDefinition[j]] = [
-        expressionDefinition[j],
-        expressionDefinition[i],
-      ];
-    }
-  }
+  ], rand);
 
   const idx = expressionDefinition.indexOf(ExpressionParts.OPERATOR);
   const expressionType = idx === 0 ? "prefix" : idx === 1 ? "infix" : "postfix";
@@ -225,7 +213,7 @@ export function getMappingMessage(
     [ExpressionParts.OPERATOR]: `${symbol}`,
   };
   const build = expressionDefinition.map((key) => parts[key]);
-
+  
   build.splice(1, 0, " ");
   build.splice(3, 0, " ");
 
@@ -257,10 +245,9 @@ export function print(
 ) {
   const symbol = expression.equalSymbol;
 
-  // Output
   output(getInitialDescription(symbol, expression.expressionDefinition));
-  output(getTableMappingHeader());
 
+  output(getTableMappingHeader());
   Object.entries(randomizeRecord(tokenMap)).forEach(([old, newS]) => {
     output(
       getMappingMessage(old, newS, symbol, expression.expressionDefinition),
@@ -268,6 +255,5 @@ export function print(
   });
 
   output(getInstructionsMessage());
-
   output(getSymbolisedSentenceOutput(partialTokenizedSentence));
 }

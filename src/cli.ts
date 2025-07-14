@@ -1,7 +1,7 @@
 import { createInterface, Interface } from "readline";
-import { join } from "path";
+import { join, dirname, resolve } from "path";
 import { tmpdir } from "os";
-import { createWriteStream } from "fs";
+import { createWriteStream, existsSync } from "fs";
 import { getRandomWords } from "./randomfile";
 import { prepare, print } from "./app";
 
@@ -13,7 +13,7 @@ function checkAnswer(rl: Interface, actualAnswer: string) {
     if (answer.trim().toLowerCase() === actualAnswer.toLowerCase()) {
       console.log("✅ Correct!");
     } else {
-      console.log(`❌ Incorrect. The correct word was: "${answer}"`);
+      console.log(`❌ Incorrect. The correct word was: "${actualAnswer}"`);
     }
   });
 }
@@ -61,10 +61,22 @@ if (!(idx === -1 || !args[idx + 1])) {
   }
 }
 
-let write = false;
 const writeIdx = args.indexOf("--write");
-if (writeIdx !== -1) {
-  write = true;
+let write = writeIdx !== -1;
+let targetFilePath: string | null = null;
+if (write) {
+  if (args[writeIdx + 1]) {
+    const tmpPath = resolve(args[writeIdx + 1]);
+    const parentDir = dirname(tmpPath);
+    const hasParent = existsSync(parentDir);
+    if (!hasParent) {
+      throw new Error("Invalid write target - create the parent directory");
+    }
+    if (existsSync(tmpPath)) {
+      throw Error("File already exists at the given path: " + tmpPath);
+    }
+    targetFilePath = tmpPath;
+  }
 }
 
 readSeed(rl).then(async (seed) => {
@@ -106,10 +118,10 @@ readSeed(rl).then(async (seed) => {
   };
 
   let writerFn: (...outs: string[]) => void;
-  let msg = '';
+  let msg = "";
   if (write) {
-    const path = setupFileWriter();
-    msg += 'Writing the test to the file:\n' + path + "\n\n";
+    const path = targetFilePath === null ? setupFileWriter() : targetFilePath;
+    msg += "Writing the test to the file:\n" + path + "\n\n";
     writerFn = fileWriter(path);
   } else {
     writerFn = consolePrinter;

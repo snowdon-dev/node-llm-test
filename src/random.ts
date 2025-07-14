@@ -27,13 +27,15 @@ export function randomizeRecord(
 }
 
 export function getRandomOrder<T>(
-  array: T[],
+  shuffled: T[],
   rand: (len: number) => number,
+  steps = 1,
 ) {
-  const shuffled = array.slice(); // make a copy
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = rand(shuffled.length);
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  for (let k = 0; k < steps; k++) {
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = rand(shuffled.length - 1);
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
   }
   return shuffled;
 }
