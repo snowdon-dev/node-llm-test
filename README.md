@@ -67,12 +67,16 @@ proves it.
 
 ```javascript
 import { prepare, print } from 'node-llm-test';
+import { getRandomWords } from 'node-llm-test'
+
+const seed = Math.floor(Math.random() * (2^31));
+const worList = await getRandomWords(600, seed);
 
 const {
   tokenMap,
   partialTokenizedSentence,
   expression,
-} = prepare([/*someWordList*/], Math.random() * (2^31 - 1));
+} = prepare([/*someWordList*/], seed);
 
 print(partialTokenizedSentence, tokenMap, expression, console.log);
 ```

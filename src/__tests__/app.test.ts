@@ -7,7 +7,7 @@ import {
   getMappingMessage,
   getInstructionsMessage,
   getSymbolisedSentenceOutput,
-  IPRepareResult,
+  IPrepareResult,
 } from "../app";
 
 describe("prepare", () => {
@@ -15,15 +15,21 @@ describe("prepare", () => {
   const prepareArgs = [];
   
   describe("should return an object with the correct properties", () => {
-    function testResult(result: IPRepareResult) {
+    function testResult(result: IPrepareResult) {
       expect(result).toHaveProperty("tokenMap");
+      expect(result).toHaveProperty("realMap");
+
       expect(result).toHaveProperty("tokenizedWords");
       expect(result).toHaveProperty("tokenizedSentence");
       expect(result).toHaveProperty("partialTokenizedSentence");
+
       expect(result).toHaveProperty("sentence");
       expect(result).toHaveProperty("sentenceWords");
+      expect(result).toHaveProperty("partialWords");
+
       expect(result).toHaveProperty("correctAnswer");
       expect(result).toHaveProperty("realAnswer");
+
       expect(result).toHaveProperty("expression");
     }
 

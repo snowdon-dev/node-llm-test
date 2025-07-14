@@ -54,7 +54,6 @@ const pangramsDefault = [
   //"Waltz, bad nymph, for quick jigs vex",
 ];
 
-
 export enum ExpressionPart {
   NEW_OPARAND,
   OPERATOR,
@@ -67,19 +66,25 @@ type ExpressionDefinitionType = [
   ExpressionPart,
 ];
 
-interface IExpressionResult {
+export interface IExpressionResult {
   expressionDefinition: ExpressionDefinitionType;
   expressionType: string;
   equalSymbol: string;
 }
 
-export interface IPRepareResult {
+export interface IPrepareResult {
+  /** Map from the real to the tokenizedWor */
   tokenMap: Record<string, string>;
+  /** Map from the tokenizedWord to the real word */
+  realMap: Record<string, string>;
+
   tokenizedWords: string[];
   tokenizedSentence: string;
   partialTokenizedSentence: string;
+
   sentence: string;
   sentenceWords: string[];
+  partialWords: string[];
 
   correctAnswer: string;
   realAnswer: string;
@@ -87,11 +92,21 @@ export interface IPRepareResult {
   expression: IExpressionResult;
 }
 
-export function prepare(inputWords: string[], seed: number): IPRepareResult;
-export function prepare(inputWords: string[], seed: null): IPRepareResult;
-export function prepare(inputWords: string[]): IPRepareResult;
-export function prepare(inputWords: string[], seed: number, pangrams: string[]): IPRepareResult;
-export function prepare(inputWords: string[], seed: null, pangrams: string[]): IPRepareResult;
+export const blankWordToken = "[...]";
+
+export function prepare(inputWords: string[], seed: number): IPrepareResult;
+export function prepare(inputWords: string[], seed: null): IPrepareResult;
+export function prepare(inputWords: string[]): IPrepareResult;
+export function prepare(
+  inputWords: string[],
+  seed: number,
+  pangrams: string[],
+): IPrepareResult;
+export function prepare(
+  inputWords: string[],
+  seed: null,
+  pangrams: string[],
+): IPrepareResult;
 
 /**
  * @param inputWords A list of words to be appended into a word list of the language
@@ -102,7 +117,7 @@ export function prepare(
   inputWords: string[],
   seed: number | null = 12345,
   pangrams = pangramsDefault,
-): IPRepareResult {
+): IPrepareResult {
   const randH = seed !== null ? mulberry32(seed) : Math.random;
   const rand = (len: number) => Math.floor(randH() * (len + 1));
 
@@ -127,6 +142,7 @@ export function prepare(
   const inputDeduped = Array.from(totalWords);
   const randomArr = getRandomOrder(inputDeduped.slice(), rand);
   const tokenMap: Record<string, string> = {};
+  const realMap: Record<string, string> = {};
 
   function popToken(): string {
     const idx = rand(inputDeduped.length - 1);
@@ -149,9 +165,10 @@ export function prepare(
     // TODO:
     // At random a lookup references another table column.
     // token = {{reference "test"}}
-    
+
     // TODO: word should not be a capital - since it gives away to much info
     tokenMap[word] = token;
+    realMap[token] = word;
   });
 
   const removedWordIdx = rand(words.length - 1);
@@ -162,7 +179,10 @@ export function prepare(
   const realAnswer = words[removedWordIdx];
 
   const partialTokenizedSentenceAsArray = [...tokenizedWords];
-  partialTokenizedSentenceAsArray[removedWordIdx] = "[...]";
+  partialTokenizedSentenceAsArray[removedWordIdx] = blankWordToken;
+
+  const partialWords = [...words];
+  partialWords[removedWordIdx] = blankWordToken;
 
   const partialTokenizedSentence = partialTokenizedSentenceAsArray.join(" ");
 
@@ -187,12 +207,16 @@ export function prepare(
   };
 
   return {
+    realMap,
     tokenMap,
+
     tokenizedWords,
     tokenizedSentence,
     partialTokenizedSentence,
+
     sentence,
     sentenceWords: words,
+    partialWords,
 
     correctAnswer,
     realAnswer,
