@@ -91,12 +91,13 @@ export function prepare(inputWords: string[], seed: number): IPRepareResult;
 export function prepare(inputWords: string[], seed: null): IPRepareResult;
 export function prepare(inputWords: string[]): IPRepareResult;
 export function prepare(inputWords: string[], seed: number, pangrams: string[]): IPRepareResult;
-
-/**
- * Remove any determinism by using `Math.random`.
- */
 export function prepare(inputWords: string[], seed: null, pangrams: string[]): IPRepareResult;
 
+/**
+ * @param inputWords A list of words to be appended into a word list of the language
+ * @param seed A unique seed to preserve determinism or null to use Math.random.
+ * @param panagrams A list of pangrams to select from
+ */
 export function prepare(
   inputWords: string[],
   seed: number | null = 12345,
