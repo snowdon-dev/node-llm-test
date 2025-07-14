@@ -87,9 +87,12 @@ To run the CLI `npm run run`.
 
 ### Gemini 2.5 Pro (gets close)
 
-For some reason it picks - `'protege' ** 'veinage'`
+For some reason it picks - `'protege' ** 'veinage'`, but the correct answer is
+`fear`.
 
 ```txt
+Symbolised sentence with missing word:
+[...] jaunt librate pyic Yuan of examining protege
 The correct answer is:
 fear jaunt librate pyic Yuan of examining protege
 The real sentence is:
