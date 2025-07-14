@@ -26,8 +26,8 @@ export function randomizeRecord(
   return Object.fromEntries(entries);
 }
 
-export function getRandomOrder<T>(
-  shuffled: T[],
+export function getRandomOrder<T extends unknown[]>(
+  shuffled: T,
   rand: (len: number) => number,
   steps = 1,
 ) {

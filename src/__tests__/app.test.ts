@@ -1,40 +1,44 @@
 import {
   prepare,
   print,
-  ExpressionParts,
+  ExpressionPart,
   getInitialDescription,
   getTableMappingHeader,
   getMappingMessage,
   getInstructionsMessage,
   getSymbolisedSentenceOutput,
+  IPRepareResult,
 } from "../app";
-
-function replaceCharAt(str: string, index: number, newChar: string): string {
-  return str.substring(0, index) + newChar + str.substring(index + 1);
-}
 
 describe("prepare", () => {
 
-  // provide enough args to allow a splice
-  //const prepareArgs = "qyaiu "
-  //  .repeat(15)
-  //  .split(" ")
-  //  // ensure all stirngs are unique
-  //  .map((v, idx) => replaceCharAt(v.repeat(idx + 1), idx, "4"));
-  //console.log(prepareArgs.length);
   const prepareArgs = [];
+  
+  describe("should return an object with the correct properties", () => {
+    function testResult(result: IPRepareResult) {
+      expect(result).toHaveProperty("tokenMap");
+      expect(result).toHaveProperty("tokenizedWords");
+      expect(result).toHaveProperty("tokenizedSentence");
+      expect(result).toHaveProperty("partialTokenizedSentence");
+      expect(result).toHaveProperty("sentence");
+      expect(result).toHaveProperty("sentenceWords");
+      expect(result).toHaveProperty("correctAnswer");
+      expect(result).toHaveProperty("realAnswer");
+      expect(result).toHaveProperty("expression");
+    }
 
-  it("should return an object with the correct properties", () => {
-    const result = prepare(prepareArgs);
-    expect(result).toHaveProperty("tokenMap");
-    expect(result).toHaveProperty("tokenizedWords");
-    expect(result).toHaveProperty("tokenizedSentence");
-    expect(result).toHaveProperty("partialTokenizedSentence");
-    expect(result).toHaveProperty("sentence");
-    expect(result).toHaveProperty("sentenceWords");
-    expect(result).toHaveProperty("correctAnswer");
-    expect(result).toHaveProperty("realAnswer");
-    expect(result).toHaveProperty("expression");
+    it("with only inputWords", () => {
+      const result = prepare(prepareArgs);
+      testResult(result);
+    });
+
+    it("with a seed", () => {
+      testResult(prepare(prepareArgs, 1));
+    });
+
+    it("with input pangrams", () => {
+      testResult(prepare(prepareArgs, undefined, ["test"]));
+    });
   });
 
   it("should generate a tokenMap", () => {
@@ -80,10 +84,10 @@ describe("print", () => {
     const mockExpression = {
       equalSymbol: "=",
       expressionDefinition: [
-        ExpressionParts.OLD_OPARAND,
-        ExpressionParts.OPERATOR,
-        ExpressionParts.NEW_OPARAND,
-      ],
+        ExpressionPart.OLD_OPARAND,
+        ExpressionPart.OPERATOR,
+        ExpressionPart.NEW_OPARAND,
+      ] as [ExpressionPart, ExpressionPart, ExpressionPart],
       expressionType: "infix",
     };
 

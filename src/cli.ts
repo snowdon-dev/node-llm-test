@@ -28,8 +28,7 @@ function readSeed(rl: Interface, defaultIn = 12345): Promise<number> {
       seedIn.trim();
       if (!/\d+/.test(seedIn)) {
         console.log("using default: " + defaultIn);
-        seed = defaultIn;
-        return res(seed);
+        return res(defaultIn);
       }
       seed = Number(seedIn);
       console.log("Using the seed: " + seed);
@@ -113,9 +112,6 @@ readSeed(rl).then(async (seed) => {
       });
     };
   };
-  const consolePrinter = (...outs: string[]) => {
-    outs.forEach((str) => console.log(str));
-  };
 
   let writerFn: (...outs: string[]) => void;
   let msg = "";
@@ -124,7 +120,7 @@ readSeed(rl).then(async (seed) => {
     msg += "Writing the test to the file:\n" + path + "\n\n";
     writerFn = fileWriter(path);
   } else {
-    writerFn = consolePrinter;
+    writerFn = console.log;
   }
 
   print(partialTokenizedSentence, tokenMap, expression, writerFn);

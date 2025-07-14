@@ -79,7 +79,7 @@ To run the CLI `npm run run`.
 
 | Argument | Parameters | Description |
 | -------------- | --------------- | ------------- |
-| `--number <number>` | Integer (I.e. 600), defafult 200 | The number of words in the wordlist |
+| `--number <number>` | Integer (I.e. 600), default 200 | The number of words in the wordlist |
 | `--write [filepath]` | Boolean or string, default false | write to a temporary file or the target path|
 
 ---

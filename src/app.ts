@@ -37,7 +37,7 @@ const equalSymblsSet = [
   "=>",
 ];
 
-const pangrams = [
+const pangramsDefault = [
   "The quick brown fox jumps over the lazy dog",
   "Pack my box with five dozen liquor jugs",
   "How vexingly quick daft zebras jump",
@@ -54,28 +54,62 @@ const pangrams = [
   //"Waltz, bad nymph, for quick jigs vex",
 ];
 
-const pangramsWords = pangrams.map((s) =>
-  s.split(/\s+/).map((str) => str.replace(",", "")),
-);
 
-const pangramWordList = pangramsWords.flat();
-
-export enum ExpressionParts {
+export enum ExpressionPart {
   NEW_OPARAND,
   OPERATOR,
   OLD_OPARAND,
 }
 
+type ExpressionDefinitionType = [
+  ExpressionPart,
+  ExpressionPart,
+  ExpressionPart,
+];
+
 interface IExpressionResult {
-  expressionDefinition: ExpressionParts[];
+  expressionDefinition: ExpressionDefinitionType;
   expressionType: string;
   equalSymbol: string;
 }
 
-export function prepare(inputWords: string[], seed: number|null = 12345) {
-  const randH = seed ? mulberry32(seed) : Math.random;
+export interface IPRepareResult {
+  tokenMap: Record<string, string>;
+  tokenizedWords: string[];
+  tokenizedSentence: string;
+  partialTokenizedSentence: string;
+  sentence: string;
+  sentenceWords: string[];
+
+  correctAnswer: string;
+  realAnswer: string;
+
+  expression: IExpressionResult;
+}
+
+export function prepare(inputWords: string[], seed: number): IPRepareResult;
+export function prepare(inputWords: string[], seed: null): IPRepareResult;
+export function prepare(inputWords: string[]): IPRepareResult;
+export function prepare(inputWords: string[], seed: number, pangrams: string[]): IPRepareResult;
+
+/**
+ * Remove any determinism by using `Math.random`.
+ */
+export function prepare(inputWords: string[], seed: null, pangrams: string[]): IPRepareResult;
+
+export function prepare(
+  inputWords: string[],
+  seed: number | null = 12345,
+  pangrams = pangramsDefault,
+): IPRepareResult {
+  const randH = seed !== null ? mulberry32(seed) : Math.random;
   const rand = (len: number) => Math.floor(randH() * (len + 1));
 
+  const pangramsWords = pangrams.map((s) =>
+    s.split(/\s+/).map((str) => str.replace(",", "")),
+  );
+
+  const pangramWordList = pangramsWords.flat();
   const sentenceIdx = rand(pangrams.length - 1);
   const sentence = pangrams[sentenceIdx];
 
@@ -130,13 +164,16 @@ export function prepare(inputWords: string[], seed: number|null = 12345) {
 
   const equalSymbol = equalSymblsSet[rand(equalSymblsSet.length - 1)];
 
-  const expressionDefinition = getRandomOrder([
-    ExpressionParts.OLD_OPARAND,
-    ExpressionParts.OPERATOR,
-    ExpressionParts.NEW_OPARAND,
-  ], rand);
+  const expressionDefinition = getRandomOrder(
+    [
+      ExpressionPart.OLD_OPARAND,
+      ExpressionPart.OPERATOR,
+      ExpressionPart.NEW_OPARAND,
+    ] as ExpressionDefinitionType,
+    rand,
+  );
 
-  const idx = expressionDefinition.indexOf(ExpressionParts.OPERATOR);
+  const idx = expressionDefinition.indexOf(ExpressionPart.OPERATOR);
   const expressionType = idx === 0 ? "prefix" : idx === 1 ? "infix" : "postfix";
 
   const expression: IExpressionResult = {
@@ -172,16 +209,16 @@ export function answer(strIn: string): boolean {
 
 export function getInitialDescription(
   symbol: string,
-  expressionDefinition: ExpressionParts[],
+  expressionDefinition: ExpressionPart[],
 ): string {
   const order = expressionDefinition
     .map((item) => {
       switch (item) {
-        case ExpressionParts.NEW_OPARAND:
+        case ExpressionPart.NEW_OPARAND:
           return "new word";
-        case ExpressionParts.OLD_OPARAND:
+        case ExpressionPart.OLD_OPARAND:
           return "old word";
-        case ExpressionParts.OPERATOR:
+        case ExpressionPart.OPERATOR:
           return null;
       }
     })
@@ -205,15 +242,15 @@ export function getMappingMessage(
   oldS: string,
   newS: string,
   symbol: string,
-  expressionDefinition: ExpressionParts[],
+  expressionDefinition: ExpressionPart[],
 ): string {
   const parts = {
-    [ExpressionParts.NEW_OPARAND]: `'${newS}'`,
-    [ExpressionParts.OLD_OPARAND]: `'${oldS}'`,
-    [ExpressionParts.OPERATOR]: `${symbol}`,
+    [ExpressionPart.NEW_OPARAND]: `'${newS}'`,
+    [ExpressionPart.OLD_OPARAND]: `'${oldS}'`,
+    [ExpressionPart.OPERATOR]: `${symbol}`,
   };
   const build = expressionDefinition.map((key) => parts[key]);
-  
+
   build.splice(1, 0, " ");
   build.splice(3, 0, " ");
 
