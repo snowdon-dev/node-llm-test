@@ -3,6 +3,8 @@
 - See the video I made this for at: <https://youtube.com/@snowdon-dev>.
 - See the web app at: <https://marketeer.snowdon.dev/tools/llmtest-online/>.
 
+To use this package commercially, please contact me at hello@snowdon.dev. You are also welcome to review the documentation or explore the web app at your convenience. To learn more see a from the Oxford AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
+
 <!--toc:start-->
 - [node-llm-test](#node-llm-test)
   - [The puzzle](#the-puzzle)

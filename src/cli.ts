@@ -13,8 +13,10 @@ function checkAnswer(rl: Interface, actualAnswer: string) {
     if (answer.trim().toLowerCase() === actualAnswer.toLowerCase()) {
       console.log("✅ Correct!");
     } else {
+      // Allow a loop waiting on STDIN
       console.log(`❌ Incorrect. The correct word was: "${actualAnswer}"`);
     }
+    process.exit();
   });
 }
 
@@ -107,6 +109,7 @@ readSeed(rl).then(async (seed) => {
     });
     process.on("exit", () => writeStream.close());
     return function (...outs: string[]) {
+      // TODO; align with console log
       outs.forEach((line) => {
         writeStream.write(line + "\n");
       });
