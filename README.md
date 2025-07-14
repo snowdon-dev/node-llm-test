@@ -69,7 +69,7 @@ proves it.
 import { prepare, print } from 'node-llm-test';
 import { getRandomWords } from 'node-llm-test'
 
-const seed = Math.floor(Math.random() * (2^31));
+const seed = Math.floor(Math.random() * (2**31 - 1));
 const worList = await getRandomWords(600, seed);
 
 const {

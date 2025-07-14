@@ -225,14 +225,61 @@ export function prepare(
   };
 }
 
+interface IAnswerContext {
+  tokenMap: Record<string, string>;
+  realMap: Record<string, string>;
+
+  partialWords: string[];
+
+  correctAnswer: string;
+}
+
 /**
- * TOOD:
+ * TODO:
  * - read a single answer
  * - read all the chatgpt ouutput
+ *
+ * TODO:
+ * - If the characters are a word and its letters complete the alphabet
  */
-export function answer(strIn: string): boolean {
+export function answer(
+  strIn: string,
+  context: Readonly<IAnswerContext>,
+): boolean {
   void strIn;
-  return false;
+  // TODO: if we are given lots of words, parse out the answer word?
+  if (strIn === context.correctAnswer) {
+    // if the word equals the correct word. HURRAH
+    return true;
+  }
+  // - if we are given only one
+  if (!/\s/.test(strIn) && strIn.length > 0) {
+    const realWord = context.realMap[strIn];
+    if (realWord === undefined) {
+      return false;
+    }
+    const idx = context.partialWords.indexOf(blankWordToken);
+    const tmpRealWords = [...context.partialWords];
+    tmpRealWords[idx] = strIn;
+    const chars = new Set(tmpRealWords.join("").toLowerCase().split("")).size;
+    if (chars === 26) {
+      // TODO: remove if I keep do not keep capitals as in the real
+      if (idx === 0) {
+        // if its at index 0
+        const code = strIn[0].charCodeAt(0);
+        if (code >= 65 && code <= 90) {
+          // its uppercase for the starting letter
+          // you've found a new answer that wan't expect HURRAH!
+          return true;
+        } else {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+  throw Error("Reading whitespace is not supported.");
 }
 
 export function getInitialDescription(
