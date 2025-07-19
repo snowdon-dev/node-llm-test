@@ -6,7 +6,8 @@
 Commercial use of this code package requires permission—please contact me at
 <hello@snowdon.dev> if you intend to use it for such purposes. The web app,
 however, is freely available for you to explore at your convenience.
-To learn more from the Oxford AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
+To learn more from the Oxford AI Chair (not me)
+<https://www.youtube.com/watch?v=7-UzV9AZKeU>.
 
 <!--toc:start-->
 - [node-llm-test](#node-llm-test)
@@ -16,6 +17,9 @@ To learn more from the Oxford AI Chair (not me) <https://www.youtube.com/watch?v
   - [Install](#install)
   - [Programmatic Usage](#programmatic-usage)
   - [CLI usage](#cli-usage)
+  - [Test Levels - Worked example](#test-levels-worked-example)
+    - [Level 1](#level-1)
+    - [Level 14](#level-14)
   - [An example of deep reason failure](#an-example-of-deep-reason-failure)
     - [Gemini 2.5 Pro (gets close)](#gemini-25-pro-gets-close)
     - [ChatGPTs answer](#chatgpts-answer)
@@ -46,12 +50,12 @@ ensures that even if an LLM has access to solved examples, any newly generated
 test will differ significantly in its wording and structure, making
 memorization ineffective.
 
-Importantly, while each test is deterministic given a fixed wordlist, seed, and
-code version—meaning the same inputs will always produce the same encoded and
-decoded sentences—this determinism can break if the code version changes or the
-underlying wordlist is updated. To preserve reproducibility, I can provide
-options for using a static wordlist and locking the process to a specific code
-tag. Let me know if you'd like support for that.
+Importantly, while each test is deterministic given a fixed wordlist, seed,
+level, and code version—meaning the same inputs will always produce the same
+encoded and decoded sentences—this determinism can break if the code version
+changes or the underlying wordlist is updated. To preserve reproducibility, I
+can provide options for using a static wordlist and locking the process to a
+specific code tag. Let me know if you'd like support for that.
 
 ## Why was this created
 
@@ -66,31 +70,162 @@ proves it.
 ## Programmatic Usage
 
 ```javascript
-import { prepare, print } from 'node-llm-test';
-import { getRandomWords } from 'node-llm-test'
+import { Puzzle } from 'node-llm-test';
+import { getRandomWords } from 'node-llm-test/randomfile';
 
 const seed = Math.floor(Math.random() * (2**31 - 1));
-const worList = await getRandomWords(600, seed);
+const wordList = await getRandomWords(600, seed);
+const puzzle = Puzzle.New([/*someWordList*/], seed);
+//const puzzle2 = Puzzle.New();
 
-const {
-  tokenMap,
-  partialTokenizedSentence,
-  expression,
-} = prepare([/*someWordList*/], seed);
-
-print(partialTokenizedSentence, tokenMap, expression, console.log);
+puzzle.print(console.log);
 ```
 
 ## CLI usage
 
 To run the CLI `npm run run`.
 
+For example: `npm run run --number 0 --write`
+For example: `npm run run --number 0 --write ~/Documents/test1`
+
 | Argument | Parameters | Description |
 | -------------- | --------------- | ------------- |
 | `--number <number>` | Integer (I.e. 600), default 200 | The number of words in the wordlist |
 | `--write [filepath]` | Boolean or string, default false | write to a temporary file or the target path|
+| `--level <integer>` | Integer between 0-15 | Features enabled 0=none 15=all |
+| `--seed <integer>` | Integer between 0-(2**31-1) | A seed to preserve reproducibility |
+| `--no-print` | None | Do not print the output for the LLM |
 
 ---
+
+## Test Levels - Worked example
+
+I recommend trying the game out at least low level and word count, at least
+once. Some information is omitted here. See web app link at top of file.
+
+Given commands may not be reproducible unless, you happen to be one the same
+version.
+
+```
+npm run run -- --number 0 --count 0 --seed 1234
+```
+
+### Level 1 
+
+```console
+# zero extra words, zero extra reasoning steps
+npm run run --number 0 --level 0
+```
+
+```txt
+...
+Table of mappings:
+'vex' 'waltz' {}
+'quick' 'fjords' {}
+'fjords' 'Big' {}
+'Big' 'nymph' {}
+'waltz' 'vex' {}
+'nymph' 'quick' {}
+...
+
+Symbolised sentence with missing word:
+fjords quick waltz nymph vex [...]
+```
+
+ChatGPT says:
+
+```txt
+Missing word (symbolised form): Big
+Input sentence (symbolised form): fjords quick waltz nymph vex Big
+```
+
+FYI:
+
+```txt
+The correct answer is:
+fjords quick waltz nymph vex Big
+The real sentence is:
+Big fjords vex quick waltz nymph
+```
+
+This test has a straightforward probabilistic solution, and the LLM
+successfully arrives at the correct result without chain of thought. Given the
+sentence, the missing word is the one not present in the sequence. From the
+lookup table, we observe that the word “**Big**” has two mappings: `'Big' →
+'nymph'` and `'fjords' → 'Big'`. Which would make either a likely candidate for
+the missing word, if additional words from the domain were present.
+
+At this level, the order of the expression is explicitly provided in the
+instructions. This makes it a very easy Level 0 test. The task can become
+identifying the one word from the domain that is not present in the sentence.
+
+In this case, the word “Big” stands out as is not included in the sentence.
+This structure allows for a simple elimination approach to deduce the missing
+word.
+
+It’s important to note that, despite the simplicity of the structure, some
+reasoning is still required to arrive at the correct answer due to the way the
+test is presented. So the solver must infer the ordering and relationships from
+the text. This subtle requirement distinguishes it from a purely mechanical
+task and introduces a minimal layer of logical deduction.
+
+
+### Level 14
+
+```console
+npm run run -- --number 0 --level 14 --seed 123
+
+The following describes a puzzle. To complete the game you must figure out the
+missing word without asking any questions.
+
+The operator '>>>' defines a mapping between two character sequences enclosed
+within ''. Each mapping in the table is separated by a newline (\n) character.
+You will be given a sentence that has a missing word and has been encoded into
+a symbolised form.
+
+
+
+🗺️ Table of mappings:
+>>> 'low bid' 'low bid etchings'
+>>> 'for zinc' 'examining bid'
+>>> 'every' 'every bid'
+>>> 'etchings' 'Just bid'
+>>> 'quoted' 'keep Just'
+>>> 'Just keep' 'quoted zinc'
+>>> 'examining' 'for Just'
+
+
+Take into account the given symbolised sentence and
+other contextual information. Complete the following tasks:
+
+- Find the missing word in the sentence.
+- Print your answer as concisely as possible.
+- Provide your answer for the missing word.
+- Show the input sentence in symbolised form.
+- Do not provide the answer in english.
+- Provide the answer in the symbolised form.
+
+
+Symbolised sentence with missing word:
+quoted zinc for Just every bid low bid etchings keep Just examining bid [...]
+
+
+---- do not copy the following into the LLM
+
+The correct answer is:
+quoted zinc for Just every bid low bid etchings keep Just examining bid Just bid
+The real sentence is:
+Just keep examining every low bid quoted for zinc etchings
+
+
+--- Waiting to check answer...
+
+Fill in the missing word:
+Your answer: etchings
+
+
+❌ Incorrect. The correct word was: "Just bid"
+```
 
 ## An example of deep reason failure
 

@@ -31,7 +31,7 @@ async function readAllWords(path: string): Promise<string[]> {
     });
     rl.on("line", (line) => {
       const word = line.trim();
-      // TODO: lowercase?
+      // TODO: uppercase case word - lowercase this maybe
       if (word.length < 8 && word.length > 2) {
         words.push(word);
       }

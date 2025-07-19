@@ -1,10 +1,5 @@
-export {
-  print,
-  prepare,
-  blankWordToken,
-  ExpressionPart,
-} from "./app";
+export { Puzzle } from "./app";
 
-export type { IExpressionResult, IPrepareResult } from './app';
+export * from "./interface";
 
-export { getRandomWords } from './randomfile';
+export { Feature } from "./levels";
