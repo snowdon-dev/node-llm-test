@@ -85,8 +85,8 @@ puzzle.print(console.log);
 
 To run the CLI `npm run run`.
 
-For example: `npm run run --number 0 --write`
-For example: `npm run run --number 0 --write ~/Documents/test1`
+For example: `npm run run -- --number 0 --write`
+For example: `npm run run -- --number 0 --write ~/Documents/test1`
 
 | Argument | Parameters | Description |
 | -------------- | --------------- | ------------- |
