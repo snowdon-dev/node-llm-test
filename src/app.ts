@@ -36,7 +36,7 @@ const validatePangrans = (list: string[]) => {
 };
 
 const validateSeed = (num: number) => {
-  if (!(num < 0 || num <= 2 ** 32 - 1)) {
+  if (!(num > 0 && num <= 2 ** 31 - 1)) {
     throw new Error("Invalid seed number");
   }
 };
