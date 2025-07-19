@@ -101,8 +101,8 @@ For example: `npm run run -- --number 0 --write ~/Documents/test1`
 
 ## Test Levels - Worked example
 
-I recommend trying the game out at least low level and word count, at least
-once. Some information is omitted here. See web app link at top of file.
+I recommend trying the game out at a low level and word count, at least
+once. Some information is omitted here. See web app link at the top of file.
 
 Given commands may not be reproducible unless, you happen to be one the same
 version.

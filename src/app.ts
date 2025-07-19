@@ -45,9 +45,9 @@ export class Puzzle implements ILLMTest {
   public readonly result: Readonly<IPrepareResult>;
 
   static New = (
-    inputWords: null|string[] = [],
-    seed: null|number = 12345,
-    pangrams: undefined|string[] = pangramsDefault,
+    inputWords: null | string[] = [],
+    seed: null | number = 12345,
+    pangrams: undefined | string[] = pangramsDefault,
     level: Presets.MAX,
   ) => new Puzzle(inputWords, seed, pangrams, level);
 
@@ -314,13 +314,9 @@ export function prepare(
     pangrams,
     words,
   );
-  const {
-    tokenMap,
-    realMap,
-    tokenizedSequenceWords,
-    tokenRefsToWords,
-  } = prepareMappings(rand, level, totalWords, nPWordsPar);
-  
+  const { tokenMap, realMap, tokenizedSequenceWords, tokenRefsToWords } =
+    prepareMappings(rand, level, totalWords, nPWordsPar);
+
   const tokenRefEntries = Object.entries(tokenRefsToWords);
   const tokenRefRemoveIdx = rand(tokenRefEntries.length - 1);
   let missingWordIdx = -1;
@@ -380,10 +376,7 @@ export function prepare(
  *
  * TODO: multi-words - if we are given lots of words, parse out the answer
  */
-export function answer(
-  strIn: string,
-  context: Readonly<IAnswerContext>,
-) {
+export function answer(strIn: string, context: Readonly<IAnswerContext>) {
   if (strIn === context.correctAnswer) {
     // if the word equals the correct word. HURRAH
     return {
@@ -394,10 +387,10 @@ export function answer(
   if (strIn.length > 0) {
     const wordSequence = context.realMap[strIn]; // token to real
     if (wordSequence === undefined) {
-      return {exact: false, possible: false};
+      return { exact: false, possible: false };
     }
     if (context.tokenMap[wordSequence] === undefined) {
-      return {exact: false, possible: false};
+      return { exact: false, possible: false };
     }
 
     // check it completes the sentence
@@ -409,7 +402,7 @@ export function answer(
       tmpRealWords.join("").replaceAll(" ", "").toLowerCase().split(""),
     );
     if (charsSet.size !== 26) {
-      return {exact: false, possible: false};
+      return { exact: false, possible: false };
     }
 
     // TODO: word or Word - if removedWordIdx = 0, then its real need to start
@@ -417,7 +410,7 @@ export function answer(
     // code >= 65 && code <= 90
 
     // not true, but potentially true
-    return {exact: false, possible: true, possibleReal: wordSequence};
+    return { exact: false, possible: true, possibleReal: wordSequence };
   }
   throw Error("Answer failure");
 }
@@ -485,8 +478,8 @@ export function getInstructionsMessage(): string {
   return (
     "\n\nTake into account the given symbolised sequence of words and\n" +
     "other contextual information. Complete the following tasks: \n\n" +
-    //"- Find the missing word in the sentence.\n" + // could remove?
-    "- Provide the symbol or symbols required to decode the sentence.\n" +
+    //"- Find the missing symbol or symbols the sentence.\n" + // descriptive level?
+    "- Provide the missing symbol or symbols required to decode the sentence.\n" +
     "- Show the answer as concisely as possible.\n"
     //"- Show the puzzles given sentence in the symbolised form.\n" +
     //"- Do not provide the answer in the decoded form.\n"

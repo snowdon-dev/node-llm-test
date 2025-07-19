@@ -94,11 +94,12 @@ function checkAnswer(rl: Interface, puzzle: Puzzle) {
         "The answer completes the alphabet, but was not the expected result.",
       );
       console.log("It may be correct if it works in the original sentence");
-      console.log(`The correct word was: "${puzzle.result.correctAnswer}`);
+      console.log(`The correct token was: "${puzzle.result.correctAnswer}`);
+      console.log(`The correct word was: "${answer.possibleReal}`);
       process.exit();
     } else {
       console.log(
-        `❌ Incorrect. The correct word was: "${puzzle.result.correctAnswer}"`,
+        `❌ Incorrect. The correct token was: "${puzzle.result.correctAnswer}"`,
       );
       checkAnswer(rl, puzzle);
     }
@@ -161,13 +162,13 @@ readSeed(rl).then(async (seed) => {
     writerFn = console.log;
   }
 
+
+  const englishWords = await getRandomWords(wordListNum, seed);
+  const puzzle = Puzzle.New(englishWords, seed, undefined, levelIn);
+
   if (!write) {
     console.log("---------------- \n");
   }
-
-  const englishWords = await getRandomWords(wordListNum, seed);
-
-  const puzzle = Puzzle.New(englishWords, seed, undefined, levelIn);
 
   !noPrint && puzzle.print(writerFn);
   !write && console.log("\n");
