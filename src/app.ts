@@ -155,7 +155,6 @@ function prepareMappings(
   const randomArr = getRandomOrder(inputDeduped.slice(), rand);
   const tokenMap: Record<string, string> = {};
   const realMap: Record<string, string> = {};
-  const tokenTokenMap: Record<string, string> = {};
 
   function popToken(multi = false): string[] {
     // Token without duplicates
@@ -232,16 +231,13 @@ function prepareMappings(
         const nextToken = popToken()[0];
         const nextTokenStr = nextToken;
         mtt += ` ${nextTokenStr}`;
-        tokenTokenMap[mtt] = mtw;
         tokenItems = [mtt];
       }
       tokenMap[mtw] = mtt;
-      tokenTokenMap[tokenStr] = mtw;
       realMap[mtt] = mtw;
     } else {
       tokenMap[word] = tokenStr;
       realMap[tokenStr] = word;
-      tokenTokenMap[tokenStr] = word;
     }
 
     return { tokenItems, reads, words };
@@ -269,7 +265,6 @@ function prepareMappings(
   return {
     tokenMap,
     realMap,
-    tokenTokenMap,
 
     tokenRefsToWords,
 
@@ -321,7 +316,6 @@ export function prepare(
   );
   const {
     tokenMap,
-    tokenTokenMap,
     realMap,
     tokenizedSequenceWords,
     tokenRefsToWords,
@@ -358,7 +352,6 @@ export function prepare(
   const res = {
     realMap,
     tokenMap,
-    tokenTokenMap,
 
     tokenizedWords: tokenizedSequenceWords,
     tokenizedSentence,

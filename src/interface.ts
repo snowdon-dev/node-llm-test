@@ -3,8 +3,6 @@ export interface IPrepareResult {
   tokenMap: Record<string, string>;
   /** Map from the tokenized words to the real words */
   realMap: Record<string, string>;
-  /** Map of a token word to its tokenized sequence */
-  tokenTokenMap: Record<string, string>;
 
   tokenizedWords: string[];
   tokenizedSentence: string;
