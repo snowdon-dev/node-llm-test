@@ -1,6 +1,7 @@
 # node-llm-test
 
-- See the video I made this for at: <https://youtube.com/@snowdon-dev>.
+Please let me know if you encounter any issues.
+
 - See the web app at: <https://marketeer.snowdon.dev/tools/llmtest-online/>.
 
 Commercial use of this code package requires permission—please contact me at
