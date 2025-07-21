@@ -8,10 +8,13 @@ import inquirer from "inquirer";
 import { getRandomWords } from "./randomfile";
 import { Puzzle } from "./app";
 import { levelMax } from "./levels";
+import { once } from "events";
 
 program
   .name("llmtest")
-  .description("Generate tests to evaluate the intelligence of large language models.")
+  .description(
+    "Generate tests to evaluate the intelligence of large language models.",
+  )
   .option("--number <number>", "The number of words in the wordlist", "200")
   .option("--write [filepath]", "Write to a temporary file or the target path")
   .option("--level <integer>", `Features enabled 0=none ${levelMax}=all`, "0")
@@ -58,8 +61,8 @@ async function run() {
         type: "input",
         name: "write",
         message: "Enter the file path (or leave blank for a temporary file):",
-        when: (answers: { writeToFile: boolean; }) => answers.writeToFile,
-        default: typeof answers.write === 'string' ? answers.write : "",
+        when: (answers: { writeToFile: boolean }) => answers.writeToFile,
+        default: typeof answers.write === "string" ? answers.write : "",
       },
       {
         type: "input",
@@ -88,7 +91,8 @@ async function run() {
           }
           return true;
         },
-        filter: (value: string) => (value === "" ? undefined : parseInt(value, 10)),
+        filter: (value: string) =>
+          value === "" ? undefined : parseInt(value, 10),
       },
       {
         type: "confirm",
@@ -97,7 +101,7 @@ async function run() {
         default: answers.noPrint,
       },
     ];
-    
+
     const interactiveAnswers = await inquirer.prompt(questions);
     answers = { ...answers, ...interactiveAnswers };
   }
@@ -120,13 +124,14 @@ async function run() {
       }
       targetFilePath = tmpPath;
     } else {
-        const tempDir = tmpdir();
-        const fileName = `sd_llmtest_${Date.now()}.txt`;
-        targetFilePath = join(tempDir, fileName);
+      const tempDir = tmpdir();
+      const fileName = `sd_llmtest_${Date.now()}.txt`;
+      targetFilePath = join(tempDir, fileName);
     }
   }
 
-  const seedToUse = seed === undefined ? Math.floor(Math.random() * (2 ** 31 - 1)) : seed;
+  const seedToUse =
+    seed === undefined ? Math.floor(Math.random() * (2 ** 31 - 1)) : seed;
 
   const englishWords = await getRandomWords(number, seedToUse);
   const puzzle = Puzzle.New(englishWords, seedToUse, undefined, level);
@@ -139,6 +144,10 @@ async function run() {
     writeStream = createWriteStream(targetFilePath, {
       flags: "a",
     });
+    writeStream.on("error", (err) => {
+      console.error("Error writing to file:", err);
+      process.exit(1);
+    });
     process.on("exit", () => writeStream.close());
     writerFn = function (...outs: string[]) {
       outs.forEach((line) => {
@@ -148,11 +157,21 @@ async function run() {
     };
   }
 
+  async function endWriteStream() {
+    if (writeStream === null) return;
+    writeStream.end();
+    await once(writeStream, "finish");
+    writeStream = null;
+    process.exit();
+  }
+  if (writeStream !== null) {
+    process.on("SIGINT", endWriteStream);
+    process.on("SIGTERM", endWriteStream);
+  }
+
   if (!noPrint) {
     puzzle.print(writerFn);
   }
-
-  writeStream.end();
 
   if (!targetFilePath) {
     console.log("---------------- \n");
@@ -164,25 +183,35 @@ async function run() {
   console.log("level: " + level);
   console.log("wordcount: " + englishWords.length);
 
-  
-  const rl = createInterface({
+  let rl = createInterface({
     input: process.stdin,
     output: process.stdout,
   });
-  process.on("exit", () => rl.close());
+  function closeSdInterface() {
+    if (rl === undefined) return;
+    rl.close();
+    rl = null;
+  }
+  process.on("SIGINT", closeSdInterface);
+  process.on("SIGTERM", closeSdInterface);
 
-  checkAnswer(rl, puzzle);
+  await checkAnswer(rl, puzzle);
+  process.exit();
 }
 
-function checkAnswer(rl: Interface, puzzle: Puzzle) {
-  console.log("\n\n--- Waiting to check answer...\n");
-  console.log("Enter the missing symbolised words(s):");
-  rl.question("Your answer: ", (answerIn) => {
+async function checkAnswer(rl: Interface, puzzle: Puzzle): Promise<boolean> {
+  let correct = false;
+  while (!correct) {
+    console.log("\n\n--- Waiting to check answer...\n");
+    console.log("Enter the missing symbolised words(s):");
+    const answerIn = await new Promise<string>((resolve) => {
+      rl.question("Your answer: ", resolve);
+    });
     console.log("\n");
     const answer = puzzle.answer(answerIn.trim());
     if (answer.exact) {
       console.log("✅ Correct!");
-      process.exit();
+      correct = true;
     } else if (answer.possible) {
       console.log(
         "The answer completes the alphabet, but was not the expected result.",
@@ -190,14 +219,14 @@ function checkAnswer(rl: Interface, puzzle: Puzzle) {
       console.log("It may be correct if it works in the original sentence");
       console.log(`The correct token was: "${puzzle.result.correctAnswer}`);
       console.log(`The correct word was: "${answer.possibleReal}`);
-      process.exit();
+      correct = true;
     } else {
       console.log(
         `❌ Incorrect. The correct token was: "${puzzle.result.correctAnswer}"`,
       );
-      checkAnswer(rl, puzzle);
     }
-  });
+  }
+  return true;
 }
 
 run();
