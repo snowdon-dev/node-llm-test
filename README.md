@@ -84,18 +84,28 @@ puzzle.print(console.log);
 
 ## CLI usage
 
-To run the CLI `npx llmtest`.
+To run the CLI:
 
-For example: `npx llmtest -- --number 0 --write`
-For example: `npx llmtest -- --number 0 --write ~/Documents/test1`
+`npx llmtest`
 
-| Argument | Parameters | Description |
-| -------------- | --------------- | ------------- |
-| `--number <number>` | Integer (I.e. 600), default 200 | The number of words in the wordlist |
-| `--write [filepath]` | Boolean or string, default false | write to a temporary file or the target path|
-| `--level <integer>` | Integer between 0-31 | Features enabled 0=none 31=all |
-| `--seed <integer>` | Integer between 0-(2**31-1) | A seed to preserve reproducibility |
-| `--no-print` | None | Do not print the output for the LLM |
+For example:
+
+`npx llmtest --number 0 --write`
+
+`npx llmtest --number 0 --write ~/Documents/test1`
+
+Or run in interactive mode:
+
+`npx llmtest --interactive`
+
+| Argument | Description |
+| -------------- | --------------- |
+| `--number <number>` | The number of words in the wordlist (default: 200) |
+| `--write [filepath]` | Write to a temporary file or the target path |
+| `--level <integer>` | Features enabled (0=none, 31=all, default: 0) |
+| `--seed <integer>` | A seed to preserve reproducibility |
+| `--no-print` | Do not print the output for the LLM |
+| `-i, --interactive` | Run in interactive mode |
 
 ---
 

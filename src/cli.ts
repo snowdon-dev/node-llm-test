@@ -3,6 +3,8 @@ import { createInterface, Interface } from "readline";
 import { join, dirname, resolve } from "path";
 import { tmpdir } from "os";
 import { createWriteStream, existsSync } from "fs";
+import { program } from "commander";
+import inquirer from "inquirer";
 import { getRandomWords } from "./randomfile";
 import { Puzzle } from "./app";
 import { levelMax } from "./levels";
@@ -13,74 +15,160 @@ const rl = createInterface({
 });
 process.on("exit", () => rl.close());
 
-const args = process.argv.slice(2);
+program
+  .name("llmtest")
+  .description("Generate tests to evaluate the intelligence of large language models.")
+  .option("--number <number>", "The number of words in the wordlist", "200")
+  .option("--write [filepath]", "Write to a temporary file or the target path")
+  .option("--level <integer>", `Features enabled 0=none ${levelMax}=all`, "0")
+  .option("--seed <integer>", "A seed to preserve reproducibility")
+  .option("--no-print", "Do not print the output for the LLM")
+  .option("-i, --interactive", "Run in interactive mode");
 
-const noPrint = args.indexOf("--no-print") !== -1;
+program.parse(process.argv);
 
-const idx = args.indexOf("--number");
-let wordListNum = 200;
-if (!(idx === -1 || !args[idx + 1])) {
-  const num = parseInt(args[idx + 1], 10);
-  wordListNum = num;
-  if (Number.isNaN(num)) {
-    console.error("Error: --number must be a valid integer");
-    process.exit(1);
+const options = program.opts();
+
+async function run() {
+  let answers = {
+    number: parseInt(options.number, 10),
+    write: options.write,
+    level: parseInt(options.level, 10),
+    seed: options.seed ? parseInt(options.seed, 10) : undefined,
+    noPrint: options.noPrint,
+  };
+
+  if (options.interactive) {
+    const questions = [
+      {
+        type: "input",
+        name: "number",
+        message: "Enter the number of words in the wordlist:",
+        default: answers.number,
+        validate: (value: string) => {
+          const num = parseInt(value, 10);
+          if (Number.isNaN(num)) {
+            return "Please enter a valid integer.";
+          }
+          return true;
+        },
+        filter: (value: string) => parseInt(value, 10),
+      },
+      {
+        type: "confirm",
+        name: "writeToFile",
+        message: "Write to a file?",
+        default: !!answers.write,
+      },
+      {
+        type: "input",
+        name: "write",
+        message: "Enter the file path (or leave blank for a temporary file):",
+        when: (answers: { writeToFile: boolean; }) => answers.writeToFile,
+        default: typeof answers.write === 'string' ? answers.write : "",
+      },
+      {
+        type: "input",
+        name: "level",
+        message: `Enter the level (0-${levelMax}):`,
+        default: answers.level,
+        validate: (value: string) => {
+          const num = parseInt(value, 10);
+          if (Number.isNaN(num) || num < 0 || num > levelMax) {
+            return `Please enter an integer between 0 and ${levelMax}.`;
+          }
+          return true;
+        },
+        filter: (value: string) => parseInt(value, 10),
+      },
+      {
+        type: "input",
+        name: "seed",
+        message: "Enter a seed (or leave blank for a random seed):",
+        default: answers.seed,
+        validate: (value: string) => {
+          if (value === "") return true;
+          const num = parseInt(value, 10);
+          if (Number.isNaN(num) || num < 0 || num > 2 ** 31 - 1) {
+            return `Please enter an integer between 0 and ${2 ** 31 - 1}.`;
+          }
+          return true;
+        },
+        filter: (value: string) => (value === "" ? undefined : parseInt(value, 10)),
+      },
+      {
+        type: "confirm",
+        name: "noPrint",
+        message: "Do not print the output for the LLM?",
+        default: answers.noPrint,
+      },
+    ];
+    
+    const interactiveAnswers = await inquirer.prompt(questions);
+    answers = { ...answers, ...interactiveAnswers };
   }
-}
 
-const writeIdx = args.indexOf("--write");
-let write = writeIdx !== -1;
-let targetFilePath: string | null = null;
-if (write) {
-  if (args[writeIdx + 1]) {
-    const tmpPath = resolve(args[writeIdx + 1]);
-    const parentDir = dirname(tmpPath);
-    const hasParent = existsSync(parentDir);
-    if (!hasParent) {
-      console.error("Invalid write target - create the parent directory");
-      process.exit(1);
+  const { number, write, level, seed, noPrint } = answers;
+
+  let targetFilePath: string | null = null;
+  if (write) {
+    if (typeof write === "string" && write.length > 0) {
+      const tmpPath = resolve(write);
+      const parentDir = dirname(tmpPath);
+      const hasParent = existsSync(parentDir);
+      if (!hasParent) {
+        console.error("Invalid write target - create the parent directory");
+        process.exit(1);
+      }
+      if (existsSync(tmpPath)) {
+        console.error("File already exists at the given path: " + tmpPath);
+        process.exit(1);
+      }
+      targetFilePath = tmpPath;
+    } else {
+        const tempDir = tmpdir();
+        const fileName = `sd_llmtest_${Date.now()}.txt`;
+        targetFilePath = join(tempDir, fileName);
     }
-    if (existsSync(tmpPath)) {
-      console.error("File already exists at the given path: " + tmpPath);
-      process.exit(1);
-    }
-    targetFilePath = tmpPath;
-  }
-}
-
-const levelIdx = args.indexOf("--level");
-const levelSize = levelMax;
-let levelIn = 0;
-if (!(levelIdx === -1 || !args[levelIdx + 1])) {
-  const levelTmp = parseInt(args[levelIdx + 1]);
-  if (isNaN(levelTmp) || levelTmp > levelSize) {
-    console.error(
-      `Error: --level must be a valid integer between 0-${levelSize} - given ` +
-        args[levelIdx + 1],
-    );
-    process.exit(1);
   }
 
-  levelIn = levelTmp;
-}
-// TODO: add presets for hight min and low
+  const seedToUse = seed === undefined ? Math.floor(Math.random() * (2 ** 31 - 1)) : seed;
 
-let seedIdx = args.indexOf("--seed");
-let seedIn: number | null = null;
-if (!(seedIdx === -1 || !args[seedIdx + 1])) {
-  const seedTmp = parseInt(args[seedIdx + 1]);
-  if (isNaN(seedTmp) || seedTmp < 0 || seedTmp > 2 ** 31 - 1) {
-    console.error(
-      "Error: --seed number be between 0 and " +
-        (2 ** 31 - 1) +
-        " given: " +
-        args[seedIdx + 1],
-    );
-    process.exit();
+  const englishWords = await getRandomWords(number, seedToUse);
+  const puzzle = Puzzle.New(englishWords, seedToUse, undefined, level);
+
+  let writerFn: (...outs: string[]) => void = console.log;
+  let msg = "";
+  if (targetFilePath) {
+    msg += "Writing the test to the file:\n" + targetFilePath + "\n\n";
+    const writeStream = createWriteStream(targetFilePath, {
+      flags: "a",
+    });
+    process.on("exit", () => writeStream.close());
+    writerFn = function (...outs: string[]) {
+      outs.forEach((line) => {
+        writeStream.write(line);
+      });
+      writeStream.write("\n");
+    };
   }
-  seedIn = seedTmp;
+
+  if (!noPrint) {
+    puzzle.print(writerFn);
+  }
+
+  if (!targetFilePath) {
+    console.log("---------------- \n");
+  }
+
+  console.log("---- do not copy the following into the LLM\n" + msg);
+  console.log("The correct answer is:\n" + puzzle.result.tokenizedSentence);
+  console.log("The real sentence is:\n" + puzzle.result.sentence);
+  console.log("level: " + level);
+  console.log("wordcount: " + englishWords.length);
+
+  checkAnswer(rl, puzzle);
 }
-// TODO: add random seed option
 
 function checkAnswer(rl: Interface, puzzle: Puzzle) {
   console.log("\n\n--- Waiting to check answer...\n");
@@ -108,78 +196,4 @@ function checkAnswer(rl: Interface, puzzle: Puzzle) {
   });
 }
 
-function readSeed(rl: Interface, defaultIn = 12345): Promise<number> {
-  if (seedIn !== null) {
-    return Promise.resolve(seedIn);
-  }
-  return new Promise((res) => {
-    console.log(
-      "\nEnter a seed, in the type of number. I.e 12345, the default.\nOr enter blank (Enter) to use the default.",
-    );
-    let seed: number | null = null;
-    rl.question("Enter seed: ", (seedIn) => {
-      seedIn.trim();
-      if (!/\d+/.test(seedIn)) {
-        console.log("using default: " + defaultIn);
-        return res(defaultIn);
-      }
-      seed = Number(seedIn);
-      console.log("Using the seed: " + seed);
-
-      if (!seed) {
-        throw new Error("Invalid seed entered = try again");
-      }
-      res(seed);
-    });
-  });
-}
-
-readSeed(rl).then(async (seed) => {
-  function setupFileWriter() {
-    const tempDir = tmpdir();
-    const fileName = `sd_llmtest_${Date.now()}.txt`;
-    const tempFilePath = join(tempDir, fileName);
-    return tempFilePath;
-  }
-  const fileWriter = (tempFilePath: string) => {
-    const writeStream = createWriteStream(tempFilePath, {
-      flags: "a",
-    });
-    process.on("exit", () => writeStream.close());
-    return function (...outs: string[]) {
-      outs.forEach((line) => {
-        writeStream.write(line);
-      });
-      writeStream.write("\n");
-    };
-  };
-
-  let writerFn: (...outs: string[]) => void;
-  let msg = "";
-  if (write) {
-    const path = targetFilePath === null ? setupFileWriter() : targetFilePath;
-    msg += "Writing the test to the file:\n" + path + "\n\n";
-    writerFn = fileWriter(path);
-  } else {
-    writerFn = console.log;
-  }
-
-
-  const englishWords = await getRandomWords(wordListNum, seed);
-  const puzzle = Puzzle.New(englishWords, seed, undefined, levelIn);
-
-  if (!write) {
-    console.log("---------------- \n");
-  }
-
-  !noPrint && puzzle.print(writerFn);
-  !write && console.log("\n");
-  console.log("---- do not copy the following into the LLM\n" + msg);
-  console.log("The correct answer is:\n" + puzzle.result.tokenizedSentence);
-  console.log("The real sentence is:\n" + puzzle.result.sentence);
-  console.log("level: " + levelIn);
-  console.log("wordcount: " + englishWords.length);
-
-  // TODO: await input from an LLM, allow the llm to check its output
-  checkAnswer(rl, puzzle);
-});
+run();

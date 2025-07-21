@@ -50,5 +50,10 @@
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@types/inquirer": "^9.0.8",
+    "commander": "^14.0.0",
+    "inquirer": "^9.0.0"
   }
 }
