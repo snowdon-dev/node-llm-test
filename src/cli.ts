@@ -9,12 +9,6 @@ import { getRandomWords } from "./randomfile";
 import { Puzzle } from "./app";
 import { levelMax } from "./levels";
 
-const rl = createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
-process.on("exit", () => rl.close());
-
 program
   .name("llmtest")
   .description("Generate tests to evaluate the intelligence of large language models.")
@@ -166,6 +160,13 @@ async function run() {
   console.log("The real sentence is:\n" + puzzle.result.sentence);
   console.log("level: " + level);
   console.log("wordcount: " + englishWords.length);
+
+  
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  process.on("exit", () => rl.close());
 
   checkAnswer(rl, puzzle);
 }
