@@ -84,16 +84,16 @@ puzzle.print(console.log);
 
 ## CLI usage
 
-To run the CLI `npm run run`.
+To run the CLI `npx llmtest`.
 
-For example: `npm run run -- --number 0 --write`
-For example: `npm run run -- --number 0 --write ~/Documents/test1`
+For example: `npx llmtest -- --number 0 --write`
+For example: `npx llmtest -- --number 0 --write ~/Documents/test1`
 
 | Argument | Parameters | Description |
 | -------------- | --------------- | ------------- |
 | `--number <number>` | Integer (I.e. 600), default 200 | The number of words in the wordlist |
 | `--write [filepath]` | Boolean or string, default false | write to a temporary file or the target path|
-| `--level <integer>` | Integer between 0-15 | Features enabled 0=none 15=all |
+| `--level <integer>` | Integer between 0-31 | Features enabled 0=none 31=all |
 | `--seed <integer>` | Integer between 0-(2**31-1) | A seed to preserve reproducibility |
 | `--no-print` | None | Do not print the output for the LLM |
 
@@ -108,14 +108,14 @@ Given commands may not be reproducible unless, you happen to be one the same
 version.
 
 ```
-npm run run -- --number 0 --count 0 --seed 1234
+npx llmtest -- --number 0 --count 0 --seed 1234
 ```
 
 ### Level 1 
 
 ```console
 # zero extra words, zero extra reasoning steps
-npm run run --number 0 --level 0
+npx llmtest --number 0 --level 0
 ```
 
 ```txt
@@ -174,7 +174,7 @@ task and introduces a minimal layer of logical deduction.
 ### Level 14
 
 ```console
-npm run run -- --number 0 --level 14 --seed 123
+npx llmtest -- --number 0 --level 14 --seed 123
 
 The following describes a puzzle. To complete the game you must figure out the
 missing word without asking any questions.

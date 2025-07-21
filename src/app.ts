@@ -11,7 +11,7 @@ import {
   ILLMTest,
 } from "./interface";
 import { IPrepareResult } from "./interface";
-import { Feature, hasFeature, Presets } from "./levels";
+import { Feature, hasFeature, levelMax } from "./levels";
 import { getRandomOrder, mulberry32, randomizeRecord } from "./random";
 
 interface IAnswerContext {
@@ -24,7 +24,7 @@ interface IAnswerContext {
 }
 
 const validateLevel = (i: number) => {
-  if (!(i >= 0 && i <= 15)) {
+  if (!(i >= 0 && i <= levelMax)) {
     throw new TypeError("invalid level");
   }
 };
@@ -45,10 +45,10 @@ export class Puzzle implements ILLMTest {
   public readonly result: Readonly<IPrepareResult>;
 
   static New = (
-    inputWords: null | string[] = [],
-    seed: null | number = 12345,
+    inputWords: undefined | string[] = [],
+    seed: undefined | number = 12345,
     pangrams: undefined | string[] = pangramsDefault,
-    level: Presets.MAX,
+    level: number = levelMax,
   ) => new Puzzle(inputWords, seed, pangrams, level);
 
   /**
@@ -93,6 +93,26 @@ export class Puzzle implements ILLMTest {
       correctAnswer: this.result.correctAnswer,
     });
   }
+}
+
+function buildExpresion(rand: (num: number) => number): IExpressionResult {
+  // Build an expression
+  const equalSymbol = equalSymblsSet[rand(equalSymblsSet.length - 1)];
+  const expressionDefinition = getRandomOrder(
+    [
+      ExpressionPart.OLD_OPARAND,
+      ExpressionPart.OPERATOR,
+      ExpressionPart.NEW_OPARAND,
+    ] as ExpressionDefinitionType,
+    rand,
+  );
+  const idx = expressionDefinition.indexOf(ExpressionPart.OPERATOR);
+  const expressionType = idx === 0 ? "prefix" : idx === 1 ? "infix" : "postfix";
+  return {
+    expressionDefinition: expressionDefinition,
+    expressionType,
+    equalSymbol,
+  };
 }
 
 function preapreTotalWords(
@@ -156,9 +176,15 @@ function prepareMappings(
   const tokenMap: Record<string, string> = {};
   const realMap: Record<string, string> = {};
 
-  function popToken(multi = false): string[] {
+  const popNonDuplicate = () => randomArr.pop();
+  const popDuplicate = () => inputDeduped[rand(inputDeduped.length - 1)];
+
+  function popToken(multi = false, placement = 0): string[] {
+    const firstPlacement = placement === 0 ? popNonDuplicate : popDuplicate;
+    const secondPlacement = placement === 0 ? popDuplicate : popNonDuplicate;
+
     // Token without duplicates
-    const tmptoken = randomArr.pop();
+    const tmptoken = firstPlacement();
 
     if (
       tmptoken === undefined ||
@@ -171,7 +197,7 @@ function prepareMappings(
     }
 
     // Read a second (possible duplicate) word sometimes
-    const secondtoken = inputDeduped[rand(inputDeduped.length - 1)];
+    const secondtoken = secondPlacement();
 
     if (
       multi &&
@@ -185,21 +211,19 @@ function prepareMappings(
     return [tmptoken, secondtoken];
   }
 
-  // can't read a word thats at set end
-  function withinMultizeBounds(idx: number, partEnd: number) {
-    return !(idx >= partEnd - 2 && idx === partEnd - 1);
-  }
+  const useMultI = hasFeature(level, Feature.MULTIZE_I_TOKENS);
+  const useSecond = hasFeature(level, Feature.MULTIZE_TOKENS);
+  const bothSidesMulti = useMultI && useSecond;
 
-  function buildMappings(idx: number, partEnd: number) {
-    const useMultI = hasFeature(level, Feature.MULTIZE_I_TOKENS);
-    const useSecond = hasFeature(level, Feature.MULTIZE_TOKENS);
-    const bothSidesMulti = useMultI && useSecond;
-
+  const build = (idx: number, partEnd: number, placement: number) => {
     const sWordRoll = rand(4) > 2;
     const multiWordRoll =
-      useMultI && rand(4) > 2 ? withinMultizeBounds(idx, partEnd) : false;
+      useMultI && rand(4) > 2
+        ? // can't read a word thats at set end
+          !(idx >= partEnd - 2 && idx === partEnd - 1)
+        : false;
 
-    // no second token when miltiI, and off roll
+    // no second token when miltiI, and roll
     // or random when multi tokens
     let multiToken: boolean;
     if (bothSidesMulti) {
@@ -210,7 +234,7 @@ function prepareMappings(
       multiToken = false;
     }
 
-    const token = popToken(multiToken);
+    const token = popToken(multiToken, multiToken ? placement : 0);
     const tokenStr = token.join(" ");
     const word = inputDeduped[idx];
 
@@ -241,54 +265,40 @@ function prepareMappings(
     }
 
     return { tokenItems, reads, words };
-  }
+  };
+
+  const placement = rand(1);
 
   // for only non pangram words
   for (let debupedIdx = 0; debupedIdx < nPWordsPar; debupedIdx++) {
-    const info = buildMappings(debupedIdx, nPWordsPar);
+    const info = build(debupedIdx, nPWordsPar, placement);
     debupedIdx += info.reads - 1;
   }
 
   // insert the sentence words
   const tokenizedSequenceWords = [];
-  const tokenRefsToWords: Record<string, string[]> = {};
+  const tokenStartWordIdx: number[] = [];
 
-  let wordStartIdx = 0;
+  let wordIdx = 0;
   for (let npwi = nPWordsPar; npwi < inputDeduped.length; npwi++) {
-    const info = buildMappings(npwi, inputDeduped.length);
+    const info = build(npwi, inputDeduped.length, placement);
     tokenizedSequenceWords.push(...info.tokenItems);
-    info.tokenItems.forEach((w) => (tokenRefsToWords[w] = info.words));
+    tokenStartWordIdx.push(wordIdx);
+    // TODO: dont skip the next word consumed, given:
+    // quick brown => fox brown
+    // issue with reading the second consumed word:
+    // brown fox => quick the
     npwi += info.reads - 1;
-    wordStartIdx++;
+    wordIdx += info.reads;
   }
 
   return {
     tokenMap,
     realMap,
 
-    tokenRefsToWords,
-
     tokenizedSequenceWords,
-  };
-}
-
-function buildExpresion(rand: (num: number) => number): IExpressionResult {
-  // Build an expression
-  const equalSymbol = equalSymblsSet[rand(equalSymblsSet.length - 1)];
-  const expressionDefinition = getRandomOrder(
-    [
-      ExpressionPart.OLD_OPARAND,
-      ExpressionPart.OPERATOR,
-      ExpressionPart.NEW_OPARAND,
-    ] as ExpressionDefinitionType,
-    rand,
-  );
-  const idx = expressionDefinition.indexOf(ExpressionPart.OPERATOR);
-  const expressionType = idx === 0 ? "prefix" : idx === 1 ? "infix" : "postfix";
-  return {
-    expressionDefinition: expressionDefinition,
-    expressionType,
-    equalSymbol,
+    tokenStartWordIdx,
+    placement,
   };
 }
 
@@ -314,32 +324,35 @@ export function prepare(
     pangrams,
     words,
   );
-  const { tokenMap, realMap, tokenizedSequenceWords, tokenRefsToWords } =
-    prepareMappings(rand, level, totalWords, nPWordsPar);
+  const {
+    tokenMap,
+    realMap,
+    tokenizedSequenceWords,
+    tokenStartWordIdx,
+    placement,
+  } = prepareMappings(rand, level, totalWords, nPWordsPar);
 
-  const tokenRefEntries = Object.entries(tokenRefsToWords);
-  const tokenRefRemoveIdx = rand(tokenRefEntries.length - 1);
-  let missingWordIdx = -1;
-  let tokIdx = -1;
-  for (const [_, tok] of tokenRefEntries) {
-    tokIdx++;
-    if (tokIdx === tokenRefRemoveIdx) {
-      // we use the first word, the left word of a multi
-      missingWordIdx++;
-      break;
-    }
-    missingWordIdx += tok.length;
-  }
+  const tokenRefRemoveIdx = rand(tokenizedSequenceWords.length - 1);
+  const missingWordIdx = tokenStartWordIdx[tokenRefRemoveIdx];
 
-  const correctAnswer = tokenizedSequenceWords[tokIdx];
+  const correctAnswer = tokenizedSequenceWords[tokenRefRemoveIdx];
   const realAnswer = words[missingWordIdx];
 
   if ([correctAnswer, realAnswer].includes(undefined)) {
     throw new Error("Mapping failure");
   }
 
+  // insert a missing identifier
   const partialTokenizedWords = [...tokenizedSequenceWords];
-  partialTokenizedWords[tokIdx] = blankWordToken;
+  const isPartialReason = hasFeature(level, Feature.PARTIAL_REASINING);
+  const activePartial = partialTokenizedWords[tokenRefRemoveIdx];
+  const activePartialWords = activePartial.split(" ");
+  if (isPartialReason && activePartialWords.length !== 0 && rand(5) > 2) {
+    activePartialWords[placement] = blankWordToken;
+    partialTokenizedWords[tokenRefRemoveIdx] = activePartialWords.join(" ");
+  } else {
+    partialTokenizedWords[tokenRefRemoveIdx] = blankWordToken;
+  }
   const partialWords = [...words];
   partialWords[missingWordIdx] = blankWordToken;
   const partialTokenizedSentence = partialTokenizedWords.join(" ");
@@ -370,9 +383,6 @@ export function prepare(
 /**
  * - read a single answer
  * - If the characters are a word and its letters complete the alphabet
- *
- * token    => word seq       (curent missing = brown) (no single for brown)
- * one two  => quick brown    answer tokens: one two
  *
  * TODO: multi-words - if we are given lots of words, parse out the answer
  */
@@ -480,7 +490,8 @@ export function getInstructionsMessage(): string {
     "other contextual information. Complete the following tasks: \n\n" +
     //"- Find the missing symbol or symbols the sentence.\n" + // descriptive level?
     "- Provide the missing symbol or symbols required to decode the sentence.\n" +
-    "- Show the answer as concisely as possible.\n"
+    "- Show the answer as concisely as possible.\n" +
+    "- Don't ask any questions\n"
     //"- Show the puzzles given sentence in the symbolised form.\n" +
     //"- Do not provide the answer in the decoded form.\n"
     //"- Provide the answer in the symbolised form.\n\n"

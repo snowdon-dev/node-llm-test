@@ -10,6 +10,7 @@ import {
 import { ExpressionPart } from "../interface";
 import { prepare } from "../app";
 import { IPrepareResult } from "../interface";
+import { levelMax } from "../levels";
 
 describe("prepare", () => {
   const prepareArgs = [];
@@ -46,7 +47,7 @@ describe("prepare", () => {
       testResult(prepare(prepareArgs, undefined, ["test"]));
     });
 
-    Array(14)
+    Array(levelMax - 1)
       .fill(0)
       .map((_, i) => i + 2)
       .forEach((l) => {

@@ -1,9 +1,11 @@
+#!/usr/bin/env node
 import { createInterface, Interface } from "readline";
 import { join, dirname, resolve } from "path";
 import { tmpdir } from "os";
 import { createWriteStream, existsSync } from "fs";
 import { getRandomWords } from "./randomfile";
 import { Puzzle } from "./app";
+import { levelMax } from "./levels";
 
 const rl = createInterface({
   input: process.stdin,
@@ -47,7 +49,7 @@ if (write) {
 }
 
 const levelIdx = args.indexOf("--level");
-const levelSize = 15;
+const levelSize = levelMax;
 let levelIn = 0;
 if (!(levelIdx === -1 || !args[levelIdx + 1])) {
   const levelTmp = parseInt(args[levelIdx + 1]);
