@@ -1,6 +1,6 @@
 {
   "name": "node-llm-test",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Generate tests to evaluate the intelligence of large language models.",
   "author": "hello@snowdon.dev",
   "files": [
@@ -31,7 +31,7 @@
   "type": "commonjs",
   "bin": {
     "node-llm-test": "dist/cli.js",
-    "llm-test": "dist/cli.js"
+    "llmtest": "dist/cli.js"
   },
   "main": "dist/index.js",
   "scripts": {
