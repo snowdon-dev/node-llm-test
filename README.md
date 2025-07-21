@@ -2,6 +2,14 @@
 
 Please let me know if you encounter any issues.
 
+It’s worth noting that most of the mechanics operate on a 50% chance of
+activation. This means that even at the highest level, there is a real
+possibility that the test output will be simple—some tests remain trivial to
+solve regardless of difficulty. To obtain meaningful results, a large number of
+tests must be run, as the majority are expected to fail. For example, when the
+mapping order is left-to-right rather than right-to-left, the LLM tends to
+produce more correct answers.
+
 - See the web app at: <https://marketeer.snowdon.dev/tools/llmtest-online/>.
 
 Commercial use of this code package requires permission—please contact me at
