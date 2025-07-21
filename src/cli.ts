@@ -2,7 +2,7 @@
 import { createInterface, Interface } from "readline";
 import { join, dirname, resolve } from "path";
 import { tmpdir } from "os";
-import { createWriteStream, existsSync } from "fs";
+import { createWriteStream, existsSync, WriteStream } from "fs";
 import { program } from "commander";
 import inquirer from "inquirer";
 import { getRandomWords } from "./randomfile";
@@ -133,9 +133,10 @@ async function run() {
 
   let writerFn: (...outs: string[]) => void = console.log;
   let msg = "";
+  let writeStream: WriteStream | null = null;
   if (targetFilePath) {
     msg += "Writing the test to the file:\n" + targetFilePath + "\n\n";
-    const writeStream = createWriteStream(targetFilePath, {
+    writeStream = createWriteStream(targetFilePath, {
       flags: "a",
     });
     process.on("exit", () => writeStream.close());
@@ -150,6 +151,8 @@ async function run() {
   if (!noPrint) {
     puzzle.print(writerFn);
   }
+
+  writeStream.end();
 
   if (!targetFilePath) {
     console.log("---------------- \n");
