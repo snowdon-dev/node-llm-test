@@ -157,7 +157,7 @@ async function run() {
     };
   }
 
-  async function endWriteStream() {
+  const endWriteStream = async () => {
     if (writeStream === null) return;
     writeStream.end();
     await once(writeStream, "finish");
@@ -172,6 +172,11 @@ async function run() {
   if (!noPrint) {
     puzzle.print(writerFn);
   }
+
+  writeStream.end();
+  writeStream = null;
+  process.off('SIGINT', endWriteStream);
+  process.off('SIGTERM', endWriteStream);
 
   if (!targetFilePath) {
     console.log("---------------- \n");
