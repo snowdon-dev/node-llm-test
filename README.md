@@ -26,7 +26,7 @@ To learn more from the Oxford AI Chair (not me)
   - [Install](#install)
   - [Programmatic Usage](#programmatic-usage)
   - [CLI usage](#cli-usage)
-  - [Test Levels - Worked example](#test-levels-worked-example)
+  - [Test Levels. Worked example](#test-levels-worked-example)
     - [Level 1](#level-1)
     - [Level 14](#level-14)
   - [An example of deep reason failure](#an-example-of-deep-reason-failure)
@@ -117,7 +117,7 @@ Or run in interactive mode:
 
 ---
 
-## Test Levels - Worked example
+## Test Levels. Worked example
 
 I recommend trying the game out at a low level and word count, at least
 once. Some information is omitted here. See web app link at the top of file.
