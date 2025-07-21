@@ -172,11 +172,13 @@ async function run() {
   if (!noPrint) {
     puzzle.print(writerFn);
   }
-
-  writeStream.end();
-  writeStream = null;
-  process.off('SIGINT', endWriteStream);
-  process.off('SIGTERM', endWriteStream);
+  
+  if (writeStream !== null) {
+    writeStream.end();
+    writeStream = null;
+    process.off('SIGINT', endWriteStream);
+    process.off('SIGTERM', endWriteStream);
+  }
 
   if (!targetFilePath) {
     console.log("---------------- \n");
