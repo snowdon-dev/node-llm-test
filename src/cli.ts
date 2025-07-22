@@ -148,7 +148,6 @@ async function run() {
       console.error("Error writing to file:", err);
       process.exit(1);
     });
-    process.on("exit", () => writeStream.close());
     writerFn = function (...outs: string[]) {
       outs.forEach((line) => {
         writeStream.write(line);
