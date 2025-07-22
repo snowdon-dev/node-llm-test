@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { createInterface, Interface } from "readline";
-import { join, dirname, resolve } from "path";
+import { join, dirname, resolve, extname } from "path";
 import { tmpdir } from "os";
-import { createWriteStream, existsSync, WriteStream } from "fs";
+import { createWriteStream, existsSync, readFileSync, WriteStream } from "fs";
 import { program } from "commander";
 import inquirer from "inquirer";
 import { getRandomWords } from "./randomfile";
@@ -20,7 +20,8 @@ program
   .option("--level <integer>", `Features enabled 0=none ${levelMax}=all`, "0")
   .option("--seed <integer>", "A seed to preserve reproducibility")
   .option("--no-print", "Do not print the output for the LLM")
-  .option("-i, --interactive", "Run in interactive mode");
+  .option("-i, --interactive", "Run in interactive mode")
+  .option("--wordlist-file <filepath>", "Load wordlist from a file");
 
 program.parse(process.argv);
 
@@ -33,6 +34,7 @@ async function run() {
     level: parseInt(options.level, 10),
     seed: options.seed ? parseInt(options.seed, 10) : undefined,
     noPrint: options.noPrint,
+    wordlistFile: options.wordlistFile,
   };
 
   if (options.interactive) {
@@ -100,13 +102,19 @@ async function run() {
         message: "Do not print the output for the LLM?",
         default: answers.noPrint,
       },
+      {
+        type: "input",
+        name: "wordlistFile",
+        message: "Enter the path to a wordlist file (or leave blank to use default):",
+        default: answers.wordlistFile,
+      },
     ];
 
     const interactiveAnswers = await inquirer.prompt(questions);
     answers = { ...answers, ...interactiveAnswers };
   }
 
-  const { number, write, level, seed, noPrint } = answers;
+  const { number, write, level, seed, noPrint, wordlistFile } = answers;
 
   let targetFilePath: string | null = null;
   if (write) {
@@ -133,7 +141,40 @@ async function run() {
   const seedToUse =
     seed === undefined ? Math.floor(Math.random() * (2 ** 31 - 1)) : seed;
 
-  const englishWords = await getRandomWords(number, seedToUse);
+  let englishWords: string[];
+  if (wordlistFile) {
+    try {
+      const fileExtension = extname(wordlistFile).toLowerCase();
+      let fileContent = readFileSync(wordlistFile, "utf-8");
+
+      if (fileExtension === ".json") {
+        try {
+          const jsonData = JSON.parse(fileContent);
+          if (Array.isArray(jsonData) && jsonData.every(item => typeof item === 'string')) {
+            englishWords = jsonData;
+          } else {
+            console.error("JSON file does not contain a valid array of strings.");
+            process.exit(1);
+          }
+        } catch (jsonError) {
+          console.error(`Error parsing JSON wordlist file: ${jsonError.message}`);
+          process.exit(1);
+        }
+      } else {
+        englishWords = fileContent.split(/\s+/).filter(Boolean);
+      }
+
+      if (englishWords.length === 0) {
+        console.error("The provided wordlist file is empty or contains no valid words.");
+        process.exit(1);
+      }
+    } catch (error) {
+      console.error(`Error reading wordlist file: ${error.message}`);
+      process.exit(1);
+    }
+  } else {
+    englishWords = await getRandomWords(number, seedToUse);
+  }
   const puzzle = Puzzle.New(englishWords, seedToUse, undefined, level);
 
   let writerFn: (...outs: string[]) => void = console.log;
