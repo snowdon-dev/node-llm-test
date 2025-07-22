@@ -1,4 +1,3 @@
-
 // TODO: randomise
 export const blankWordToken = "[...]";
 
@@ -75,8 +74,6 @@ export const chaosWords = new Set([
   "vexed",
   "klutz",
 ]);
-
-
 
 export function capitalizeFirstLetter(str: string): string {
   if (!str) return str;

@@ -8,8 +8,8 @@ export enum Feature {
 }
 
 export const levelMax = Object.values(Feature)
-  .filter((v) => typeof v === 'number')
-  .reduce((ac, cur) => ac | cur,0)
+  .filter((v) => typeof v === "number")
+  .reduce((ac, cur) => ac | cur, 0);
 
 export function hasFeature(level: number, feature: Feature): boolean {
   return (level & feature) !== 0;

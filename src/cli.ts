@@ -105,7 +105,8 @@ async function run() {
       {
         type: "input",
         name: "wordlistFile",
-        message: "Enter the path to a wordlist file (or leave blank to use default):",
+        message:
+          "Enter the path to a wordlist file (or leave blank to use default):",
         default: answers.wordlistFile,
       },
     ];
@@ -150,14 +151,21 @@ async function run() {
       if (fileExtension === ".json") {
         try {
           const jsonData = JSON.parse(fileContent);
-          if (Array.isArray(jsonData) && jsonData.every(item => typeof item === 'string')) {
+          if (
+            Array.isArray(jsonData) &&
+            jsonData.every((item) => typeof item === "string")
+          ) {
             englishWords = jsonData;
           } else {
-            console.error("JSON file does not contain a valid array of strings.");
+            console.error(
+              "JSON file does not contain a valid array of strings.",
+            );
             process.exit(1);
           }
         } catch (jsonError) {
-          console.error(`Error parsing JSON wordlist file: ${jsonError.message}`);
+          console.error(
+            `Error parsing JSON wordlist file: ${jsonError.message}`,
+          );
           process.exit(1);
         }
       } else {
@@ -165,7 +173,9 @@ async function run() {
       }
 
       if (englishWords.length === 0) {
-        console.error("The provided wordlist file is empty or contains no valid words.");
+        console.error(
+          "The provided wordlist file is empty or contains no valid words.",
+        );
         process.exit(1);
       }
     } catch (error) {
@@ -203,7 +213,7 @@ async function run() {
     await once(writeStream, "finish");
     writeStream = null;
     process.exit();
-  }
+  };
   if (writeStream !== null) {
     process.on("SIGINT", endWriteStream);
     process.on("SIGTERM", endWriteStream);
@@ -212,12 +222,12 @@ async function run() {
   if (!noPrint) {
     puzzle.print(writerFn);
   }
-  
+
   if (writeStream !== null) {
     writeStream.end();
     writeStream = null;
-    process.off('SIGINT', endWriteStream);
-    process.off('SIGTERM', endWriteStream);
+    process.off("SIGINT", endWriteStream);
+    process.off("SIGTERM", endWriteStream);
   }
 
   if (!targetFilePath) {
