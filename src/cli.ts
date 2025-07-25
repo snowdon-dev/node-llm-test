@@ -2,7 +2,13 @@
 import { createInterface, Interface } from "readline";
 import { join, dirname, resolve, extname } from "path";
 import { tmpdir } from "os";
-import { createWriteStream, existsSync, readFileSync, WriteStream } from "fs";
+import {
+  createWriteStream,
+  existsSync,
+  readFileSync,
+  WriteStream,
+  lstatSync,
+} from "fs";
 import { program } from "commander";
 import inquirer from "inquirer";
 import { getRandomWords } from "./randomfile";
@@ -20,6 +26,11 @@ program
   .option("--level <integer>", `Features enabled 0=none ${levelMax}=all`, "0")
   .option("--seed <integer>", "A seed to preserve reproducibility")
   .option("--no-print", "Do not print the output for the LLM")
+  .option("--no-answer", "Do not wait for input on stdin")
+  .option(
+    "--answer <string>",
+    "Instead of printing a test, check the given answer",
+  )
   .option("-i, --interactive", "Run in interactive mode")
   .option("--wordlist-file <filepath>", "Load wordlist from a file");
 
@@ -33,9 +44,26 @@ async function run() {
     write: options.write,
     level: parseInt(options.level, 10),
     seed: options.seed ? parseInt(options.seed, 10) : undefined,
-    noPrint: options.noPrint,
+    print:
+      options.print &&
+      (options.answer === false || typeof options.answer === "string"
+        ? false
+        : options.print),
     wordlistFile: options.wordlistFile,
+    answer: typeof options.answer === "string" ? options.answer : undefined,
+    noAnswer: options.answer === false,
   };
+
+  if (answers.answer || answers.noAnswer === false) {
+    if (options.interactive) {
+      console.error("--interactive option and answer options are incompatible");
+      process.exit(1);
+    }
+    if (answers.write) {
+      console.error("--write option and answer options are incompatible");
+      process.exit(1);
+    }
+  }
 
   if (options.interactive) {
     const questions = [
@@ -98,9 +126,9 @@ async function run() {
       },
       {
         type: "confirm",
-        name: "noPrint",
+        name: "print",
         message: "Do not print the output for the LLM?",
-        default: answers.noPrint,
+        default: answers.print,
       },
       {
         type: "input",
@@ -115,12 +143,14 @@ async function run() {
     answers = { ...answers, ...interactiveAnswers };
   }
 
-  const { number, write, level, seed, noPrint, wordlistFile } = answers;
+  const { number, write, level, seed, print, wordlistFile, answer, noAnswer } =
+    answers;
 
   let targetFilePath: string | null = null;
   if (write) {
+    const fileName = `sd_llmtest_${Date.now()}.txt`;
     if (typeof write === "string" && write.length > 0) {
-      const tmpPath = resolve(write);
+      let tmpPath = resolve(write);
       const parentDir = dirname(tmpPath);
       const hasParent = existsSync(parentDir);
       if (!hasParent) {
@@ -128,13 +158,17 @@ async function run() {
         process.exit(1);
       }
       if (existsSync(tmpPath)) {
-        console.error("File already exists at the given path: " + tmpPath);
-        process.exit(1);
+        if (lstatSync(tmpPath).isDirectory()) {
+          tmpPath = join(tmpPath, fileName);
+        } else {
+          console.error("File already exists at the given path: " + tmpPath);
+          process.exit(1);
+        }
       }
+
       targetFilePath = tmpPath;
     } else {
       const tempDir = tmpdir();
-      const fileName = `sd_llmtest_${Date.now()}.txt`;
       targetFilePath = join(tempDir, fileName);
     }
   }
@@ -219,7 +253,7 @@ async function run() {
     process.on("SIGTERM", endWriteStream);
   }
 
-  if (!noPrint) {
+  if (print) {
     puzzle.print(writerFn);
   }
 
@@ -230,22 +264,27 @@ async function run() {
     process.off("SIGTERM", endWriteStream);
   }
 
-  if (!targetFilePath) {
-    console.log("---------------- \n");
-  }
-
   console.log("---- do not copy the following into the LLM\n" + msg);
   console.log("The correct answer is:\n" + puzzle.result.tokenizedSentence);
   console.log("The real sentence is:\n" + puzzle.result.sentence);
   console.log("level: " + level);
   console.log("wordcount: " + englishWords.length);
+  console.log("seed: " + seedToUse);
+
+  if (noAnswer) {
+    process.exit();
+  }
+
+  if (typeof answer === "string") {
+    return checkAnswerSync(puzzle, answer);
+  }
 
   let rl = createInterface({
     input: process.stdin,
     output: process.stdout,
   });
   function closeSdInterface() {
-    if (rl === undefined) return;
+    if (rl === null) return;
     rl.close();
     rl = null;
   }
@@ -254,6 +293,42 @@ async function run() {
 
   await checkAnswer(rl, puzzle);
   process.exit();
+}
+
+function getCorrectMessage() {
+  return "✅ Correct!";
+}
+
+function getPossibleMessage(
+  puzzle: Puzzle,
+  answer: ReturnType<Puzzle["answer"]>,
+) {
+  return (
+    "The answer completes the alphabet, but was not the expected result.\n" +
+    "It may be correct if it works in the original sentence,\n" +
+    `The correct token was: "${puzzle.result.correctAnswer}"\n` +
+    `The correct word was: "${answer.possibleReal}"`
+  );
+}
+
+function getIncorrectMessage(puzzle: Puzzle) {
+  return `❌ Incorrect. The correct token was: "${puzzle.result.correctAnswer}"`;
+}
+
+function checkAnswerSync(puzzle: Puzzle, answerIn: string) {
+  const answer = puzzle.answer(answerIn.trim());
+  console.log("\n\n--- The answer check ...\n");
+  console.log("Your provided answer: " + answerIn + "\n");
+  if (answer.exact) {
+    console.log(getCorrectMessage());
+    process.exit();
+  } else if (answer.possible) {
+    console.log(getPossibleMessage(puzzle, answer));
+    process.exit();
+  } else {
+    console.log(getIncorrectMessage(puzzle));
+    process.exit(2);
+  }
 }
 
 async function checkAnswer(rl: Interface, puzzle: Puzzle): Promise<boolean> {
@@ -267,20 +342,13 @@ async function checkAnswer(rl: Interface, puzzle: Puzzle): Promise<boolean> {
     console.log("\n");
     const answer = puzzle.answer(answerIn.trim());
     if (answer.exact) {
-      console.log("✅ Correct!");
+      console.log(getCorrectMessage());
       correct = true;
     } else if (answer.possible) {
-      console.log(
-        "The answer completes the alphabet, but was not the expected result.",
-      );
-      console.log("It may be correct if it works in the original sentence");
-      console.log(`The correct token was: "${puzzle.result.correctAnswer}`);
-      console.log(`The correct word was: "${answer.possibleReal}`);
+      console.log(getPossibleMessage(puzzle, answer));
       correct = true;
     } else {
-      console.log(
-        `❌ Incorrect. The correct token was: "${puzzle.result.correctAnswer}"`,
-      );
+      console.log(getIncorrectMessage(puzzle));
     }
   }
   return true;

@@ -79,12 +79,17 @@ proves it.
 ## Programmatic Usage
 
 ```javascript
-import { Puzzle } from 'node-llm-test';
-import { getRandomWords } from 'node-llm-test/randomfile';
+import { Puzzle } from "node-llm-test";
+import { getRandomWords } from "node-llm-test/randomfile";
 
-const seed = Math.floor(Math.random() * (2**31 - 1));
+const seed = Math.floor(Math.random() * (2 ** 31 - 1));
 const wordList = await getRandomWords(600, seed);
-const puzzle = Puzzle.New([/*someWordList*/], seed);
+const puzzle = Puzzle.New(
+  [
+    /*someWordList*/
+  ],
+  seed,
+);
 //const puzzle2 = Puzzle.New();
 
 puzzle.print(console.log);
@@ -106,14 +111,17 @@ Or run in interactive mode:
 
 `npx llmtest --interactive`
 
-| Argument | Description |
-| -------------- | --------------- |
-| `--number <number>` | The number of words in the wordlist (default: 200) |
-| `--write [filepath]` | Write to a temporary file or the target path |
-| `--level <integer>` | Features enabled (0=none, 31=all, default: 0) |
-| `--seed <integer>` | A seed to preserve reproducibility |
-| `--no-print` | Do not print the output for the LLM |
-| `-i, --interactive` | Run in interactive mode |
+| Argument                     | Description                                        |
+| ---------------------------- | -------------------------------------------------- |
+| `--number <number>`          | The number of words in the wordlist (default: 200) |
+| `--write [filepath]`         | Write to a temporary file or the target path       |
+| `--level <integer>`          | Features enabled (0=none, 31=all, default: 0)      |
+| `--seed <integer>`           | A seed to preserve reproducibility                 |
+| `--no-print`                 | Do not print the output for the LLM                |
+| `-i, --interactive`          | Run in interactive mode                            |
+| `--wordlist-file <filepath>` | Load wordlist from a file                          |
+| `--answer <string>`          | Provide answer via arguments, implies --no-answer  |
+| `--no-answer`                | Do not wait for an answer on stdin                 |
 
 ---
 
@@ -129,7 +137,7 @@ version.
 npx llmtest -- --number 0 --count 0 --seed 1234
 ```
 
-### Level 1 
+### Level 1
 
 ```console
 # zero extra words, zero extra reasoning steps
@@ -187,7 +195,6 @@ reasoning is still required to arrive at the correct answer due to the way the
 test is presented. So the solver must infer the ordering and relationships from
 the text. This subtle requirement distinguishes it from a purely mechanical
 task and introduces a minimal layer of logical deduction.
-
 
 ### Level 14
 
@@ -852,7 +859,7 @@ ChatGPT incorrectly notes a mapping from `'subtext'` to `'sterve'`, when in
 fact the correct mapping is from `'Big'` to `'subtext'`. It never corrects this
 mistake. Interestingly, it does recognize that the decoded sentence is a
 pangram, which should be technically impossible under the constraints of the
-puzzle. However, it concludes that it’s the *wrong* pangram. I have no idea how
+puzzle. However, it concludes that it’s the _wrong_ pangram. I have no idea how
 it arrived at that conclusion; it likely guessed, perhaps based on the sentence
 length (since no multi-word mappings were present), or possibly from memories
 it was instructed not to use. Frequently, it simply assumes the sentence is the

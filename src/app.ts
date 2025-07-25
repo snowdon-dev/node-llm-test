@@ -124,7 +124,6 @@ function preapreTotalWords(
 ) {
   const wordsSet = new Set(words);
 
-  // Map each unique word to a token
   const totalWords = new Set<string>();
   for (let i = 0; i < inputWords.length; i++) {
     totalWords.add(inputWords[i]);
@@ -183,7 +182,6 @@ function prepareMappings(
     const firstPlacement = placement === 0 ? popNonDuplicate : popDuplicate;
     const secondPlacement = placement === 0 ? popDuplicate : popNonDuplicate;
 
-    // Token without duplicates
     const tmptoken = firstPlacement();
 
     if (
@@ -196,7 +194,6 @@ function prepareMappings(
       return [tmptoken];
     }
 
-    // Read a second (possible duplicate) word sometimes
     const secondtoken = secondPlacement();
 
     if (
@@ -216,9 +213,9 @@ function prepareMappings(
   const bothSidesMulti = useMultI && useSecond;
 
   const build = (idx: number, partEnd: number, placement: number) => {
-    const sWordRoll = rand(4) > 2;
+    const sWordRoll = rand(1) > 0;
     const multiWordRoll =
-      useMultI && rand(4) > 2
+      useMultI && rand(1) > 0
         ? // can't read a word thats at set end
           !(idx >= partEnd - 2 && idx === partEnd - 1)
         : false;
@@ -269,7 +266,7 @@ function prepareMappings(
 
   const placement = rand(1);
 
-  // for only non pangram words
+  // for only non sentence words
   for (let debupedIdx = 0; debupedIdx < nPWordsPar; debupedIdx++) {
     const info = build(debupedIdx, nPWordsPar, placement);
     debupedIdx += info.reads - 1;
@@ -347,7 +344,7 @@ export function prepare(
   const isPartialReason = hasFeature(level, Feature.PARTIAL_REASINING);
   const activePartial = partialTokenizedWords[tokenRefRemoveIdx];
   const activePartialWords = activePartial.split(" ");
-  if (isPartialReason && activePartialWords.length !== 0 && rand(5) > 2) {
+  if (isPartialReason && activePartialWords.length !== 1 && rand(1) > 0) {
     activePartialWords[placement] = blankWordToken;
     partialTokenizedWords[tokenRefRemoveIdx] = activePartialWords.join(" ");
   } else {
@@ -425,6 +422,25 @@ export function answer(strIn: string, context: Readonly<IAnswerContext>) {
   throw Error("Answer failure");
 }
 
+export function getMappingMessage(
+  oldS: string,
+  newS: string,
+  symbol: string,
+  expressionDefinition: ExpressionPart[],
+): string {
+  const parts = {
+    [ExpressionPart.NEW_OPARAND]: `'${newS}'`,
+    [ExpressionPart.OLD_OPARAND]: `'${oldS}'`,
+    [ExpressionPart.OPERATOR]: `${symbol}`,
+  };
+  const build = expressionDefinition.map((key) => parts[key]);
+
+  build.splice(1, 0, " ");
+  build.splice(3, 0, " ");
+
+  return build.join("");
+}
+
 export function getInitialDescription(
   symbol: string,
   expressionDefinition: ExpressionPart[],
@@ -463,26 +479,6 @@ export function getInitialDescription(
 export function getTableMappingHeader(): string {
   return "\n\nTable of mappings:";
 }
-
-export function getMappingMessage(
-  oldS: string,
-  newS: string,
-  symbol: string,
-  expressionDefinition: ExpressionPart[],
-): string {
-  const parts = {
-    [ExpressionPart.NEW_OPARAND]: `'${newS}'`,
-    [ExpressionPart.OLD_OPARAND]: `'${oldS}'`,
-    [ExpressionPart.OPERATOR]: `${symbol}`,
-  };
-  const build = expressionDefinition.map((key) => parts[key]);
-
-  build.splice(1, 0, " ");
-  build.splice(3, 0, " ");
-
-  return build.join("");
-}
-
 export function getInstructionsMessage(): string {
   // this could be memorised
   return (
