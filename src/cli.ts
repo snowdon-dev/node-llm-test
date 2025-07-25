@@ -54,7 +54,7 @@ async function run() {
     noAnswer: options.answer === false,
   };
 
-  if (answers.answer || answers.noAnswer === false) {
+  if (typeof answers.answer === 'string' || answers.noAnswer === true) {
     if (options.interactive) {
       console.error("--interactive option and answer options are incompatible");
       process.exit(1);
