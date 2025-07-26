@@ -117,13 +117,8 @@ export class PuzzleBuilder {
     const expression = this.buildExpresion();
 
     const { totalWords, nPWordsPar } = this.preapreTotalWords();
-    const {
-      tokenMap,
-      realMap,
-      tokenizedEntries,
-      tokenStartWordIdx,
-      placement,
-    } = this.prepareMappings(totalWords, nPWordsPar);
+    const { tokenMap, realMap, tokenizedEntries, tokenStartWordIdx } =
+      this.prepareMappings(totalWords, nPWordsPar);
 
     const tokenizedSequenceWords = tokenizedEntries;
     const tokenRefRemoveIdx = this.rand(tokenizedSequenceWords.length - 1);
@@ -145,7 +140,7 @@ export class PuzzleBuilder {
     const isPartialReason = hasFeature(this.level, Feature.PARTIAL_REASINING);
     const activePartial = [...partialTokenizedWords[tokenRefRemoveIdx]];
     if (isPartialReason && activePartial.length !== 1 && this.rand(1) > 0) {
-      activePartial[placement] = blankWordToken;
+      activePartial[0] = blankWordToken;
       partialTokenizedWords[tokenRefRemoveIdx] = activePartial;
     } else {
       // TODO: hide half a word
@@ -253,11 +248,10 @@ export class PuzzleBuilder {
 
     const popNonDuplicate = () => randomArr.pop();
     const popDuplicate = () => inputDeduped[this.rand(inputDeduped.length - 1)];
+    const firstPlacement = popNonDuplicate;
+    const secondPlacement = popDuplicate;
 
-    function popToken(multi = false, placement = 0): string[] {
-      const firstPlacement = placement === 0 ? popNonDuplicate : popDuplicate;
-      const secondPlacement = placement === 0 ? popDuplicate : popNonDuplicate;
-
+    function popToken(multi = false): string[] {
       const tmptoken = firstPlacement();
 
       if (
@@ -286,10 +280,9 @@ export class PuzzleBuilder {
 
     const useMultI = hasFeature(this.level, Feature.MULTIZE_I_TOKENS);
     const useSecond = hasFeature(this.level, Feature.MULTIZE_TOKENS);
-    const bothSidesMulti = useMultI && useSecond;
 
-    const build = (idx: number, partEnd: number, placement: number) => {
-      const sWordRoll = this.rand(1) > 0;
+    const build = (idx: number, partEnd: number) => {
+      const sTokenRoll = this.rand(1) > 0;
       const multiWordRoll =
         useMultI && this.rand(1) > 0
           ? // can't read a word thats at set end
@@ -298,16 +291,10 @@ export class PuzzleBuilder {
 
       // no second token when miltiI, and roll
       // or random when multi tokens
-      let multiToken: boolean = false;
-      if (bothSidesMulti) {
-        multiToken = !multiWordRoll ? sWordRoll : false;
-      } else if (useSecond) {
-        multiToken = sWordRoll;
-      } else if (useMultI) {
-        multiToken = false;
-      }
+      let multiToken: boolean =
+        useSecond ? sTokenRoll : false;
+      const token = popToken(multiToken);
 
-      const token = popToken(multiToken, multiToken ? placement : 0);
       const tokenStr = token.join(" ");
       const word = inputDeduped[idx];
 
@@ -320,18 +307,9 @@ export class PuzzleBuilder {
         const nextWord = inputDeduped[idx + 1];
         words.push(nextWord);
         reads++;
-
-        // if multiI but not multi, read a second token
         const mtw = `${word} ${nextWord}`;
-        let mtt = `${token}`;
-        if (useSecond && sWordRoll) {
-          const nextToken = popToken()[0];
-          const nextTokenStr = nextToken;
-          mtt += ` ${nextTokenStr}`;
-          tokenItems = [tokenStr, nextToken];
-        }
-        tokenMap[mtw] = mtt;
-        realMap[mtt] = mtw;
+        tokenMap[mtw] = tokenStr;
+        realMap[tokenStr] = mtw;
       } else {
         tokenMap[word] = tokenStr;
         realMap[tokenStr] = word;
@@ -340,11 +318,9 @@ export class PuzzleBuilder {
       return { tokenItems, reads, words };
     };
 
-    const placement = this.rand(1);
-
     // for only non sentence words
     for (let debupedIdx = 0; debupedIdx < nPWordsPar; debupedIdx++) {
-      const info = build(debupedIdx, nPWordsPar, placement);
+      const info = build(debupedIdx, nPWordsPar);
       debupedIdx += info.reads - 1;
     }
 
@@ -354,7 +330,7 @@ export class PuzzleBuilder {
 
     let wordIdx = 0;
     for (let npwi = nPWordsPar; npwi < inputDeduped.length; npwi++) {
-      const info = build(npwi, inputDeduped.length, placement);
+      const info = build(npwi, inputDeduped.length);
       tokenizedEntries.push(info.tokenItems);
       tokenStartWordIdx.push(wordIdx);
       // TODO: dont skip the next word consumed, given:
@@ -371,7 +347,6 @@ export class PuzzleBuilder {
 
       tokenizedEntries,
       tokenStartWordIdx,
-      placement,
     };
   }
 
@@ -541,6 +516,9 @@ export function getInitialDescription(
     case "binaryrot": {
       symbolExpMsg = `Each mapping entry in the symbolised sequence has been encoded with ROT${symbolExpression.options.rotNNum} and then converted to binary.\n`;
       break;
+    }
+    default: {
+      throw new Error("Brah");
     }
   }
 
