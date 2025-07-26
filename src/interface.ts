@@ -17,6 +17,7 @@ export interface IPrepareResult {
   realAnswer: string;
 
   expression: IExpressionResult;
+  symbolExpression: SymbolExpression<SymbolTypeOptions>;
 }
 
 export interface ILLMTest {
@@ -28,6 +29,35 @@ export interface IExpressionResult {
   expressionDefinition: ExpressionDefinitionType;
   expressionType: string;
   equalSymbol: string;
+}
+
+export interface RotOptions {
+  type: "rot";
+  rotNNum: number;
+}
+
+export interface BinaryOptions {
+  type: "binary";
+}
+
+export interface BinaryRotOptions {
+  type: "binaryrot";
+  rotNNum: number;
+}
+export interface NoneOptions {
+  type: "none";
+}
+
+// Discriminated union
+export type SymbolTypeOptions =
+  | NoneOptions
+  | RotOptions
+  | BinaryOptions
+  | BinaryRotOptions;
+
+export interface SymbolExpression<T extends SymbolTypeOptions> {
+  mapper: (w: string[]) => string[];
+  options: T;
 }
 
 export type ExpressionDefinitionType = [

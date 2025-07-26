@@ -21,7 +21,7 @@ program
   .description(
     "Generate tests to evaluate the intelligence of large language models.",
   )
-  .option("--number <number>", "The number of words in the wordlist", "200")
+  .option("--number <number>", "The number of words in the wordlist", "600")
   .option("--write [filepath]", "Write to a temporary file or the target path")
   .option("--level <integer>", `Features enabled 0=none ${levelMax}=all`, "0")
   .option("--seed <integer>", "A seed to preserve reproducibility")
@@ -46,7 +46,7 @@ async function run() {
     seed: options.seed ? parseInt(options.seed, 10) : undefined,
     print:
       options.print &&
-      (options.answer === false || typeof options.answer === "string"
+      (typeof options.answer === "string"
         ? false
         : options.print),
     wordlistFile: options.wordlistFile,
@@ -54,7 +54,7 @@ async function run() {
     noAnswer: options.answer === false,
   };
 
-  if (typeof answers.answer === 'string' || answers.noAnswer === true) {
+  if (typeof answers.answer === 'string') {
     if (options.interactive) {
       console.error("--interactive option and answer options are incompatible");
       process.exit(1);
@@ -63,6 +63,10 @@ async function run() {
       console.error("--write option and answer options are incompatible");
       process.exit(1);
     }
+  }
+  if (typeof options.wordlistFile === 'string' && typeof options.number === 'string') {
+    console.error('Usage of both --wordlist-file and --number are incompatible');
+    process.exit(1);
   }
 
   if (options.interactive) {
@@ -264,12 +268,14 @@ async function run() {
     process.off("SIGTERM", endWriteStream);
   }
 
-  console.log("---- do not copy the following into the LLM\n" + msg);
+  console.log("\n---- do not copy the following into the LLM\n" + msg);
   console.log("The correct answer is:\n" + puzzle.result.tokenizedSentence);
   console.log("The real sentence is:\n" + puzzle.result.sentence);
   console.log("level: " + level);
   console.log("wordcount: " + englishWords.length);
   console.log("seed: " + seedToUse);
+  console.log("expression: ", JSON.stringify(puzzle.result.expression, null, 1));
+  console.log("symbol expression: ", JSON.stringify(puzzle.result.symbolExpression, null, 1));
 
   if (noAnswer) {
     process.exit();

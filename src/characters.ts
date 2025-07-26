@@ -79,3 +79,19 @@ export function capitalizeFirstLetter(str: string): string {
   if (!str) return str;
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+export function rotN(text: string, shift: number) {
+  return text.replace(/[a-zA-Z]/g, function (c) {
+    const base = c <= "Z" ? 65 : 97;
+    return String.fromCharCode(
+      ((((c.charCodeAt(0) - base + shift) % 26) + 26) % 26) + base,
+    );
+  });
+}
+
+export function toBinary(text: string) {
+  return text
+    .split("")
+    .map((c) => c.charCodeAt(0).toString(2).padStart(8, "0"))
+    .join(" ");
+}

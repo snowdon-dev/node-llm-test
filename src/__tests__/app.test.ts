@@ -6,14 +6,26 @@ import {
   getInstructionsMessage,
   getSymbolisedSentenceOutput,
   answer,
+  createSymbolExpression,
+  PuzzleBuilder,
+  Puzzle,
 } from "../app";
 import { ExpressionPart } from "../interface";
-import { prepare } from "../app";
 import { IPrepareResult } from "../interface";
 import { levelMax } from "../levels";
 
 describe("prepare", () => {
   const prepareArgs = [];
+
+  function prepare(
+    inputWords?: string[],
+    seed?: number,
+    pangrams?: string[],
+    level?: number,
+  ) {
+    const builder = new PuzzleBuilder(level, inputWords, pangrams, seed);
+    return builder.prepare();
+  }
 
   describe("should return an object with the correct properties", () => {
     function testResult(result: IPrepareResult) {
@@ -116,10 +128,15 @@ describe("print", () => {
       expressionType: "infix",
     };
 
+    const mockSymbolExpression = createSymbolExpression({
+      mapper: (w) => w,
+      options: { type: "none" },
+    });
     print(
       mockPartialTokenizedSentence,
       mockTokenMap,
       mockExpression,
+      mockSymbolExpression,
       1,
       output,
     );
@@ -133,6 +150,7 @@ describe("print", () => {
       getInitialDescription(
         mockExpression.equalSymbol,
         mockExpression.expressionDefinition,
+        mockSymbolExpression,
       ),
     );
     expect(allOutputCalls[1]).toBe(getTableMappingHeader());
