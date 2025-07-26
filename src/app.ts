@@ -531,15 +531,15 @@ export function getInitialDescription(
       break;
     }
     case "rot": {
-      symbolExpMsg = `Each mapping entry in the symbolised sentence has been encoded with ROT${symbolExpression.options.rotNNum}.\n`;
+      symbolExpMsg = `Each mapping entry in the symbolised sequence has been encoded with ROT${symbolExpression.options.rotNNum}.\n`;
       break;
     }
     case "binary": {
-      symbolExpMsg = `Each mapping entry in the symbolised sentence has been encoded with binary.\n`;
+      symbolExpMsg = `Each mapping entry in the symbolised sequence has been encoded with binary.\n`;
       break;
     }
     case "binaryrot": {
-      symbolExpMsg = `Each mapping entry in the symbolised sentence has been encoded with ROT${symbolExpression.options.rotNNum} and then converted to binary.\n`;
+      symbolExpMsg = `Each mapping entry in the symbolised sequence has been encoded with ROT${symbolExpression.options.rotNNum} and then converted to binary.\n`;
       break;
     }
   }
@@ -548,7 +548,7 @@ export function getInitialDescription(
     // remove? too descriptive
     //"The following describes a puzzle. " +
     //"To complete the game you must figure out the missing word, without asking any questions.\n\n" +
-    "You will be given a character that contains missing word(s), and the sentence been encoded into a symbolised form.\n" +
+    "You will be given a character sequence that contains a missing part, and the sentence been encoded into a symbolised form.\n" +
     symbolExpMsg +
     `The '${symbol}' operator defines a mapping between two character sequences enclosed in single quotes.` +
     "\nEach mapping entry in the table is separated by a newline " +
