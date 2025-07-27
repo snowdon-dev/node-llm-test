@@ -8,7 +8,6 @@ import {
   answer,
   createSymbolExpression,
   PuzzleBuilder,
-  Puzzle,
 } from "../app";
 import { ExpressionPart } from "../interface";
 import { IPrepareResult } from "../interface";
