@@ -549,17 +549,17 @@ export function getInstructionsMessage(inDirectSymbols: boolean): string {
     //"- Find the missing symbol or symbols the sentence.\n" + // descriptive level?
     //"- Identify the mapping entry that is missing." +
     //"- Find the missing mapping entry required to decode the sequence.\n" +
-    "- Determine the single mapping entry that is absent." +
+    "- Determine the single mapping entry that is absent.\n" +
 
     //"- Show only the missing mapping entry sequence needed to find the decoded sequence.\n" +
     //"- Show only that missing mapping entry." +
     //"- Present exclusively that missing mapping entry." +
-    "- Present only its encoded symbol" +
+    "- Present only its encoded symbol.\n" +
 
     (inDirectSymbols
       //? "- Do not show any encoding applied to the symbolised sequence.\n"
       //? "- Omit any extra encoding steps applied to the symbolised sentence."
-      ? "- Omit all details of extra encoding process"
+      ? "- Omit all details of extra encoding process.\n"
       : "") +
 
     "- Show the answer as concisely as possible.\n" +
