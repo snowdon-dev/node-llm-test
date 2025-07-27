@@ -5,8 +5,13 @@ export interface IPrepareResult {
   realMap: Record<string, string>;
 
   tokenizedWords: string[];
+
+  /** Sentence as tokens (symbols) */
   tokenizedSentence: string;
+
+  /** Encoding after symbol expression */
   partialTokenizedSentence: string;
+
   //partialTokenizedWords: string[];
 
   sentence: string;

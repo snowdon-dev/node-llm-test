@@ -116,9 +116,14 @@ export class PuzzleBuilder {
   prepare(): IPrepareResult {
     const expression = this.buildExpresion();
 
-    const { totalWords, nPWordsPar } = this.preapreTotalWords();
+    const { totalWords } = this.preapreTotalWords();
+
+    const randomDedupedWords = getRandomOrder(
+      Array.from(totalWords),
+      this.rand,
+    );
     const { tokenMap, realMap, tokenizedEntries, tokenStartWordIdx } =
-      this.prepareMappings(totalWords, nPWordsPar);
+      this.prepareMappings(randomDedupedWords);
 
     const tokenizedSequenceWords = tokenizedEntries;
     const tokenRefRemoveIdx = this.rand(tokenizedSequenceWords.length - 1);
@@ -133,6 +138,10 @@ export class PuzzleBuilder {
     }
 
     // insert a missing identifier
+    const partialWords = [...this.words];
+    partialWords[missingWordIdx] = blankWordToken;
+    
+    // insert missing tokenized part
     const symbolExpression = this.buildSymbolExpression();
     const partialTokenizedWords = [...tokenizedSequenceWords].map(
       symbolExpression.mapper,
@@ -146,10 +155,8 @@ export class PuzzleBuilder {
       // TODO: hide half a word
       partialTokenizedWords[tokenRefRemoveIdx] = [blankWordToken];
     }
-
-    const partialWords = [...this.words];
-    partialWords[missingWordIdx] = blankWordToken;
-
+    
+    // TODO: include spaces or not, and when symbol mapped
     const partialTokenizedSentence = partialTokenizedWords
       .map((w) => w.join(" "))
       .join(" ");
@@ -199,7 +206,9 @@ export class PuzzleBuilder {
 
     const totalWords = new Set<string>();
     for (let i = 0; i < this.inputWords.length; i++) {
-      totalWords.add(this.inputWords[i]);
+      if (!wordsSet.has(this.inputWords[i])) {
+        totalWords.add(this.inputWords[i]);
+      }
     }
 
     if (hasFeature(this.level, Feature.CHAOS_WORDS)) {
@@ -231,18 +240,16 @@ export class PuzzleBuilder {
       }
     }
 
-    const nPWordsPar = totalWords.size;
+    // TODO: words from the selected sentence with inverse capitalization
 
-    for (let i = 0; i < this.words.length; i++) {
-      totalWords.add(this.words[i]);
-    }
-
-    return { totalWords, nPWordsPar };
+    return { totalWords };
   }
 
-  protected prepareMappings(totalWords: Set<string>, nPWordsPar: number) {
-    const inputDeduped = Array.from(totalWords);
-    const randomArr = getRandomOrder(inputDeduped.slice(), this.rand);
+  protected prepareMappings(inputDeduped: string[]) {
+    const randomArr = getRandomOrder(
+      inputDeduped.slice().concat(this.words),
+      this.rand,
+    );
     const tokenMap: Record<string, string> = {};
     const realMap: Record<string, string> = {};
 
@@ -281,19 +288,19 @@ export class PuzzleBuilder {
     const useMultI = hasFeature(this.level, Feature.MULTIZE_I_TOKENS);
     const useSecond = hasFeature(this.level, Feature.MULTIZE_TOKENS);
 
-    const build = (idx: number, partEnd: number) => {
+    const build = (idx: number, array: string[]) => {
       const sTokenRoll = this.rand(1) > 0;
       const multiWordRoll =
         useMultI && this.rand(1) > 0
           ? // can't read a word thats at set end
-            idx !== partEnd - 1
+            idx !== array.length - 1
           : false;
 
       let multiToken: boolean = useSecond ? sTokenRoll : false;
       const token = popToken(multiToken);
 
       const tokenStr = token.join(" ");
-      const word = inputDeduped[idx];
+      const word = array[idx];
 
       let tokenItems = token;
       let reads = 1;
@@ -301,7 +308,7 @@ export class PuzzleBuilder {
 
       if (multiWordRoll) {
         // sometimes takes two words
-        const nextWord = inputDeduped[idx + 1];
+        const nextWord = array[idx + 1];
         words.push(nextWord);
         reads++;
         const mtw = `${word} ${nextWord}`;
@@ -316,8 +323,8 @@ export class PuzzleBuilder {
     };
 
     // for only non sentence words
-    for (let debupedIdx = 0; debupedIdx < nPWordsPar; debupedIdx++) {
-      const info = build(debupedIdx, nPWordsPar);
+    for (let debupedIdx = 0; debupedIdx < inputDeduped.length; debupedIdx++) {
+      const info = build(debupedIdx, inputDeduped);
       debupedIdx += info.reads - 1;
     }
 
@@ -326,8 +333,8 @@ export class PuzzleBuilder {
     const tokenStartWordIdx: number[] = [];
 
     let wordIdx = 0;
-    for (let npwi = nPWordsPar; npwi < inputDeduped.length; npwi++) {
-      const info = build(npwi, inputDeduped.length);
+    for (let npwi = 0; npwi < this.words.length; npwi++) {
+      const info = build(npwi, this.words);
       tokenizedEntries.push(info.tokenItems);
       tokenStartWordIdx.push(wordIdx);
       // TODO: dont skip the next word consumed, given:
@@ -497,8 +504,7 @@ export function getInitialDescription(
     .filter((v) => v !== null);
 
   let symbolExpMsg: string;
-  const msgStart =
-    "The symbolised sequence has also been encoded with";
+  const msgStart = "The symbolised sequence has also been encoded with";
   switch (symbolExpression.options.type) {
     case "none": {
       symbolExpMsg = "";
@@ -532,7 +538,8 @@ export function getInitialDescription(
     "(\\n) character." +
     (excludeMappingInfo
       ? ""
-      : `\nThe ${order[0]} is first in the mapping expression.`)
+      : `\nThe ${order[0]} is first in the mapping expression.`) +
+    "\nThe marketeer.snowdon.dev/tools/llmtest-online/"
   );
 }
 
@@ -545,23 +552,19 @@ export function getInstructionsMessage(inDirectSymbols: boolean): string {
   return (
     "\n\nTake into account the given symbolised sequence of words and\n" +
     "other contextual information.\nComplete the following tasks: \n\n" +
-
     //"- Find the missing symbol or symbols the sentence.\n" + // descriptive level?
     //"- Identify the mapping entry that is missing." +
     //"- Find the missing mapping entry required to decode the sequence.\n" +
     "- Determine the single mapping entry that is absent.\n" +
-
     //"- Show only the missing mapping entry sequence needed to find the decoded sequence.\n" +
     //"- Show only that missing mapping entry." +
     //"- Present exclusively that missing mapping entry." +
     "- Present only the symbol(s) that map to find the real word(s).\n" +
-
     (inDirectSymbols
-      //? "- Do not show any encoding applied to the symbolised sequence.\n"
-      //? "- Omit any extra encoding steps applied to the symbolised sentence."
-      ? "- Omit any encoding applied on the symbolised sentence.\n"
+      ? //? "- Do not show any encoding applied to the symbolised sequence.\n"
+        //? "- Omit any extra encoding steps applied to the symbolised sentence."
+        "- Omit any encoding applied on the symbolised sentence.\n"
       : "") +
-
     "- Show the answer as concisely as possible.\n" +
 
     "- Do not ask any questions.\n" +
