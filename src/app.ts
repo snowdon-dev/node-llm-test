@@ -554,12 +554,12 @@ export function getInstructionsMessage(inDirectSymbols: boolean): string {
     //"- Show only the missing mapping entry sequence needed to find the decoded sequence.\n" +
     //"- Show only that missing mapping entry." +
     //"- Present exclusively that missing mapping entry." +
-    "- Present only its encoded symbol.\n" +
+    "- Present only its encoded mapping symbol(s).\n" +
 
     (inDirectSymbols
       //? "- Do not show any encoding applied to the symbolised sequence.\n"
       //? "- Omit any extra encoding steps applied to the symbolised sentence."
-      ? "- Omit all details of extra encoding process.\n"
+      ? "- Omit any encoding applied on the symbolised sentence.\n"
       : "") +
 
     "- Show the answer as concisely as possible.\n" +
@@ -567,7 +567,7 @@ export function getInstructionsMessage(inDirectSymbols: boolean): string {
     "- Do not ask any questions.\n" +
 
     //"- Think for as long as needed and only reply when confident.\n"
-    "- Think carefully and respond only when confident\n"
+    "- Think carefully and respond only when confident.\n"
 
     //"- Show the puzzles given sentence in the symbolised form.\n" +
     //"- Do not provide the answer in the decoded form.\n"
