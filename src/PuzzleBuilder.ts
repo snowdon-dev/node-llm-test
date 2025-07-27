@@ -179,7 +179,8 @@ export class PuzzleBuilder {
 
     const popNonDuplicate = () => randomArr.pop();
     const popDuplicate = () => {
-      let idx = this.rand(inputDeduped.length + this.words.length - 2);
+      const remove = (inputDeduped.length > 0 ? 1 : 0) + 1;
+      let idx = this.rand(inputDeduped.length + this.words.length - remove);
       const array = idx >= inputDeduped.length ? this.words : inputDeduped;
       idx = idx >= inputDeduped.length ? idx - inputDeduped.length : idx;
       return array[idx];
