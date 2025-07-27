@@ -254,7 +254,12 @@ export class PuzzleBuilder {
     const realMap: Record<string, string> = {};
 
     const popNonDuplicate = () => randomArr.pop();
-    const popDuplicate = () => inputDeduped[this.rand(inputDeduped.length - 1)];
+    const popDuplicate = () => {
+      let idx = this.rand(inputDeduped.length + this.words.length - 2);
+      const array = idx >= inputDeduped.length ? this.words : inputDeduped;
+      idx = idx >= inputDeduped.length ? idx - inputDeduped.length : idx;
+      return array[idx];
+    }
     const firstPlacement = popNonDuplicate;
     const secondPlacement = popDuplicate;
 

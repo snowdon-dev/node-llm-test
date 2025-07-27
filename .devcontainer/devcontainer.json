@@ -1,0 +1,4 @@
+{
+  "image":"mcr.microsoft.com/devcontainers/universal:2",
+  "postCreateCommand": "apt-get update && apt-get install -y wbritish && apt-get clean && rm -rf /var/lib/apt/lists/* && cd ${workspaceFolder} && npm install && npm link"
+}

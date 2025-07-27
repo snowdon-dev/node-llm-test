@@ -346,7 +346,11 @@ async function checkAnswer(rl: Interface, puzzle: Puzzle): Promise<boolean> {
       rl.question("Your answer: ", resolve);
     });
     console.log("\n");
-    const answer = puzzle.answer(answerIn.trim());
+    const answerStr = answerIn.trim();
+    if (answerStr === '') {
+      continue;
+    }
+    const answer = puzzle.answer(answerStr);
     if (answer.exact) {
       console.log(getCorrectMessage());
       correct = true;
