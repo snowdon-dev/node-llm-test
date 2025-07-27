@@ -497,25 +497,27 @@ export function getInitialDescription(
     .filter((v) => v !== null);
 
   let symbolExpMsg: string;
+  const msgStart =
+    "Each entry in the symbolised sequence has also been encoded with";
   switch (symbolExpression.options.type) {
     case "none": {
       symbolExpMsg = "";
       break;
     }
     case "rot": {
-      symbolExpMsg = `Each mapping entry in the symbolised sequence has been encoded with ROT${symbolExpression.options.rotNNum}.\n`;
+      symbolExpMsg = `${msgStart} ROT${symbolExpression.options.rotNNum}.\n`;
       break;
     }
     case "binary": {
-      symbolExpMsg = `Each mapping entry in the symbolised sequence has been encoded with binary.\n`;
+      symbolExpMsg = `${msgStart} binary.\n`;
       break;
     }
     case "binaryrot": {
-      symbolExpMsg = `Each mapping entry in the symbolised sequence has been encoded with ROT${symbolExpression.options.rotNNum} and then converted to binary.\n`;
+      symbolExpMsg = `${msgStart} ROT${symbolExpression.options.rotNNum} and then converted to binary.\n`;
       break;
     }
     default: {
-      throw new Error("Brah");
+      throw new Error("Invalid symbol expression");
     }
   }
 
@@ -537,14 +539,18 @@ export function getInitialDescription(
 export function getTableMappingHeader(): string {
   return "\nTable of mappings:";
 }
-export function getInstructionsMessage(): string {
+
+export function getInstructionsMessage(inDirectSymbols: boolean): string {
   // this could be memorised
   return (
     "\n\nTake into account the given symbolised sequence of words and\n" +
     "other contextual information. Complete the following tasks: \n\n" +
     //"- Find the missing symbol or symbols the sentence.\n" + // descriptive level?
     "- Find the missing mapping entry required to decode the sequence.\n" +
-    "- Show the missing encoded word needed to find the decoded word.\n" +
+    "- Show the missing mapping entry sequence needed to find the decoded sequence.\n" +
+    (inDirectSymbols
+      ? "- No not show any encoding applied to the symbolised sequence.\n"
+      : "") +
     "- Show the answer as concisely as possible.\n" +
     "- Do not ask any questions.\n" +
     "- Think for as long as needed and only reply when confident.\n"
@@ -589,6 +595,6 @@ export function print(
     );
   });
 
-  output(getInstructionsMessage());
+  output(getInstructionsMessage(hasFeature(level, Feature.INDIRECT_SYMBOLS)));
   output(getSymbolisedSentenceOutput(partialTokenizedSentence));
 }
