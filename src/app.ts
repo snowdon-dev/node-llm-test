@@ -498,7 +498,7 @@ export function getInitialDescription(
 
   let symbolExpMsg: string;
   const msgStart =
-    "Each entry in the symbolised sequence has also been encoded with";
+    "The symbolised sequence has also been encoded with";
   switch (symbolExpression.options.type) {
     case "none": {
       symbolExpMsg = "";
@@ -545,15 +545,30 @@ export function getInstructionsMessage(inDirectSymbols: boolean): string {
   return (
     "\n\nTake into account the given symbolised sequence of words and\n" +
     "other contextual information. Complete the following tasks: \n\n" +
+
     //"- Find the missing symbol or symbols the sentence.\n" + // descriptive level?
-    "- Find the missing mapping entry required to decode the sequence.\n" +
-    "- Show only the missing mapping entry sequence needed to find the decoded sequence.\n" +
+    //"- Identify the mapping entry that is missing." +
+    //"- Find the missing mapping entry required to decode the sequence.\n" +
+    "- Determine the single mapping entry that is absent." +
+
+    //"- Show only the missing mapping entry sequence needed to find the decoded sequence.\n" +
+    //"- Show only that missing mapping entry." +
+    //"- Present exclusively that missing mapping entry." +
+    "- Present only its encoded symbol" +
+
     (inDirectSymbols
-      ? "- Do not show any encoding applied to the symbolised sequence.\n"
+      //? "- Do not show any encoding applied to the symbolised sequence.\n"
+      //? "- Omit any extra encoding steps applied to the symbolised sentence."
+      ? "- Omit all details of extra encoding process"
       : "") +
+
     "- Show the answer as concisely as possible.\n" +
+
     "- Do not ask any questions.\n" +
-    "- Think for as long as needed and only reply when confident.\n"
+
+    //"- Think for as long as needed and only reply when confident.\n"
+    "- Think carefully and respond only when confident\n"
+
     //"- Show the puzzles given sentence in the symbolised form.\n" +
     //"- Do not provide the answer in the decoded form.\n"
     //"- Provide the answer in the symbolised form.\n\n"
@@ -565,7 +580,7 @@ export function getSymbolisedSentenceOutput(
   partialTokenizedSentence: string,
 ): string {
   return (
-    "Symbolised sentence with missing word(s):\n" + partialTokenizedSentence
+    "Symbolised sentence with part(s):\n" + partialTokenizedSentence
   );
 }
 
