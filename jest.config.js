@@ -5,4 +5,8 @@ module.exports = {
   transform: {
     '^.+\.(ts|tsx)$' : 'babel-jest',
   },
+  "coverageReporters": [
+    "lcov",
+    "json-summary"
+  ]
 };

@@ -1,5 +1,10 @@
 # node-llm-test
 
+![Build Status](https://github.com/snowdon-dev/node-llm-test/actions/workflows/main-push.yaml/badge.svg)
+![Coverage Status](https://snowdon-dev.github.io/node-llm-test/badges/badges.svg)
+[![Npm version](https://img.shields.io/npm/v/node-llm-test.svg)](https://www.npmjs.com/package/node-llm-test)
+[![Download NPM](https://img.shields.io/npm/dm/node-llm-test.svg?style=flat)](https://www.npmjs.com/package/node-llm-test/)
+
 Please let me know if you encounter any issues.
 
 It’s worth noting that most of the mechanics operate on a 50% chance of
@@ -11,6 +16,9 @@ mapping order is left-to-right rather than right-to-left, the LLM tends to
 produce more correct answers.
 
 - See the web app at: <https://marketeer.snowdon.dev/tools/llmtest-online/>.
+- Don't want to keep running tests. Sign up to the periodic newsletter
+containing results from the leading agents. And stay informed without spinning up
+infra. Just email: <llmtest@snowdon.dev>.
 
 Commercial use of this code package requires permission—please contact me at
 <hello@snowdon.dev> if you intend to use it for such purposes. The web app,
@@ -23,6 +31,7 @@ To learn more from the Oxford AI Chair (not me)
   - [The puzzle](#the-puzzle)
   - [Notes about the implementation](#notes-about-the-implementation)
   - [Why was this created](#why-was-this-created)
+  - [Usage](#usage)
   - [Install](#install)
   - [Programmatic Usage](#programmatic-usage)
   - [CLI usage](#cli-usage)
@@ -66,6 +75,11 @@ specific code tag. Let me know if you'd like support for that.
 I noticed that all AIs seem to fail using the tools that I use. I wondered if
 it was because of the lack of public information to train them on. This test
 proves it.
+
+## Usage
+
+- [Create a Codespace](https://docs.github.com/en/codespaces/developing-in-a-codespace/opening-an-existing-codespace)
+Then simply, run the command `llmtest` in the terminal.
 
 ## Install
 
