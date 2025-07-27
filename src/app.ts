@@ -547,9 +547,9 @@ export function getInstructionsMessage(inDirectSymbols: boolean): string {
     "other contextual information. Complete the following tasks: \n\n" +
     //"- Find the missing symbol or symbols the sentence.\n" + // descriptive level?
     "- Find the missing mapping entry required to decode the sequence.\n" +
-    "- Show the missing mapping entry sequence needed to find the decoded sequence.\n" +
+    "- Show only the missing mapping entry sequence needed to find the decoded sequence.\n" +
     (inDirectSymbols
-      ? "- No not show any encoding applied to the symbolised sequence.\n"
+      ? "- Do not show any encoding applied to the symbolised sequence.\n"
       : "") +
     "- Show the answer as concisely as possible.\n" +
     "- Do not ask any questions.\n" +
