@@ -132,6 +132,7 @@ describe("print", () => {
       mapper: (w) => w,
       options: { type: "none" },
     });
+
     print(
       mockPartialTokenizedSentence,
       mockTokenMap,
@@ -166,7 +167,8 @@ describe("print", () => {
       expect(allOutputCalls).toContain(expectedMsg);
     });
 
-    expect(allOutputCalls).toContain(getInstructionsMessage());
+    const isIndirect = mockSymbolExpression.options.type !== 'none';
+    expect(allOutputCalls).toContain(getInstructionsMessage(isIndirect));
     expect(allOutputCalls).toContain(
       getSymbolisedSentenceOutput(mockPartialTokenizedSentence),
     );
