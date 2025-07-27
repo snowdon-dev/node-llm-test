@@ -286,13 +286,10 @@ export class PuzzleBuilder {
       const multiWordRoll =
         useMultI && this.rand(1) > 0
           ? // can't read a word thats at set end
-            !(idx >= partEnd - 2 && idx === partEnd - 1)
+            idx !== partEnd - 1
           : false;
 
-      // no second token when miltiI, and roll
-      // or random when multi tokens
-      let multiToken: boolean =
-        useSecond ? sTokenRoll : false;
+      let multiToken: boolean = useSecond ? sTokenRoll : false;
       const token = popToken(multiToken);
 
       const tokenStr = token.join(" ");
@@ -526,7 +523,7 @@ export function getInitialDescription(
     // remove? too descriptive
     //"The following describes a puzzle. " +
     //"To complete the game you must figure out the missing word, without asking any questions.\n\n" +
-    "You will be given a character sequence that contains a missing part, and the sentence been encoded into a symbolised form.\n" +
+    "You will be given a character sequence that contains a missing part, and has been encoded into a symbolised form.\n" +
     symbolExpMsg +
     `The '${symbol}' operator defines a mapping between two character sequences enclosed in single quotes.` +
     "\nEach mapping entry in the table is separated by a newline " +
@@ -546,10 +543,11 @@ export function getInstructionsMessage(): string {
     "\n\nTake into account the given symbolised sequence of words and\n" +
     "other contextual information. Complete the following tasks: \n\n" +
     //"- Find the missing symbol or symbols the sentence.\n" + // descriptive level?
-    "- Provide the missing mapping entry required to decode the sequence.\n" +
+    "- Find the missing mapping entry required to decode the sequence.\n" +
+    "- Show the missing encoded word needed to find the decoded word.\n" +
     "- Show the answer as concisely as possible.\n" +
     "- Do not ask any questions.\n" +
-    "- Reply only when confident.\n"
+    "- Think for as long as needed and only reply when confident.\n"
     //"- Show the puzzles given sentence in the symbolised form.\n" +
     //"- Do not provide the answer in the decoded form.\n"
     //"- Provide the answer in the symbolised form.\n\n"
