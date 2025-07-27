@@ -6,9 +6,9 @@ import {
   getInstructionsMessage,
   getSymbolisedSentenceOutput,
   answer,
-  createSymbolExpression,
-  PuzzleBuilder,
 } from "../app";
+import { createSymbolExpression } from "../PuzzleBuilder";
+import { PuzzleBuilder } from "../PuzzleBuilder";
 import { ExpressionPart } from "../interface";
 import { IPrepareResult } from "../interface";
 import { levelMax } from "../levels";
@@ -166,7 +166,7 @@ describe("print", () => {
       expect(allOutputCalls).toContain(expectedMsg);
     });
 
-    const isIndirect = mockSymbolExpression.options.type !== 'none';
+    const isIndirect = mockSymbolExpression.options.type !== "none";
     expect(allOutputCalls).toContain(getInstructionsMessage(isIndirect));
     expect(allOutputCalls).toContain(
       getSymbolisedSentenceOutput(mockPartialTokenizedSentence),
