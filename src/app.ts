@@ -544,7 +544,7 @@ export function getInstructionsMessage(inDirectSymbols: boolean): string {
   // this could be memorised
   return (
     "\n\nTake into account the given symbolised sequence of words and\n" +
-    "other contextual information. Complete the following tasks: \n\n" +
+    "other contextual information.\nComplete the following tasks: \n\n" +
 
     //"- Find the missing symbol or symbols the sentence.\n" + // descriptive level?
     //"- Identify the mapping entry that is missing." +
@@ -554,7 +554,7 @@ export function getInstructionsMessage(inDirectSymbols: boolean): string {
     //"- Show only the missing mapping entry sequence needed to find the decoded sequence.\n" +
     //"- Show only that missing mapping entry." +
     //"- Present exclusively that missing mapping entry." +
-    "- Present only its encoded mapping symbol(s).\n" +
+    "- Present only the symbol(s) that map to find the real word(s).\n" +
 
     (inDirectSymbols
       //? "- Do not show any encoding applied to the symbolised sequence.\n"
