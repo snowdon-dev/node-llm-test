@@ -580,7 +580,7 @@ export function getSymbolisedSentenceOutput(
   partialTokenizedSentence: string,
 ): string {
   return (
-    "Symbolised sentence with part(s):\n" + partialTokenizedSentence
+    "Symbolised sentence with missing part(s):\n" + partialTokenizedSentence
   );
 }
 
