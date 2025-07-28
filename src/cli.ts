@@ -16,6 +16,7 @@ import { Puzzle } from "./app";
 import { levelMax } from "./levels";
 import { once } from "events";
 
+// TODO: allow writing a schemma and calling the API
 program
   .name("llmtest")
   .description(
@@ -269,13 +270,13 @@ async function run() {
   }
 
   console.log("\n---- do not copy the following into the LLM\n" + msg);
-  console.log("The correct answer is:\n" + puzzle.result.tokenizedSentence);
-  console.log("The real sentence is:\n" + puzzle.result.sentence);
+  console.log("expression: ", JSON.stringify(puzzle.result.expression, null, 1));
+  console.log("symbol expression: ", JSON.stringify(puzzle.result.symbolExpression, null, 1));
   console.log("level: " + level);
   console.log("wordcount: " + englishWords.length);
   console.log("seed: " + seedToUse);
-  console.log("expression: ", JSON.stringify(puzzle.result.expression, null, 1));
-  console.log("symbol expression: ", JSON.stringify(puzzle.result.symbolExpression, null, 1));
+  console.log("The correct answer is:\n" + puzzle.result.tokenizedSentence);
+  console.log("The real sentence is:\n" + puzzle.result.sentence);
 
   if (noAnswer) {
     process.exit();
