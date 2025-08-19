@@ -89,7 +89,7 @@ solve this test.
 
 ## Implementation notes
 
-While the software is in development (v0.*), when incrementing a minor version
+> While the software is in development (v0.*), when incrementing a minor version
 I may intentionally break the interface to aid the development. If you would
 like an LTS or stable release, please get in contact.
 
