@@ -28,7 +28,6 @@ however, is freely available at your convenience. To learn more from the Oxford
 AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
 
 <!--toc:start-->
-
 - [node-llm-test](#node-llm-test)
   - [The puzzle](#the-puzzle)
   - [Implementation notes](#implementation-notes)
@@ -37,8 +36,12 @@ AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
     - [Installation](#installation)
     - [Programmatic Usage](#programmatic-usage)
     - [CLI usage](#cli-usage)
-  - [Test Levels. Worked example](#test-levels-worked-example) - [Reference](#reference) - [Extra notes & usage tips](#extra-notes-usage-tips) - [Level 0](#level-0) - [Level 14](#level-14)
-  <!--toc:end-->
+  - [Test Levels. Worked example](#test-levels-worked-example)
+    - [Reference](#reference)
+    - [Extra notes & usage tips](#extra-notes-usage-tips)
+    - [Level 0](#level-0)
+    - [Level 14](#level-14)
+<!--toc:end-->
 
 ## The puzzle
 
