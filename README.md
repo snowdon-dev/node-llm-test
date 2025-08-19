@@ -7,7 +7,7 @@ Status](https://github.com/snowdon-dev/node-llm-test/actions/workflows/main-push
 [![Download NPM](https://img.shields.io/npm/dm/node-llm-test.svg?style=flat)](https://www.npmjs.com/package/node-llm-test/)
 
 A puzzle test to evaluate the intelligence of large language models. A
-polynomial-time algorithm for generating infinitely many test instances.
+linear-time algorithm for generating infinitely many test instances.
 
 Using the most token-efficient method and the simplest token format, the test
 presents an easy logical puzzle, using a domain and steps that are native and
