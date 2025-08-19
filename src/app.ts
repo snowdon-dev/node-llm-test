@@ -1,4 +1,4 @@
-import { blankWordToken } from "./characters";
+import { blankWordToken, isFirstCharCapital, rotN } from "./characters";
 import {
   ExpressionPart,
   IExpressionResult,
@@ -9,15 +9,17 @@ import {
 import { IPrepareResult } from "./interface";
 import { Feature, hasFeature } from "./levels";
 import { PuzzleBuilder } from "./PuzzleBuilder";
-import { randomizeRecord } from "./random";
+import { getRandomOrder, randomizeRecord, simpleRandom } from "./random";
 
 interface IAnswerContext {
-  tokenMap: Record<string, string>;
-  realMap: Record<string, string>;
+  tokenMap: Readonly<Record<string, string>>;
+  realMap: Readonly<Record<string, string>>;
 
-  partialWords: string[];
+  partialWords: Readonly<string[]>;
 
-  correctAnswer: string;
+  correctAnswer: Readonly<string>;
+
+  sentenceWords: Readonly<string[]>;
 }
 
 export class Puzzle implements ILLMTest {
@@ -61,6 +63,7 @@ export class Puzzle implements ILLMTest {
 
       partialWords: this.result.partialWords,
       correctAnswer: this.result.correctAnswer,
+      sentenceWords: this.result.sentenceWords,
     });
   }
 }
@@ -89,9 +92,16 @@ export function answer(strIn: string, context: Readonly<IAnswerContext>) {
     }
 
     // check it completes the sentence
-    // insert into the partial sentence
     const idx = context.partialWords.indexOf(blankWordToken);
     const tmpRealWords = [...context.partialWords];
+
+    const realWord = context.sentenceWords[idx];
+
+    if (isFirstCharCapital(realWord) !== isFirstCharCapital(wordSequence)) {
+      return { exact: false, possible: false };
+    }
+
+    // insert into the partial sentence
     tmpRealWords.splice(idx, 1, wordSequence);
     const charsSet = new Set(
       tmpRealWords.join("").replaceAll(" ", "").toLowerCase().split(""),
@@ -100,11 +110,8 @@ export function answer(strIn: string, context: Readonly<IAnswerContext>) {
       return { exact: false, possible: false };
     }
 
-    // TODO: word or Word - if removedWordIdx = 0, then its real need to start
-    // with a capital. Unless i remove capitals
-    // code >= 65 && code <= 90
-
     // not true, but potentially true
+    // word sequence should be checked to see if it's in the dictionary
     return { exact: false, possible: true, possibleReal: wordSequence };
   }
   throw Error("Answer failure");
@@ -176,7 +183,7 @@ export function getInitialDescription(
     // remove? too descriptive
     //"The following describes a puzzle. " +
     //"To complete the game you must figure out the missing word, without asking any questions.\n\n" +
-    "You will be given a character sequence that contains a missing part, and has been encoded into a symbolised form.\n" +
+    "You have been given a character sequence that contains a missing part, and has been encoded into a symbolised form.\n" +
     symbolExpMsg +
     `The '${symbol}' operator defines a mapping between two character sequences enclosed in single quotes.` +
     "\nEach mapping entry in the table is separated by a newline " +
@@ -189,13 +196,13 @@ export function getInitialDescription(
 }
 
 export function getTableMappingHeader(): string {
-  return "\nTable of mappings:";
+  return "Table of mappings:";
 }
 
 export function getInstructionsMessage(inDirectSymbols: boolean): string {
   // this could be memorised
   return (
-    "\n\nTake into account the given symbolised sequence of words and\n" +
+    "Take into account the given symbolised sequence of words and " +
     "other contextual information.\nComplete the following tasks: \n\n" +
     //"- Find the missing symbol or symbols the sentence.\n" + // descriptive level?
     //"- Identify the mapping entry that is missing." +
@@ -213,7 +220,7 @@ export function getInstructionsMessage(inDirectSymbols: boolean): string {
     "- Show the answer as concisely as possible.\n" +
     "- Do not ask any questions.\n" +
     //"- Think for as long as needed and only reply when confident.\n"
-    "- Think carefully and respond only when confident.\n"
+    "- Think carefully and respond only when confident."
 
     //"- Show the puzzles given sentence in the symbolised form.\n" +
     //"- Do not provide the answer in the decoded form.\n"
@@ -239,23 +246,62 @@ export function print(
   output: (outs: string) => void,
 ) {
   const symbol = expression.equalSymbol;
+  const randomOrder = hasFeature(level, Feature.INSTRUCTION_ORDER);
 
-  output(
-    getInitialDescription(
-      symbol,
-      expression.expressionDefinition,
-      symbolExpression,
-      hasFeature(level, Feature.EXLUDE_MAPPING_INFO),
+  const hasRandomShift = hasFeature(level, Feature.OUTPUT_SHIFT);
+  const randomShift = simpleRandom(25);
+  const outputter = hasRandomShift
+    ? (str: string) => output(rotN(str, randomShift))
+    : output;
+
+  const parts: (() => void)[] = [];
+
+  parts.push(() =>
+    outputter(
+      getInitialDescription(
+        symbol,
+        expression.expressionDefinition,
+        symbolExpression,
+        hasFeature(level, Feature.EXCLUDE_MAPPING_INFO),
+      ),
     ),
   );
 
-  output(getTableMappingHeader());
-  Object.entries(randomizeRecord(tokenMap)).forEach(([old, newS]) => {
-    output(
-      getMappingMessage(old, newS, symbol, expression.expressionDefinition),
-    );
+  parts.push(() => {
+    outputter(getTableMappingHeader());
+    Object.entries(randomizeRecord(tokenMap)).forEach(([old, newS]) => {
+      outputter(
+        getMappingMessage(old, newS, symbol, expression.expressionDefinition),
+      );
+    });
   });
 
-  output(getInstructionsMessage(hasFeature(level, Feature.INDIRECT_SYMBOLS)));
-  output(getSymbolisedSentenceOutput(partialTokenizedSentence));
+  parts.push(() =>
+    outputter(
+      getInstructionsMessage(hasFeature(level, Feature.INDIRECT_SYMBOLS)),
+    ),
+  );
+  parts.push(() =>
+    outputter(getSymbolisedSentenceOutput(partialTokenizedSentence)),
+  );
+
+  if (randomOrder) {
+    getRandomOrder(parts, simpleRandom);
+  }
+
+  if (
+    hasRandomShift &&
+    !hasFeature(level, Feature.OUTPUT_SHIFT_EXLCUDE_DETAILS)
+  ) {
+    output(
+      `The following message [a-zA-Z] characters have been encoded with rot${randomShift}:\n`,
+    );
+  }
+
+  parts.forEach((fn, i) => {
+    fn();
+    if (i < parts.length - 1) {
+      outputter("");
+    }
+  });
 }

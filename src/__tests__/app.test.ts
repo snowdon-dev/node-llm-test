@@ -153,7 +153,7 @@ describe("print", () => {
         mockSymbolExpression,
       ),
     );
-    expect(allOutputCalls[1]).toBe(getTableMappingHeader());
+    expect(allOutputCalls[2]).toBe(getTableMappingHeader());
 
     // Check for each mapping entry
     Object.entries(mockTokenMap).forEach(([old, newS]) => {
@@ -215,6 +215,19 @@ describe("answer", () => {
       "and",
       "Jack",
     ],
+    sentenceWords: [
+      "Grumpy",
+      "wizards",
+      "make",
+      "toxic",
+      "brew",
+      "for",
+      "the",
+      "evil",
+      "queen",
+      "and",
+      "Jack",
+    ],
     correctAnswer: "toxic and",
   };
 
@@ -250,6 +263,18 @@ describe("answer", () => {
       "quoted",
       "for",
       "[...]",
+      "etchings",
+    ],
+    sentenceWords: [
+      "Just",
+      "keep",
+      "examining",
+      "every",
+      "low",
+      "bid",
+      "quoted",
+      "for",
+      "zinc",
       "etchings",
     ],
     correctAnswer: "every Just",
@@ -295,6 +320,18 @@ describe("answer", () => {
       "[...]",
       "etchings",
     ],
+    sentenceWords: [
+      "Just",
+      "keep",
+      "examining",
+      "every",
+      "low",
+      "bid",
+      "quoted",
+      "for",
+      "zinc",
+      "etchings",
+    ],
     correctAnswer: "every Just",
   };
   it("answers multi real words not expected", () => {
@@ -325,6 +362,7 @@ describe("answer", () => {
       of: "quartz",
     },
     partialWords: ["Jackdaws", "love", "my", "[...]", "sphinx", "of", "quartz"],
+    sentenceWords: ["Jackdaws", "love", "my", "big", "sphinx", "of", "quartz"],
     correctAnswer: "big Jackdaws",
   };
 

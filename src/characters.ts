@@ -80,6 +80,25 @@ export function capitalizeFirstLetter(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+export function reverseFirstLetter(word: string): string {
+  if (!word) return word; // handle empty string
+
+  const first = word[0];
+  const flipped =
+    first === first.toLowerCase() ? first.toUpperCase() : first.toLowerCase();
+
+  return flipped + word.slice(1);
+}
+
+export function isFirstCharCapital(word: string): boolean {
+  if (!word) return false; // empty string case
+  const firstChar = word[0];
+  return (
+    firstChar === firstChar.toUpperCase() &&
+    firstChar !== firstChar.toLowerCase()
+  );
+}
+
 export function rotN(text: string, shift: number) {
   return text.replace(/[a-zA-Z]/g, function (c) {
     const base = c <= "Z" ? 65 : 97;

@@ -1,46 +1,48 @@
 # node-llm-test
 
-![Build Status](https://github.com/snowdon-dev/node-llm-test/actions/workflows/main-push.yaml/badge.svg)
+![Build
+Status](https://github.com/snowdon-dev/node-llm-test/actions/workflows/main-push.yaml/badge.svg)
 ![Coverage Status](https://snowdon-dev.github.io/node-llm-test/badges/badges.svg)
 [![Npm version](https://img.shields.io/npm/v/node-llm-test.svg)](https://www.npmjs.com/package/node-llm-test)
 [![Download NPM](https://img.shields.io/npm/dm/node-llm-test.svg?style=flat)](https://www.npmjs.com/package/node-llm-test/)
 
-Please let me know if you encounter any issues.
+A puzzle test to evaluate the intelligence of large language models. A
+polynomial-time algorithm for generating infinitely many test instances.
 
-It’s worth noting that most of the mechanics operate on a 50% chance of
-activation. This means that even at the highest level, there is a real
-possibility that the test output will be simple—some tests remain trivial to
-solve regardless of difficulty. To obtain meaningful results, a large number of
-tests must be run, as the majority are expected to fail. For example, when the
-mapping order is left-to-right rather than right-to-left, the LLM tends to
-produce more correct answers.
+Using the most token-efficient method and the simplest token format, the test
+presents an easy logical puzzle, using a domain and steps that are native and
+natural to a computer agent. The puzzle may involve few or many steps and may
+permit simple tool calls. The solution requires reasoning rather than
+computation, and the design eliminates reliance on memorization to ensure that
+the test cannot be solved by prior training.
+Please let me know if you encounter any issues.
 
 - See the web app at: <https://marketeer.snowdon.dev/tools/llmtest-online/>.
 - Don't want to keep running tests. Sign up to the periodic newsletter
-containing results from the leading agents. And stay informed without spinning up
-infra. Just email: <llmtest@snowdon.dev>.
+containing results from the leading agents. And stay informed without spinning
+up infra. Just email: <llmtest@snowdon.dev>.
 
 Commercial use of this code package requires permission—please contact me at
 <hello@snowdon.dev> if you intend to use it for such purposes. The web app,
-however, is freely available for you to explore at your convenience.
-To learn more from the Oxford AI Chair (not me)
-<https://www.youtube.com/watch?v=7-UzV9AZKeU>.
+however, is freely available at your convenience. To learn more from the Oxford
+AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
 
 <!--toc:start-->
+
 - [node-llm-test](#node-llm-test)
   - [The puzzle](#the-puzzle)
-  - [Notes about the implementation](#notes-about-the-implementation)
+  - [Implementation notes](#implementation-notes)
   - [Why was this created](#why-was-this-created)
   - [Usage](#usage)
-  - [Install](#install)
-  - [Programmatic Usage](#programmatic-usage)
-  - [CLI usage](#cli-usage)
-  - [Test Levels. Worked example](#test-levels-worked-example)
-    - [Level 1](#level-1)
-    - [Level 14](#level-14)
-<!--toc:end-->
+    - [Installation](#installation)
+    - [Programmatic Usage](#programmatic-usage)
+    - [CLI usage](#cli-usage)
+  - [Test Levels. Worked example](#test-levels-worked-example) - [Reference](#reference) - [Extra notes & usage tips](#extra-notes-usage-tips) - [Level 0](#level-0) - [Level 14](#level-14)
+  <!--toc:end-->
 
 ## The puzzle
+
+The quick brown fox lookup test.
 
 LLMs cannot solve this puzzle effectively because they rely on statistical
 patterns, which this test disrupts by introducing a constructed language with
@@ -56,7 +58,35 @@ the encoded sentence, translate it into natural English, complete the sentence,
 and then convert it back to the encoded form to select the correct missing
 word.
 
-## Notes about the implementation
+Simple puzzles (with few features/levels) may measure the number of tokens
+output, or the time taken to complete a correct test. While complicated puzzles
+may test the total reasoning capability.
+
+Why this test over a simple test like `(n^2+3n+5 ) mod 7, where n is equal to
+k, k is not equal to 1, and k is a member of the integers`, which is quick to
+generate but very familiar. And the test can be reduced to some set of steps
+which can be reused on variations of the test. If not parsed and passed
+directly to a calculator. It is just concise Haskell. A LLM can classify the
+input as a Mathematica like computable, and the create a calculation based on
+the input, this directly yields the answer. Parsers exist to create a AST and
+the extra information is almost implicit. The AST comes with implicit type
+information. No maths parser applies string concatenation to the + operator,
+and thus the digits either side of the infix operator are of type number. This
+means this test can be faked easily by non reasoning artificial intelligence,
+or reduced by a reasoning model to the three steps simple steps: fine the
+parameter, lookup a script and call it with the parameter, which produces the
+result. With small `n` the test could even be cached in a reverse lookup table.
+Finite state automata and a calculator can solve this test.
+
+## Implementation notes
+
+It’s worth noting that many of the mechanics operate on a 50% chance of
+activation. This means that even at the highest level, there is a real
+possibility that the test output will be simple—some tests remain trivial to
+solve regardless of difficulty. To obtain meaningful results, a large number of
+tests must be run, as the majority are expected to fail. For example, when the
+mapping order is left-to-right rather than right-to-left, the LLM tends to
+produce more correct answers.
 
 I’ve also introduced randomness into the puzzle generation process. This
 ensures that even if an LLM has access to solved examples, any newly generated
@@ -70,6 +100,18 @@ changes or the underlying wordlist is updated. To preserve reproducibility, I
 can provide options for using a static wordlist and locking the process to a
 specific code tag. Let me know if you'd like support for that.
 
+If you know the test code and the pangram list, then based on the position of
+the missing word, the chance of guessing the correct input is
+`1/pangrams.length`. A testee should therefore achieve at least this level of
+accuracy; otherwise, its reasoning is performing worse than random guessing.
+The default pangrams list length is `9`.
+
+In addition, tests are often simple, requiring the steps of two lookups, complete the word, find the token, pick the side to choose the token, and that's your answer. Additional features, may require running a function (tool call) over the input, or will only be activated with a 50% chance.
+
+If you need to read all the words of the default pangrams you may make ~60
+lookup actions. This number does not scale with the number of input words, but
+with the size of the chosen pangram.
+
 ## Why was this created
 
 I noticed that all AIs seem to fail using the tools that I use. I wondered if
@@ -79,13 +121,13 @@ proves it.
 ## Usage
 
 - [Create a Codespace](https://docs.github.com/en/codespaces/developing-in-a-codespace/opening-an-existing-codespace)
-Then simply, run the command `llmtest` in the terminal.
+  Then simply, run the command `llmtest` in the terminal.
 
-## Install
+### Installation
 
 `npm install node-llm-test`
 
-## Programmatic Usage
+### Programmatic Usage
 
 ```javascript
 import { Puzzle } from "node-llm-test";
@@ -104,7 +146,7 @@ const puzzle = Puzzle.New(
 puzzle.print(console.log);
 ```
 
-## CLI usage
+### CLI usage
 
 To run the CLI:
 
@@ -124,13 +166,14 @@ Or run in interactive mode:
 | ---------------------------- | -------------------------------------------------- |
 | `--number <number>`          | The number of words in the wordlist (default: 200) |
 | `--write [filepath]`         | Write to a temporary file or the target path       |
-| `--level <integer>`          | Features enabled (0=none, 63=all, default: 0)      |
+| `--level <integer>`          | Features enabled (0=none, 1023=all, default: 0)     |
 | `--seed <integer>`           | A seed to preserve reproducibility                 |
 | `--no-print`                 | Do not print the output for the LLM                |
 | `-i, --interactive`          | Run in interactive mode                            |
 | `--wordlist-file <filepath>` | Load wordlist from a file                          |
 | `--answer <string>`          | Provide answer via arguments, implies --no-answer  |
 | `--no-answer`                | Do not wait for an answer on stdin                 |
+| `--verbose`                  | Print more debug information                       |
 
 ---
 
@@ -142,11 +185,32 @@ once. Some information is omitted here. See web app link at the top of file.
 Given commands may not be reproducible unless, you happen to be one the same
 version.
 
-```
-npx llmtest -- --number 0 --count 0 --seed 1234
-```
+### Reference
 
-### Level 1
+| Flag name (source)             | Value (decimal / binary) | What it does (plain English)                                                                      | Example behavior                                                                                               |
+| :----------------------------- | -----------------------: | :------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------- |
+| `CHAOS_WORDS`                  |              `1` / `0b1` | Increases output word count (roughly `words_in_domain * 2`) to make text longer/more chaotic.     | If domain has 50 words, output may include ~100 extra words scattered through the text.                        |
+| `MULTIZE_TOKENS`               |             `2` / `0b10` | Duplicates or multiplies tokens to increase token density/length.                                 | A token like `cat` might become `c c a a t t` or repeated `cat cat`.                                           |
+| `EXCLUDE_MAPPING_INFO`          |            `4` / `0b100` | Omits mapping/metadata information (e.g., token→original maps) from outputs.                      | Instead of returning `{ token_map: ... }`, the response leaves that field out.                                 |
+| `MULTIZE_I_TOKENS`             |           `8` / `0b1000` | Similar to `MULTIZE_TOKENS` but targets `i`-type or internal/index tokens specifically.           | Occurrences of `i`/index tokens may be duplicated or expanded.                                                 |
+| `PARTIAL_REASINING`            |         `16` / `0b10000` | Emits partial or stepwise reasoning instead of a full consolidated explanation.                   | Output shows intermediate steps but may omit final summary or some inferences.                                 |
+| `INDIRECT_SYMBOLS`             |        `32` / `0b100000` | Transforms tokens via a symbol function (e.g., ROT13 or other symbolisation) to obfuscate tokens. | Words may be ROT13-encoded or replaced with binary equivalents.                                  |
+| `EXCLUDE_SENTENCE_SPACES`      |       `64` / `0b1000000` | Removes spaces between words.                        | `"one two"` → `"onetwo"`  |
+| `INSTRUCTION_ORDER`            |     `128` / `0b10000000` | Enforces, permutes, or otherwise alters the order of instructions before processing.              | Instruction list may be reordered, affecting how instructions are interpreted/executed.                        |
+| `OUTPUT_SHIFT`                 |    `256` / `0b100000000` | Applies a character/token shift (e.g., Caesar-like) to the output; decoding may be required.      | Plain text is shifted by N characters; consumer must reverse the shift to read original text.                  |
+| `OUTPUT_SHIFT_EXLCUDE_DETAILS` |   `512` / `0b1000000000` | With `OUTPUT_SHIFT`, additionally excludes metadata about the shift (magnitude/direction).        | Output is shifted and no shift metadata is returned; decoder must infer shift by analysis.                     |
+
+### Extra notes & usage tips
+
+- **Combining flags:** these are bit flags — combine with bitwise OR (for
+  example `flags = CHAOS_WORDS | INDIRECT_SYMBOLS`), and test membership with
+  bitwise AND.
+- **Behavioral intent:** many flags control _how_ tokens are transformed,
+  obfuscated, or how reasoning is revealed. Treat them as test modes to probe
+  model robustness (e.g., obfuscation, partial reasoning, reordered
+  instructions).
+
+### Level 0
 
 ```console
 # zero extra words, zero extra reasoning steps
@@ -261,4 +325,3 @@ Your answer: etchings
 
 ❌ Incorrect. The correct word was: "Just bid"
 ```
-

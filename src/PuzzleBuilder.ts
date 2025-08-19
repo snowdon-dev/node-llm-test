@@ -6,6 +6,7 @@ import {
   rotN,
   toBinary,
   equalSymblsSet,
+  reverseFirstLetter,
 } from "./characters";
 import {
   IPrepareResult,
@@ -23,6 +24,8 @@ export class PuzzleBuilder {
   private readonly sentenceIdx: number;
   private readonly words: string[];
   private readonly sentence: string;
+  private readonly pangramsWords?: string[][];
+  private readonly pangramsWordsList?: string[];
 
   constructor(
     public readonly level: number | undefined = 0,
@@ -37,20 +40,25 @@ export class PuzzleBuilder {
     this.rand = (len: number) => Math.floor(randH() * (len + 1));
     this.sentenceIdx = this.rand(this.pangrams.length - 1);
     this.sentence = this.pangrams[this.sentenceIdx];
-    this.words = this.sentence.split(/\s+/);
+    if (this.hasFeature(Feature.CHAOS_WORDS)) {
+      const words = this.pangrams.map((p) => p.split(/\s/));
+      this.pangramsWords = words.filter((_, i) => i !== this.sentenceIdx);
+      this.pangramsWordsList = this.pangramsWords.flat();
+      this.words = words[this.sentenceIdx];
+    } else {
+      this.words = this.pangrams[this.sentenceIdx].split(/\s/);
+    }
+  }
+
+  protected hasFeature(feature: Feature) {
+    return hasFeature(this.level, feature);
   }
 
   prepare(): IPrepareResult {
     const expression = this.buildExpresion();
 
-    const { totalWords } = this.preapreTotalWords();
-
-    const randomDedupedWords = getRandomOrder(
-      Array.from(totalWords),
-      this.rand,
-    );
     const { tokenMap, realMap, tokenizedEntries, tokenStartWordIdx } =
-      this.prepareMappings(randomDedupedWords);
+      this.buildMappings();
 
     const tokenizedSequenceWords = tokenizedEntries;
     const tokenRefRemoveIdx = this.rand(tokenizedSequenceWords.length - 1);
@@ -73,7 +81,7 @@ export class PuzzleBuilder {
     const partialTokenizedWords = [...tokenizedSequenceWords].map(
       symbolExpression.mapper,
     );
-    const isPartialReason = hasFeature(this.level, Feature.PARTIAL_REASINING);
+    const isPartialReason = this.hasFeature(Feature.PARTIAL_REASINING);
     const activePartial = [...partialTokenizedWords[tokenRefRemoveIdx]];
     if (isPartialReason && activePartial.length !== 1 && this.rand(1) > 0) {
       activePartial[0] = blankWordToken;
@@ -83,14 +91,23 @@ export class PuzzleBuilder {
       partialTokenizedWords[tokenRefRemoveIdx] = [blankWordToken];
     }
 
-    // TODO: include spaces or not, and when symbol mapped
+    const seperator = this.hasFeature(Feature.EXCLUDE_SENTENCE_SPACES)
+      ? ""
+      : " ";
+
+    const binarySeperator = ["binary", "binaryrot"].includes(
+      symbolExpression.options.type,
+    )
+      ? " "
+      : seperator;
+
     const partialTokenizedSentence = partialTokenizedWords
-      .map((w) => w.join(" "))
-      .join(" ");
+      .map((w) => w.join(binarySeperator))
+      .join(binarySeperator);
 
     const tokenizedSentence = tokenizedSequenceWords
-      .map((w) => w.join(" "))
-      .join(" ");
+      .map((w) => w.join(seperator))
+      .join(seperator);
 
     const res = {
       realMap,
@@ -126,69 +143,96 @@ export class PuzzleBuilder {
           : input.splice(0, midpointIndex + 1);
       return res;
     }*/
-  protected preapreTotalWords() {
-    const wordsSet = new Set(this.words);
 
-    const totalWords = new Set<string>();
+  protected preapreOtherWords() {
+    const excludeWordsSet = new Set([
+      ...this.words,
+      ...(this.pangramsWordsList ?? []),
+    ]);
+    const otherWords = new Set<string>();
     for (let i = 0; i < this.inputWords.length; i++) {
-      if (!wordsSet.has(this.inputWords[i])) {
-        totalWords.add(this.inputWords[i]);
+      if (!excludeWordsSet.has(this.inputWords[i])) {
+        otherWords.add(this.inputWords[i]);
+      }
+      const other = reverseFirstLetter(this.inputWords[i]);
+      if (!excludeWordsSet.has(other)) {
+        otherWords.add(other);
       }
     }
-
-    if (hasFeature(this.level, Feature.CHAOS_WORDS)) {
-      // Add words that are intended to cause chaos
-      for (let i = 0; i < this.pangrams.length; i++) {
-        if (i === this.sentenceIdx) {
-          continue;
-        }
-        const pangramSentence = this.pangrams[i];
-        for (const v of pangramSentence.split(/\s/)) {
-          if (/\W/.test(v)) {
-            throw Error("Found non word chars - not supported");
-          }
-          if (wordsSet.has(v)) {
-            continue;
-          }
-          totalWords.add(v);
+    if (this.hasFeature(Feature.CHAOS_WORDS)) {
+      for (let i = 0; i < this.pangramsWordsList.length; i++) {
+        const v = this.pangramsWordsList[i];
+        const word = reverseFirstLetter(v);
+        if (!excludeWordsSet.has(word)) {
+          otherWords.add(word);
         }
       }
       for (let elm of chaosWords) {
         const lower = elm.toLowerCase();
-        if (!wordsSet.has(lower)) {
-          totalWords.add(lower);
+        if (!excludeWordsSet.has(lower)) {
+          otherWords.add(lower);
         }
-        const upper = capitalizeFirstLetter(elm);
-        if (!wordsSet.has(upper)) {
-          totalWords.add(upper);
+        const upper = capitalizeFirstLetter(lower);
+        if (!excludeWordsSet.has(upper)) {
+          otherWords.add(upper);
         }
       }
     }
 
-    // TODO: words from the selected sentence with inverse capitalization
-    return { totalWords };
+    if (this.hasFeature(Feature.CHAOS_WORDS)) {
+      for (let i = 0; i < this.words.length; i++) {
+        otherWords.add(reverseFirstLetter(this.words[i]));
+      }
+    }
+    return otherWords;
   }
 
-  protected prepareMappings(inputDeduped: string[]) {
-    const randomArr = getRandomOrder(
-      inputDeduped.slice().concat(this.words),
+  protected buildMappings() {
+    const otherWords = this.preapreOtherWords();
+
+    const randomDedupedWords = getRandomOrder(
+      Array.from(otherWords),
       this.rand,
     );
+
+    let randomArr = randomDedupedWords.slice();
+    randomArr = randomArr.concat(this.words);
+    if (this.pangramsWordsList) {
+      randomArr = randomArr.concat(this.pangramsWordsList);
+    }
+    randomArr = getRandomOrder(randomArr, this.rand);
+
+    return this.prepareMappings(randomDedupedWords, randomArr);
+  }
+
+  protected prepareMappings(inputDeduped: string[], randomArr: string[]) {
     const tokenMap: Record<string, string> = {};
     const realMap: Record<string, string> = {};
 
+    const pickRandom = <T>(arrays: T[][]): T => {
+      const totalLength = arrays.reduce((sum, arr) => sum + arr.length, 0);
+      let randIndex = this.rand(totalLength - 1);
+      for (const arr of arrays) {
+        if (randIndex < arr.length) {
+          return arr[randIndex];
+        }
+        randIndex -= arr.length;
+      }
+
+      throw new Error("Should never reach here");
+    };
+
     const popNonDuplicate = () => randomArr.pop();
     const popDuplicate = () => {
-      const remove = (inputDeduped.length > 0 ? 1 : 0) + 1;
-      let idx = this.rand(inputDeduped.length + this.words.length - remove);
-      const array = idx >= inputDeduped.length ? this.words : inputDeduped;
-      idx = idx >= inputDeduped.length ? idx - inputDeduped.length : idx;
-      return array[idx];
+      const arrs = [inputDeduped, this.pangramsWordsList, this.words].filter(
+        (a) => a !== undefined,
+      );
+      return pickRandom(arrs);
     };
     const firstPlacement = popNonDuplicate;
     const secondPlacement = popDuplicate;
 
-    function popToken(multi = false): string[] {
+    function popToken(multi = false, useMulti: boolean = false): string[] {
       const tmptoken = firstPlacement();
 
       if (
@@ -201,7 +245,7 @@ export class PuzzleBuilder {
         return [tmptoken];
       }
 
-      const secondtoken = secondPlacement();
+      const secondtoken = useMulti ? firstPlacement() : secondPlacement();
 
       if (
         multi &&
@@ -215,8 +259,8 @@ export class PuzzleBuilder {
       return [tmptoken, secondtoken];
     }
 
-    const useMultI = hasFeature(this.level, Feature.MULTIZE_I_TOKENS);
-    const useSecond = hasFeature(this.level, Feature.MULTIZE_TOKENS);
+    const useMultI = this.hasFeature(Feature.MULTIZE_I_TOKENS);
+    const useSecond = this.hasFeature(Feature.MULTIZE_TOKENS);
 
     const build = (idx: number, array: string[]) => {
       const sTokenRoll = this.rand(1) > 0;
@@ -227,7 +271,8 @@ export class PuzzleBuilder {
           : false;
 
       let multiToken: boolean = useSecond ? sTokenRoll : false;
-      const token = popToken(multiToken);
+      const useMulti = multiWordRoll;
+      const token = popToken(multiToken, useMulti);
 
       const tokenStr = token.join(" ");
       const word = array[idx];
@@ -252,16 +297,26 @@ export class PuzzleBuilder {
       return { tokenItems, reads, words };
     };
 
-    // for only non sentence words
+    // for only non pangram words
     for (let debupedIdx = 0; debupedIdx < inputDeduped.length; debupedIdx++) {
       const info = build(debupedIdx, inputDeduped);
       debupedIdx += info.reads - 1;
     }
 
+    // for all pangram words that are not words
+    if (
+      this.hasFeature(Feature.MULTIZE_I_TOKENS) &&
+      this.hasFeature(Feature.CHAOS_WORDS)
+    ) {
+      for (let i = 0; i < this.pangramsWordsList.length; i++) {
+        const info = build(i, this.pangramsWordsList);
+        i += info.reads - 1;
+      }
+    }
+
     // insert the sentence words
     const tokenizedEntries = [];
     const tokenStartWordIdx: number[] = [];
-
     let wordIdx = 0;
     for (let npwi = 0; npwi < this.words.length; npwi++) {
       const info = build(npwi, this.words);
@@ -285,7 +340,7 @@ export class PuzzleBuilder {
   }
 
   protected buildSymbolExpression(): SymbolExpression<SymbolTypeOptions> {
-    if (!hasFeature(this.level, Feature.INDIRECT_SYMBOLS)) {
+    if (!this.hasFeature(Feature.INDIRECT_SYMBOLS)) {
       return createSymbolExpression({
         mapper: (w) => w,
         options: { type: "none" },
@@ -323,7 +378,6 @@ export class PuzzleBuilder {
   }
 
   protected buildExpresion(): IExpressionResult {
-    // Build an expression
     const equalSymbol = equalSymblsSet[this.rand(equalSymblsSet.length - 1)];
     const expressionDefinition = getRandomOrder(
       [

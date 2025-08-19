@@ -52,7 +52,7 @@ async function readAllWords(path: string): Promise<string[]> {
   return words;
 }
 
-function getRandomSelection(
+export function getRandomSelection(
   words: string[],
   count: number,
   seed: number,

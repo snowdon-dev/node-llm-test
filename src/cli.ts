@@ -11,7 +11,7 @@ import {
 } from "fs";
 import { program } from "commander";
 import inquirer from "inquirer";
-import { getRandomWords } from "./randomfile";
+import { getRandomSelection, getRandomWords } from "./randomfile";
 import { Puzzle } from "./app";
 import { levelMax } from "./levels";
 import { once } from "events";
@@ -33,7 +33,8 @@ program
     "Instead of printing a test, check the given answer",
   )
   .option("-i, --interactive", "Run in interactive mode")
-  .option("--wordlist-file <filepath>", "Load wordlist from a file");
+  .option("--wordlist-file <filepath>", "Load wordlist from a file")
+  .option("--verbose", "Print more details about the test");
 
 program.parse(process.argv);
 
@@ -47,15 +48,16 @@ async function run() {
     seed: options.seed ? parseInt(options.seed, 10) : undefined,
     print:
       options.print &&
-      (typeof options.answer === "string"
-        ? false
-        : options.print),
+      (typeof options.answer === "string" ? false : options.print),
     wordlistFile: options.wordlistFile,
     answer: typeof options.answer === "string" ? options.answer : undefined,
     noAnswer: options.answer === false,
+    verbose: options.verbose,
   };
 
-  if (typeof answers.answer === 'string') {
+  // TODO: validate args when not interactive
+
+  if (typeof answers.answer === "string") {
     if (options.interactive) {
       console.error("--interactive option and answer options are incompatible");
       process.exit(1);
@@ -64,10 +66,6 @@ async function run() {
       console.error("--write option and answer options are incompatible");
       process.exit(1);
     }
-  }
-  if (typeof options.wordlistFile === 'string' && typeof options.number === 'string') {
-    console.error('Usage of both --wordlist-file and --number are incompatible');
-    process.exit(1);
   }
 
   if (options.interactive) {
@@ -208,7 +206,11 @@ async function run() {
           process.exit(1);
         }
       } else {
-        englishWords = fileContent.split(/\s+/).filter(Boolean);
+        englishWords = getRandomSelection(
+          fileContent.split(/\s+/).filter(Boolean),
+          number,
+          seed,
+        );
       }
 
       if (englishWords.length === 0) {
@@ -270,11 +272,20 @@ async function run() {
   }
 
   console.log("\n---- do not copy the following into the LLM\n" + msg);
-  console.log("expression: ", JSON.stringify(puzzle.result.expression, null, 1));
-  console.log("symbol expression: ", JSON.stringify(puzzle.result.symbolExpression, null, 1));
-  console.log("level: " + level);
-  console.log("wordcount: " + englishWords.length);
-  console.log("seed: " + seedToUse);
+
+  if (answers.verbose) {
+    console.log(
+      "expression: ",
+      JSON.stringify(puzzle.result.expression, null, 1),
+    );
+    console.log(
+      "symbol expression: ",
+      JSON.stringify(puzzle.result.symbolExpression, null, 1),
+    );
+    console.log("level: " + level);
+    console.log("wordcount: " + englishWords.length);
+    console.log("seed: " + seedToUse);
+  }
   console.log("The correct answer is:\n" + puzzle.result.tokenizedSentence);
   console.log("The real sentence is:\n" + puzzle.result.sentence);
 
@@ -324,7 +335,7 @@ function getIncorrectMessage(puzzle: Puzzle) {
 
 function checkAnswerSync(puzzle: Puzzle, answerIn: string) {
   const answer = puzzle.answer(answerIn.trim());
-  console.log("\n\n--- The answer check ...\n");
+  console.log("\n--- The answer check\n");
   console.log("Your provided answer: " + answerIn + "\n");
   if (answer.exact) {
     console.log(getCorrectMessage());
@@ -341,14 +352,14 @@ function checkAnswerSync(puzzle: Puzzle, answerIn: string) {
 async function checkAnswer(rl: Interface, puzzle: Puzzle): Promise<boolean> {
   let correct = false;
   while (!correct) {
-    console.log("\n\n--- Waiting to check answer...\n");
+    console.log("\n--- Waiting to check answer...\n");
     console.log("Enter the missing symbolised words(s):");
     const answerIn = await new Promise<string>((resolve) => {
       rl.question("Your answer: ", resolve);
     });
     console.log("\n");
     const answerStr = answerIn.trim();
-    if (answerStr === '') {
+    if (answerStr === "") {
       continue;
     }
     const answer = puzzle.answer(answerStr);

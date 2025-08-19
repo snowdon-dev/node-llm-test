@@ -1,28 +1,28 @@
 export interface IPrepareResult {
   /** Map from the real to the tokenizedWords */
-  tokenMap: Record<string, string>;
+  tokenMap: Readonly<Record<string, string>>;
   /** Map from the tokenized words to the real words */
-  realMap: Record<string, string>;
+  realMap: Readonly<Record<string, string>>;
 
-  tokenizedWords: string[];
+  tokenizedWords: Readonly<string[]>;
 
   /** Sentence as tokens (symbols) */
-  tokenizedSentence: string;
+  tokenizedSentence: Readonly<string>;
 
   /** Encoding after symbol expression */
-  partialTokenizedSentence: string;
+  partialTokenizedSentence: Readonly<string>;
 
   //partialTokenizedWords: string[];
 
-  sentence: string;
-  sentenceWords: string[];
-  partialWords: string[];
+  sentence: Readonly<string>;
+  sentenceWords: Readonly<string[]>;
+  partialWords: Readonly<string[]>;
 
-  correctAnswer: string;
-  realAnswer: string;
+  correctAnswer: Readonly<string>;
+  realAnswer: Readonly<string>;
 
-  expression: IExpressionResult;
-  symbolExpression: SymbolExpression<SymbolTypeOptions>;
+  expression: Readonly<IExpressionResult>;
+  symbolExpression: Readonly<SymbolExpression<SymbolTypeOptions>>;
 }
 
 export interface ILLMTest {

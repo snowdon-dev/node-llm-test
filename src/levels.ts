@@ -1,8 +1,9 @@
 // Define features using bit flags
 export enum Feature {
+  // Increases the number of total words by ~ words in the domain * 2.
   CHAOS_WORDS = 1 << 0,
   MULTIZE_TOKENS = 1 << 1,
-  EXLUDE_MAPPING_INFO = 1 << 2,
+  EXCLUDE_MAPPING_INFO = 1 << 2,
   MULTIZE_I_TOKENS = 1 << 3,
   PARTIAL_REASINING = 1 << 4,
 
@@ -10,9 +11,15 @@ export enum Feature {
   // ROT13(symbolised) etc...
   INDIRECT_SYMBOLS = 1 << 5,
 
-  // the puzzle introduction is encoded within the map
-  //ENCODED_INTRO = 1 << 6,
-  
+  EXCLUDE_SENTENCE_SPACES = 1 << 6,
+
+  INSTRUCTION_ORDER = 1 << 7,
+
+  // exlcude the shift details to require frequency analysis step before
+  // getting the instructions
+  OUTPUT_SHIFT = 1 << 8,
+  OUTPUT_SHIFT_EXLCUDE_DETAILS = 1 << 9,
+
   //MISSING_SENTENCE = 1 << 7,
 }
 
