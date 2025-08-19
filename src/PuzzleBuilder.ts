@@ -304,10 +304,7 @@ export class PuzzleBuilder {
     }
 
     // for all pangram words that are not words
-    if (
-      this.hasFeature(Feature.MULTIZE_I_TOKENS) &&
-      this.hasFeature(Feature.CHAOS_WORDS)
-    ) {
+    if (this.hasFeature(Feature.CHAOS_WORDS)) {
       for (let i = 0; i < this.pangramsWordsList.length; i++) {
         const info = build(i, this.pangramsWordsList);
         i += info.reads - 1;
