@@ -63,25 +63,35 @@ word.
 
 Simple puzzles (with few features/levels) may measure the number of tokens
 output, or the time taken to complete a correct test. While complicated puzzles
-may test the total reasoning capability.
+may test the total reasoning capability. This test forces the model to think,
+which seems to be achievable to some extent by producing output tokens that
+move the task forward towards some end result. However, this is a double edges
+sword as the cost per answer is high. See a YouTube video by `@t3dotgg`  for
+more information: [I was wrong about
+GPT-5](https://youtu.be/k68ie2GcEc4?si=0O6pBuxyHH5creys).
 
-Why this test over a simple test like `(n^2+3n+5 ) mod 7, where n is equal to
-k, k is not equal to 1, and k is a member of the integers`, which is quick to
-generate but very familiar. And the test can be reduced to some set of steps
-which can be reused on variations of the test. If not parsed and passed
-directly to a calculator. It is just concise Haskell. A LLM can classify the
-input as a Mathematica like computable, and the create a calculation based on
-the input, this directly yields the answer. Parsers exist to create a AST and
-the extra information is almost implicit. The AST comes with implicit type
-information. No maths parser applies string concatenation to the + operator,
-and thus the digits either side of the infix operator are of type number. This
-means this test can be faked easily by non reasoning artificial intelligence,
-or reduced by a reasoning model to the three steps simple steps: fine the
-parameter, lookup a script and call it with the parameter, which produces the
-result. With small `n` the test could even be cached in a reverse lookup table.
-Finite state automata and a calculator can solve this test.
+Why this puzzle over a simple test like `(n^2+3n+5) mod 7, where n is equal to
+k, k is not equal to 0, and k is a member of the integers`, which is quick to
+generate but very familiar. Plus, the test can be reduced to some set of steps
+which can be reused on variations of the test. That is if the test is not
+parsed and passed directly to a calculator. It is just concise Haskell. A LLM
+can classify the input as a Mathematica-like computable, and create a
+calculation based on the input, this directly yields the answer. Parsers exist
+to create a AST and the extra information is almost implicit. The AST comes
+with implicit type information. No maths parser applies string concatenation to
+the + operator, and thus the digits either side of the infix operator are of
+type number. This means this test can be faked easily by non-reasoning
+artificial intelligence, or reduced by a reasoning model to three simple steps:
+fine the parameter, lookup a script and call it with the parameter, which
+produces the result. With small `n` the test could even be cached in a reverse
+lookup table. Finite state automata and a calculator can
+solve this test.
 
 ## Implementation notes
+
+While the software is in development (v0.*), when incrementing a minor version
+I may intentionally break the interface to aid the development. If you would
+like an LTS or stable release, please get in contact.
 
 It’s worth noting that many of the mechanics operate on a 50% chance of
 activation. This means that even at the highest level, there is a real
@@ -103,7 +113,7 @@ changes or the underlying wordlist is updated. To preserve reproducibility, I
 can provide options for using a static wordlist and locking the process to a
 specific code tag. Let me know if you'd like support for that.
 
-If you know the test code and the pangram list, then based on the position of
+If the test code and the pangram list is known, then based on the position of
 the missing word, the chance of guessing the correct input is
 `1/pangrams.length`. A testee should therefore achieve at least this level of
 accuracy; otherwise, its reasoning is performing worse than random guessing.
@@ -119,12 +129,12 @@ with the size of the chosen pangram.
 
 I noticed that all AIs seem to fail using the tools that I use. I wondered if
 it was because of the lack of public information to train them on. This test
-proves it.
+proves it. This was prior to Chat GPT 5.
 
 ## Usage
 
 - [Create a Codespace](https://docs.github.com/en/codespaces/developing-in-a-codespace/opening-an-existing-codespace)
-  Then simply, run the command `llmtest` in the terminal.
+- Then simply, run the command `llmtest` in the terminal.
 
 ### Installation
 
@@ -202,6 +212,7 @@ version.
 | `INSTRUCTION_ORDER`            |     `128` / `0b10000000` | Randomly alters the order of instructions before printing.              | Instruction list may be reordered, affecting how instructions are interpreted/executed.                        |
 | `OUTPUT_SHIFT`                 |    `256` / `0b100000000` | Applies a character/token shift (e.g., Caesar-like) to the output; decoding is required.      | Plain text is shifted by N characters; consumer must reverse the shift to read original text.                  |
 | `OUTPUT_SHIFT_EXLCUDE_DETAILS` |   `512` / `0b1000000000` | With `OUTPUT_SHIFT`, additionally excludes metadata about the shift (magnitude/direction).        | Output is shifted and no shift metadata is returned; decoder must infer shift by analysis.                     |
+
 
 ### Extra notes & usage tips
 
