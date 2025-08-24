@@ -36,7 +36,7 @@ export const equalSymblsSet = [
   "()",
   "{}",
   "=>",
-];
+] as const;
 
 export const pangramsDefault = [
   "The quick brown fox jumps over the lazy dog",
@@ -53,9 +53,9 @@ export const pangramsDefault = [
   //"Sphinx of black quartz, judge my vow",
   //"Quick zephyrs blow, vexing daft Jim",
   //"Waltz, bad nymph, for quick jigs vex",
-];
+] as const;
 
-export const chaosWords = new Set([
+export const chaosWordsArr = [
   "glb",
   "vampire",
   "blitz",
@@ -73,7 +73,102 @@ export const chaosWords = new Set([
   "jinxed",
   "vexed",
   "klutz",
-]);
+] as const;
+
+export const chaosWords = new Set(chaosWordsArr);
+
+export const characterDigitAlpha = [
+  "zero",
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+  "ten",
+  "eleven",
+  "twelve",
+  "thirteen",
+  "fourteen",
+  "fifteen",
+  "sixteen",
+  "seventeen",
+  "eighteen",
+  "nineteen",
+  "twenty",
+  "twenty one",
+  "twenty two",
+  "twenty three",
+  "twenty four",
+  "twenty five",
+  "twenty six",
+] as const;
+
+export const instructionSet = {
+  //"- Find the missing symbol or symbols the sentence.\n" + // descriptive level?
+  //"- Identify the mapping entry that is missing." +
+  //"- Find the missing mapping entry required to decode the sequence.\n" +
+  //"- Show the puzzles given sentence in the symbolised form.\n" +
+  //"- Do not provide the answer in the decoded form.\n"
+  //"- Provide the answer in the symbolised form.\n\n"
+  // TODO: at random look for word or symbol sequence
+  instructionIntro: [
+    "Take into account the given symbolised sequence of words and other contextual information",
+    "Complete the following tasks",
+  ],
+  all: [
+    //"Determine the single mapping entry that is absent",
+    "Determine the absent word",
+    //"- Show only the missing mapping entry sequence needed to find the decoded sequence.\n" +
+    //"- Show only that missing mapping entry." +
+    //"- Present exclusively that missing mapping entry." +
+    "Present only the symbol or symbols that map to find the real word or words",
+    "Show the answer as concisely as possible",
+    "Do not ask any questions",
+    //"- Think for as long as needed and only reply when confident.\n"
+    "Think carefully and respond only when confident",
+  ],
+  //? "- Do not show any encoding applied to the symbolised sequence.\n"
+  //? "- Omit any extra encoding steps applied to the symbolised sentence."
+  indirect: ["Omit any encoding applied on the symbolised sentence"],
+
+  identSymbolSentence: "Symbolised sentence with a missing part or parts",
+
+  symbolEncoding: "The symbolised sequence has also been encoded with",
+
+  symbolIndent: {
+    e: "encoded symbol or symbols",
+    d: "decoded symbol or symbols",
+  },
+
+  encodingIdent: { rot: "ROT", binary: "binary" },
+
+  multiEncodings: "and then converted to",
+
+  introMsg:
+    "You have been given a character sequence that contains a missing part and has been encoded into a symbolised form",
+
+  mappingDetails: {
+    start: "The",
+    ending:
+      "operator defines a mapping between two character sequences enclosed in single quotes",
+
+    delemiter:
+      "Each mapping entry in the table is separated by a newline character",
+
+    excludeStart: "The",
+    excludeEnd: "is first in the mapping expression",
+  },
+
+  snowdondevident: "The marketeer dot snowdon dot dev llmtest online",
+
+  mappingHeader: "Table of mappings",
+
+  characterDigitAlpha,
+} as const;
 
 export function capitalizeFirstLetter(str: string): string {
   if (!str) return str;

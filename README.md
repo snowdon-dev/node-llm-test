@@ -45,14 +45,17 @@ AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
 
 ## The puzzle
 
-The quick brown fox lookup test.
+The quick brown fox lookup test. A test that is solved by the simple act of
+looking things up.
 
-LLMs cannot solve this puzzle effectively because they rely on statistical
-patterns, which this test disrupts by introducing a constructed language with
-minimal statistical grounding. If an LLM could truly reason, the task would be
-trivial. While identifying the missing word is difficult for a human, especially
-someone like me who doesn’t typically engage with grammatical puzzles, it
-should, in theory, be simple for an LLM.
+LLMs cannot solve this simple puzzle effectively because they rely on
+statistical patterns, which this test disrupts by introducing a constructed
+language with minimal statistical grounding. If an LLM could truly reason, the
+task would be trivial. While identifying the missing word is difficult for a
+human, especially someone like me who doesn’t typically engage with grammatical
+puzzles, it should, in theory, be simple for an LLM. For it does know what a
+pangram is and all the variations or pangrams, and there is many resources that
+can be looked up.
 
 For example, given the sequence “the quick brown `[..]`”, an LLM will almost
 always guess the correct next word based purely on probability. However, to
@@ -61,31 +64,44 @@ the encoded sentence, translate it into natural English, complete the sentence,
 and then convert it back to the encoded form to select the correct missing
 word.
 
+The test also reduces to a simple deterministic answer that is very easy to
+compute and check. Unlike other puzzles that rely on probabilistic outcomes,
+external datasets, or auxiliary GPT/LLM models, results here are unambiguous:
+answers are either correct or wrong. And answers may never have been correct
+before. However, there exists a possibility that the model can provide an
+answer that was unexpected but completes a pangram, it may find a novel
+solution. To ensure that novel solutions exist, if you want them, you must
+designed the input to the puzzle carefully to include them.
+
 Simple puzzles (with few features/levels) may measure the number of tokens
 output, or the time taken to complete a correct test. While complicated puzzles
 may test the total reasoning capability. This test forces the model to think,
 which seems to be achievable to some extent by producing output tokens that
-move the task forward towards some end result. However, this is a double edges
-sword as the cost per answer is high. See a YouTube video by `@t3dotgg`  for
-more information: [I was wrong about
+move the task forward towards some end result. However, this is a double edged
+sword as the cost per answer is high if the reasoning is not concise. See a
+YouTube video by `@t3dotgg`  for more information: [I was wrong about
 GPT-5](https://youtu.be/k68ie2GcEc4?si=0O6pBuxyHH5creys).
 
-Why this puzzle over a simple test like `(n^2+3n+5) mod 7, where n is equal to
-k, k is not equal to 0, and k is a member of the integers`, which is quick to
-generate but very familiar. Plus, the test can be reduced to some set of steps
-which can be reused on variations of the test. That is if the test is not
-parsed and passed directly to a calculator. It is just concise Haskell. A LLM
-can classify the input as a Mathematica-like computable, and create a
-calculation based on the input, this directly yields the answer. Parsers exist
-to create a AST and the extra information is almost implicit. The AST comes
-with implicit type information. No maths parser applies string concatenation to
-the + operator, and thus the digits either side of the infix operator are of
-type number. This means this test can be faked easily by non-reasoning
-artificial intelligence, or reduced by a reasoning model to three simple steps:
-fine the parameter, lookup a script and call it with the parameter, which
-produces the result. With small `n` the test could even be cached in a reverse
-lookup table. Finite state automata and a calculator can
-solve this test.
+Why select this puzzle instead of a simple, well-worn exercise such as: `Let
+𝑘=4`, `(𝑛^2+3𝑛+5) mod r`, `r∈𝑍`, `𝑛=𝑘` and `𝑛∈𝑍`? Although such tasks are quick
+generate, they are also very familiar. And it reduces to a fixed sequence of
+steps, that can be reused on variants of the problem. Or entirely skipped by
+handing the expression to a calculator. In the end, it’s just concise Haskell.
+An LLM can classify the input as a Mathematica-like computable expression,
+directly yielding the result. In practice, parsers can construct an abstract
+syntax tree (AST) for the expression, and most of the semantic annotations
+required for execution are either recoverable from the structure or explicit in
+the grammar.
+The AST implicitly encodes type information: for example, no mathematical
+parser interprets the `+` operator as string concatenation, so the digits on
+either side of the infix operator are necessarily of type number. As a result,
+this kind of test can be trivially solved by a non-reasoning system, or reduced
+by a reasoning model to just three steps: identify the parameter, retrieve the
+appropriate script, and invoke it with the parameter to obtain the result. For
+small values of `𝑛` or `r`, the computation could even be precomputed and
+stored in a lookup table. Alternatively, the script itself could be cached at
+the token level, by respecting known parameters. In practice, a finite-state
+automata combined with a calculator (ACU) is sufficient to solve this test.
 
 ## Implementation notes
 
@@ -119,11 +135,15 @@ the missing word, the chance of guessing the correct input is
 accuracy; otherwise, its reasoning is performing worse than random guessing.
 The default pangrams list length is `9`.
 
-In addition, tests are often simple, requiring the steps of two lookups, complete the word, find the token, pick the side to choose the token, and that's your answer. Additional features, may require running a function (tool call) over the input, or will only be activated with a 50% chance.
+In addition, tests are often simple once excluding native tool calls, requiring
+the steps: two lookups, complete the word, find the token, pick the side to
+choose the token, and that's your answer. Additional features, may require
+running a function (tool call) over the input, or will only be activated with a
+50% chance.
 
-If you need to read all the words of the default pangrams you may make ~60
-lookup actions. This number does not scale with the number of input words, but
-with the size of the chosen pangram.
+If you need to read all the words of the active pangram you may make ~60 lookup
+actions. This number does not scale with the number of input words, but with
+the size of the chosen pangram.
 
 ## Why was this created
 

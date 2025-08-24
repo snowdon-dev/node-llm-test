@@ -29,8 +29,8 @@ export class PuzzleBuilder {
 
   constructor(
     public readonly level: number | undefined = 0,
-    private readonly inputWords: string[] | undefined = [],
-    private readonly pangrams: string[] | undefined = pangramsDefault,
+    private readonly inputWords: readonly string[] | undefined = [],
+    private readonly pangrams: readonly string[] | undefined = pangramsDefault,
     private readonly seed: number | undefined = 12345,
   ) {
     validateLevel(level);
@@ -154,9 +154,11 @@ export class PuzzleBuilder {
       if (!excludeWordsSet.has(this.inputWords[i])) {
         otherWords.add(this.inputWords[i]);
       }
-      const other = reverseFirstLetter(this.inputWords[i]);
-      if (!excludeWordsSet.has(other)) {
-        otherWords.add(other);
+      if (this.hasFeature(Feature.CHAOS_WORDS)) {
+        const other = reverseFirstLetter(this.inputWords[i]);
+        if (!excludeWordsSet.has(other)) {
+          otherWords.add(other);
+        }
       }
     }
     if (this.hasFeature(Feature.CHAOS_WORDS)) {
@@ -270,31 +272,34 @@ export class PuzzleBuilder {
             idx !== array.length - 1
           : false;
 
-      let multiToken: boolean = useSecond ? sTokenRoll : false;
-      const useMulti = multiWordRoll;
-      const token = popToken(multiToken, useMulti);
-
-      const tokenStr = token.join(" ");
       const word = array[idx];
-
-      let tokenItems = token;
+      let mtw: string;
       let reads = 1;
-      let words = [word];
 
       if (multiWordRoll) {
         // sometimes takes two words
         const nextWord = array[idx + 1];
-        words.push(nextWord);
         reads++;
-        const mtw = `${word} ${nextWord}`;
-        tokenMap[mtw] = tokenStr;
-        realMap[tokenStr] = mtw;
+        mtw = `${word} ${nextWord}`;
       } else {
-        tokenMap[word] = tokenStr;
-        realMap[tokenStr] = word;
+        mtw = word;
       }
 
-      return { tokenItems, reads, words };
+      if (tokenMap[mtw]) {
+        return { tokenItems: tokenMap[mtw].split(" "), reads };
+      }
+
+      // insert new the map
+      let multiToken: boolean = useSecond ? sTokenRoll : false;
+      const useMulti = multiWordRoll;
+      const token = popToken(multiToken, useMulti);
+      const tokenStr = token.join(" ");
+      let tokenItems = token;
+
+      tokenMap[mtw] = tokenStr;
+      realMap[tokenStr] = word;
+
+      return { tokenItems, reads };
     };
 
     // for only non pangram words
@@ -407,7 +412,7 @@ export const validateLevel = (i: number) => {
   }
 };
 
-export const validatePangrans = (list: string[]) => {
+export const validatePangrans = (list: readonly string[]) => {
   if (!(list.length >= 1)) {
     throw new TypeError("Invalid pangram list");
   }

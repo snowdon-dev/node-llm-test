@@ -1,9 +1,15 @@
-import { blankWordToken, isFirstCharCapital, rotN } from "./characters";
+import {
+  blankWordToken,
+  instructionSet,
+  isFirstCharCapital,
+  rotN,
+} from "./characters";
 import {
   ExpressionPart,
   IExpressionResult,
   ILLMTest,
   SymbolExpression,
+  SymbolRotOptions,
   SymbolTypeOptions,
 } from "./interface";
 import { IPrepareResult } from "./interface";
@@ -141,14 +147,15 @@ export function getInitialDescription(
   expressionDefinition: ExpressionPart[],
   symbolExpression: SymbolExpression<SymbolTypeOptions>,
   excludeMappingInfo: boolean = false,
+  instructionWords: typeof instructionSet,
 ): string {
   const order = expressionDefinition
     .map((item) => {
       switch (item) {
         case ExpressionPart.NEW_OPARAND:
-          return "encoded symbol(s)";
+          return instructionWords.symbolIndent.e;
         case ExpressionPart.OLD_OPARAND:
-          return "decoded symbol(s)";
+          return instructionWords.symbolIndent.d;
         case ExpressionPart.OPERATOR:
           return null;
       }
@@ -156,22 +163,24 @@ export function getInitialDescription(
     .filter((v) => v !== null);
 
   let symbolExpMsg: string;
-  const msgStart = "The symbolised sequence has also been encoded with";
+  const msgStart = instructionWords.symbolEncoding;
+  const getRotChars = (s: SymbolExpression<SymbolRotOptions>) =>
+    instructionWords.characterDigitAlpha[s.options.rotNNum];
   switch (symbolExpression.options.type) {
     case "none": {
       symbolExpMsg = "";
       break;
     }
     case "rot": {
-      symbolExpMsg = `${msgStart} ROT${symbolExpression.options.rotNNum}.\n`;
+      symbolExpMsg = `${msgStart} ${instructionWords.encodingIdent.rot} ${getRotChars(symbolExpression as any)}`;
       break;
     }
     case "binary": {
-      symbolExpMsg = `${msgStart} binary.\n`;
+      symbolExpMsg = `${msgStart} ${instructionWords.encodingIdent.binary}`;
       break;
     }
     case "binaryrot": {
-      symbolExpMsg = `${msgStart} ROT${symbolExpression.options.rotNNum} and then converted to binary.\n`;
+      symbolExpMsg = `${msgStart} ${instructionWords.encodingIdent.rot} ${getRotChars(symbolExpression as any)} ${instructionWords.multiEncodings} ${instructionWords.encodingIdent.binary}`;
       break;
     }
     default: {
@@ -179,61 +188,59 @@ export function getInitialDescription(
     }
   }
 
-  return (
+  const lines = [
     // remove? too descriptive
     //"The following describes a puzzle. " +
     //"To complete the game you must figure out the missing word, without asking any questions.\n\n" +
-    "You have been given a character sequence that contains a missing part, and has been encoded into a symbolised form.\n" +
-    symbolExpMsg +
-    `The '${symbol}' operator defines a mapping between two character sequences enclosed in single quotes.` +
-    "\nEach mapping entry in the table is separated by a newline " +
-    "(\\n) character." +
-    (excludeMappingInfo
-      ? ""
-      : `\nThe ${order[0]} is first in the mapping expression.`) +
-    "\nThe marketeer.snowdon.dev/tools/llmtest-online/"
-  );
+    instructionWords.introMsg,
+    symbolExpMsg,
+    `${instructionWords.mappingDetails.start} '${symbol}' ${instructionWords.mappingDetails.ending}`,
+    instructionWords.mappingDetails.delemiter,
+    excludeMappingInfo
+      ? null
+      : `${instructionWords.mappingDetails.excludeStart} ${order[0]} ${instructionWords.mappingDetails.excludeEnd}`,
+    instructionWords.snowdondevident,
+  ]
+    .filter((l) => l !== null)
+    .map((line) => line + ".");
+
+  return lines.join("\n");
 }
 
-export function getTableMappingHeader(): string {
-  return "Table of mappings:";
+export function getTableMappingHeader(
+  instructionWords: typeof instructionSet,
+): string {
+  return instructionWords.mappingHeader + ":";
 }
 
-export function getInstructionsMessage(inDirectSymbols: boolean): string {
-  // this could be memorised
-  return (
-    "Take into account the given symbolised sequence of words and " +
-    "other contextual information.\nComplete the following tasks: \n\n" +
-    //"- Find the missing symbol or symbols the sentence.\n" + // descriptive level?
-    //"- Identify the mapping entry that is missing." +
-    //"- Find the missing mapping entry required to decode the sequence.\n" +
-    "- Determine the single mapping entry that is absent.\n" +
-    //"- Show only the missing mapping entry sequence needed to find the decoded sequence.\n" +
-    //"- Show only that missing mapping entry." +
-    //"- Present exclusively that missing mapping entry." +
-    "- Present only the symbol(s) that map to find the real word(s).\n" +
-    (inDirectSymbols
-      ? //? "- Do not show any encoding applied to the symbolised sequence.\n"
-        //? "- Omit any extra encoding steps applied to the symbolised sentence."
-        "- Omit any encoding applied on the symbolised sentence.\n"
-      : "") +
-    "- Show the answer as concisely as possible.\n" +
-    "- Do not ask any questions.\n" +
-    //"- Think for as long as needed and only reply when confident.\n"
-    "- Think carefully and respond only when confident."
+export function getInstructionsMessage(
+  indirectSymbols: boolean,
+  instructionWords: typeof instructionSet,
+  random: boolean,
+): string {
+  const instructions: string[] = [...instructionWords.all];
+  if (indirectSymbols) {
+    instructions.push(...instructionWords.indirect);
+  }
 
-    //"- Show the puzzles given sentence in the symbolised form.\n" +
-    //"- Do not provide the answer in the decoded form.\n"
-    //"- Provide the answer in the symbolised form.\n\n"
-    // TODO: at random look for word or symbol sequence
-  );
+  const list = instructions.map((l) => "- " + l);
+
+  if (random) {
+    getRandomOrder(list, simpleRandom);
+  }
+
+  return [
+    instructionWords.instructionIntro.join(".\n") + ":",
+    list.join("\n"),
+  ].join("\n");
 }
 
 export function getSymbolisedSentenceOutput(
   partialTokenizedSentence: string,
+  instructionWords: typeof instructionSet,
 ): string {
   return (
-    "Symbolised sentence with missing part(s):\n" + partialTokenizedSentence
+    instructionWords.identSymbolSentence + ":\n" + partialTokenizedSentence
   );
 }
 
@@ -256,6 +263,8 @@ export function print(
 
   const parts: (() => void)[] = [];
 
+  let instructionWords = instructionSet;
+
   parts.push(() =>
     outputter(
       getInitialDescription(
@@ -263,12 +272,13 @@ export function print(
         expression.expressionDefinition,
         symbolExpression,
         hasFeature(level, Feature.EXCLUDE_MAPPING_INFO),
+        instructionWords,
       ),
     ),
   );
 
   parts.push(() => {
-    outputter(getTableMappingHeader());
+    outputter(getTableMappingHeader(instructionWords));
     Object.entries(randomizeRecord(tokenMap)).forEach(([old, newS]) => {
       outputter(
         getMappingMessage(old, newS, symbol, expression.expressionDefinition),
@@ -276,13 +286,20 @@ export function print(
     });
   });
 
+  parts.push(() => {
+    outputter(
+      getInstructionsMessage(
+        hasFeature(level, Feature.INDIRECT_SYMBOLS),
+        instructionWords,
+        hasFeature(level, Feature.INSTRUCTION_ORDER),
+      ),
+    );
+  });
+
   parts.push(() =>
     outputter(
-      getInstructionsMessage(hasFeature(level, Feature.INDIRECT_SYMBOLS)),
+      getSymbolisedSentenceOutput(partialTokenizedSentence, instructionWords),
     ),
-  );
-  parts.push(() =>
-    outputter(getSymbolisedSentenceOutput(partialTokenizedSentence)),
   );
 
   if (randomOrder) {
@@ -294,7 +311,7 @@ export function print(
     !hasFeature(level, Feature.OUTPUT_SHIFT_EXLCUDE_DETAILS)
   ) {
     output(
-      `The following message [a-zA-Z] characters have been encoded with rot${randomShift}:\n`,
+      `The following message [a-zA-Z] characters have been encoded with ROT ${instructionWords.characterDigitAlpha[randomShift]}:\n`,
     );
   }
 

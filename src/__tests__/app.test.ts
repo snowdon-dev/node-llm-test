@@ -12,6 +12,7 @@ import { PuzzleBuilder } from "../PuzzleBuilder";
 import { ExpressionPart } from "../interface";
 import { IPrepareResult } from "../interface";
 import { levelMax } from "../levels";
+import { instructionSet } from "../characters";
 
 describe("prepare", () => {
   const prepareArgs = [];
@@ -151,9 +152,11 @@ describe("print", () => {
         mockExpression.equalSymbol,
         mockExpression.expressionDefinition,
         mockSymbolExpression,
+        false,
+        instructionSet,
       ),
     );
-    expect(allOutputCalls[2]).toBe(getTableMappingHeader());
+    expect(allOutputCalls[2]).toBe(getTableMappingHeader(instructionSet));
 
     // Check for each mapping entry
     Object.entries(mockTokenMap).forEach(([old, newS]) => {
@@ -167,9 +170,11 @@ describe("print", () => {
     });
 
     const isIndirect = mockSymbolExpression.options.type !== "none";
-    expect(allOutputCalls).toContain(getInstructionsMessage(isIndirect));
     expect(allOutputCalls).toContain(
-      getSymbolisedSentenceOutput(mockPartialTokenizedSentence),
+      getInstructionsMessage(isIndirect, instructionSet, false),
+    );
+    expect(allOutputCalls).toContain(
+      getSymbolisedSentenceOutput(mockPartialTokenizedSentence, instructionSet),
     );
   });
 });

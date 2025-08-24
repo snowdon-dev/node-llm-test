@@ -60,6 +60,10 @@ export type SymbolTypeOptions =
   | BinaryOptions
   | BinaryRotOptions;
 
+export type SymbolRotOptions =
+  | RotOptions
+  | BinaryRotOptions;
+
 export interface SymbolExpression<T extends SymbolTypeOptions> {
   mapper: (w: string[]) => string[];
   options: T;
