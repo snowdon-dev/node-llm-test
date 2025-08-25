@@ -297,7 +297,7 @@ export class PuzzleBuilder {
       let tokenItems = token;
 
       tokenMap[mtw] = tokenStr;
-      realMap[tokenStr] = word;
+      realMap[tokenStr] = mtw;
 
       return { tokenItems, reads };
     };

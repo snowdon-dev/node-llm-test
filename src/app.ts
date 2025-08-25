@@ -193,7 +193,7 @@ export function getInitialDescription(
     //"The following describes a puzzle. " +
     //"To complete the game you must figure out the missing word, without asking any questions.\n\n" +
     instructionWords.introMsg,
-    symbolExpMsg,
+    symbolExpMsg !== "" ? symbolExpMsg : null,
     `${instructionWords.mappingDetails.start} '${symbol}' ${instructionWords.mappingDetails.ending}`,
     instructionWords.mappingDetails.delemiter,
     excludeMappingInfo
