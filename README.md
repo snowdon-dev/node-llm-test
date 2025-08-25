@@ -199,7 +199,7 @@ Or run in interactive mode:
 | ---------------------------- | -------------------------------------------------- |
 | `--number <number>`          | The number of words in the wordlist (default: 200) |
 | `--write [filepath]`         | Write to a temporary file or the target path       |
-| `--level <integer>`          | Features enabled (0=none, 1023=all, default: 0)     |
+| `--level <integer>`          | Features enabled (0=none, 2047=all, default: 0)     |
 | `--seed <integer>`           | A seed to preserve reproducibility                 |
 | `--no-print`                 | Do not print the output for the LLM                |
 | `-i, --interactive`          | Run in interactive mode                            |
@@ -232,6 +232,7 @@ version.
 | `INSTRUCTION_ORDER`            |     `128` / `0b10000000` | Randomly alters the order of instructions before printing.              | Instruction list may be reordered, affecting how instructions are interpreted/executed.                        |
 | `OUTPUT_SHIFT`                 |    `256` / `0b100000000` | Applies a character/token shift (e.g., Caesar-like) to the output; decoding is required.      | Plain text is shifted by N characters; consumer must reverse the shift to read original text.                  |
 | `OUTPUT_SHIFT_EXLCUDE_DETAILS` |   `512` / `0b1000000000` | With `OUTPUT_SHIFT`, additionally excludes metadata about the shift (magnitude/direction).        | Output is shifted and no shift metadata is returned; decoder must infer shift by analysis.                     |
+| `MAPPING_INFO_PUZZLE` | `1024`/`0b10000000000` | The expression order is changed based on a maths puzzle. |  |
 
 
 ### Extra notes & usage tips

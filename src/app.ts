@@ -128,13 +128,25 @@ export function getMappingMessage(
   newS: string,
   symbol: string,
   expressionDefinition: ExpressionPart[],
+  i: number,
+  isMappingPuzzle: boolean,
 ): string {
+  const computeMathExpression = (n: number, d: number) =>
+    Math.floor((n * 7) / d) % 2;
+
   const parts = {
     [ExpressionPart.NEW_OPARAND]: `'${newS}'`,
     [ExpressionPart.OLD_OPARAND]: `'${oldS}'`,
     [ExpressionPart.OPERATOR]: `${symbol}`,
   };
-  const build = expressionDefinition.map((key) => parts[key]);
+
+  let build = expressionDefinition.map((key) => parts[key]);
+
+  if (isMappingPuzzle) {
+    if (computeMathExpression(i, 3) !== 0) {
+      build = build.reverse();
+    }
+  }
 
   build.splice(1, 0, " ");
   build.splice(3, 0, " ");
@@ -148,6 +160,7 @@ export function getInitialDescription(
   symbolExpression: SymbolExpression<SymbolTypeOptions>,
   excludeMappingInfo: boolean = false,
   instructionWords: typeof instructionSet,
+  isMappingPuzzle: boolean,
 ): string {
   const order = expressionDefinition
     .map((item) => {
@@ -188,17 +201,27 @@ export function getInitialDescription(
     }
   }
 
+  let mappingDelm = `${instructionWords.mappingDetails.start} '${symbol}' ${instructionWords.mappingDetails.ending}`;
+
+  let mappingDetails = `${instructionWords.mappingDetails.excludeStart} ${order[0]} ${instructionWords.mappingDetails.excludeEnd}`;
+
+  if (isMappingPuzzle) {
+    mappingDetails = `${instructionWords.mappingDetails.puzzleStart}. ${instructionWords.mappingDetails.excludeStart} ${order[0]} ${instructionWords.mappingDetails.puzzleEnd}`;
+  }
+
+  if (excludeMappingInfo) {
+    mappingDetails = null;
+  }
+
   const lines = [
     // remove? too descriptive
     //"The following describes a puzzle. " +
     //"To complete the game you must figure out the missing word, without asking any questions.\n\n" +
     instructionWords.introMsg,
     symbolExpMsg !== "" ? symbolExpMsg : null,
-    `${instructionWords.mappingDetails.start} '${symbol}' ${instructionWords.mappingDetails.ending}`,
+    mappingDelm,
     instructionWords.mappingDetails.delemiter,
-    excludeMappingInfo
-      ? null
-      : `${instructionWords.mappingDetails.excludeStart} ${order[0]} ${instructionWords.mappingDetails.excludeEnd}`,
+    mappingDetails,
     instructionWords.snowdondevident,
   ]
     .filter((l) => l !== null)
@@ -265,6 +288,8 @@ export function print(
 
   let instructionWords = instructionSet;
 
+  const isMappingPuzzle = hasFeature(level, Feature.MAPPING_INFO_PUZZLE);
+
   parts.push(() =>
     outputter(
       getInitialDescription(
@@ -273,15 +298,23 @@ export function print(
         symbolExpression,
         hasFeature(level, Feature.EXCLUDE_MAPPING_INFO),
         instructionWords,
+        isMappingPuzzle,
       ),
     ),
   );
 
   parts.push(() => {
     outputter(getTableMappingHeader(instructionWords));
-    Object.entries(randomizeRecord(tokenMap)).forEach(([old, newS]) => {
+    Object.entries(randomizeRecord(tokenMap)).forEach(([old, newS], i) => {
       outputter(
-        getMappingMessage(old, newS, symbol, expression.expressionDefinition),
+        getMappingMessage(
+          old,
+          newS,
+          symbol,
+          expression.expressionDefinition,
+          i,
+          isMappingPuzzle,
+        ),
       );
     });
   });

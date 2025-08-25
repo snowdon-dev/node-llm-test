@@ -20,6 +20,8 @@ export enum Feature {
   OUTPUT_SHIFT = 1 << 8,
   OUTPUT_SHIFT_EXLCUDE_DETAILS = 1 << 9,
 
+  MAPPING_INFO_PUZZLE = 1 << 10,
+
   //MISSING_SENTENCE = 1 << 7,
 }
 

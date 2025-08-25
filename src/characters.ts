@@ -161,6 +161,10 @@ export const instructionSet = {
 
     excludeStart: "The",
     excludeEnd: "is first in the mapping expression",
+
+    puzzleStart: "Multiply the table index by 7, divide by 3, round down",
+    puzzleEnd:
+      "appears first in the mapping expression when the result is even",
   },
 
   snowdondevident: "The marketeer dot snowdon dot dev llmtest online",
