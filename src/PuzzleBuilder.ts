@@ -60,7 +60,7 @@ export class PuzzleBuilder {
     const { tokenMap, realMap, tokenizedEntries, tokenStartWordIdx } =
       this.buildMappings();
 
-    const tokenizedSequenceWords = tokenizedEntries;
+    const tokenizedSequenceWords: string[][] = tokenizedEntries;
     const tokenRefRemoveIdx = this.rand(tokenizedSequenceWords.length - 1);
 
     const missingWordIdx = tokenStartWordIdx[tokenRefRemoveIdx];
@@ -75,6 +75,12 @@ export class PuzzleBuilder {
     // insert a missing identifier
     const partialWords = [...this.words];
     partialWords[missingWordIdx] = blankWordToken;
+
+    const wordsSeqs = tokenStartWordIdx.map((start, i) => {
+      const next = tokenStartWordIdx[i + 1];
+      const end =  next ? next  : this.words.length;
+      return this.words.slice(start, end);
+    });
 
     // insert missing tokenized part
     const symbolExpression = this.buildSymbolExpression();
@@ -116,10 +122,13 @@ export class PuzzleBuilder {
       tokenizedWords: tokenizedSequenceWords,
       tokenizedSentence,
       partialTokenizedSentence,
-      //partialTokenizedWords,
+      partialTokenizedWords,
+
       sentence: this.sentence,
+
       sentenceWords: this.words,
       partialWords,
+      wordsSeqs,
 
       correctAnswer,
       realAnswer,
@@ -317,7 +326,7 @@ export class PuzzleBuilder {
     }
 
     // insert the sentence words
-    const tokenizedEntries = [];
+    const tokenizedEntries: string[][] = [];
     const tokenStartWordIdx: number[] = [];
     let wordIdx = 0;
     for (let npwi = 0; npwi < this.words.length; npwi++) {

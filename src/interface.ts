@@ -4,19 +4,23 @@ export interface IPrepareResult {
   /** Map from the tokenized words to the real words */
   realMap: Readonly<Record<string, string>>;
 
-  tokenizedWords: Readonly<string[]>;
+  tokenizedWords: Readonly<string[][]>;
 
   /** Sentence as tokens (symbols) */
   tokenizedSentence: Readonly<string>;
 
   /** Encoding after symbol expression */
   partialTokenizedSentence: Readonly<string>;
-
-  //partialTokenizedWords: string[];
+    
+  /** Token sequence chunks */
+  partialTokenizedWords: Readonly<string[][]>;
 
   sentence: Readonly<string>;
   sentenceWords: Readonly<string[]>;
   partialWords: Readonly<string[]>;
+
+  /** Word sequence chunks */
+  wordsSeqs: string[][]
 
   correctAnswer: Readonly<string>;
   realAnswer: Readonly<string>;

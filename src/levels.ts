@@ -22,6 +22,8 @@ export enum Feature {
 
   MAPPING_INFO_PUZZLE = 1 << 10,
 
+  POOR_CODING_STANDARDS = 1 << 11,
+
   //MISSING_SENTENCE = 1 << 7,
 }
 

@@ -122,6 +122,10 @@ export function answer(strIn: string, context: Readonly<IAnswerContext>) {
   }
   throw Error("Answer failure");
 }
+const computeMathExpression = (n: number, d: number) =>
+  Math.floor((n * 7) / d) % 2;
+
+const delms = ['\'', '`', '"'] as const;
 
 export function getMappingMessage(
   oldS: string,
@@ -130,20 +134,27 @@ export function getMappingMessage(
   expressionDefinition: ExpressionPart[],
   i: number,
   isMappingPuzzle: boolean,
+  identLocation: number,
+  poorCodingStandards: boolean,
 ): string {
-  const computeMathExpression = (n: number, d: number) =>
-    Math.floor((n * 7) / d) % 2;
+  let delm: string;
+  if (poorCodingStandards) {
+    const delmsIdx = Math.floor(Math.random() * 3);
+    delm = delms[delmsIdx];
+  } else {
+    delm = delms[0];
+  }
 
   const parts = {
-    [ExpressionPart.NEW_OPARAND]: `'${newS}'`,
-    [ExpressionPart.OLD_OPARAND]: `'${oldS}'`,
+    [ExpressionPart.NEW_OPARAND]: `${delm}${newS}${delm}`,
+    [ExpressionPart.OLD_OPARAND]: `${delm}${oldS}${delm}`,
     [ExpressionPart.OPERATOR]: `${symbol}`,
   };
 
   let build = expressionDefinition.map((key) => parts[key]);
 
   if (isMappingPuzzle) {
-    if (computeMathExpression(i, 3) !== 0) {
+    if (computeMathExpression(i, 3) !== identLocation) {
       build = build.reverse();
     }
   }
@@ -161,6 +172,7 @@ export function getInitialDescription(
   excludeMappingInfo: boolean = false,
   instructionWords: typeof instructionSet,
   isMappingPuzzle: boolean,
+  identLocation: number,
 ): string {
   const order = expressionDefinition
     .map((item) => {
@@ -206,7 +218,9 @@ export function getInitialDescription(
   let mappingDetails = `${instructionWords.mappingDetails.excludeStart} ${order[0]} ${instructionWords.mappingDetails.excludeEnd}`;
 
   if (isMappingPuzzle) {
-    mappingDetails = `${instructionWords.mappingDetails.puzzleStart}. ${instructionWords.mappingDetails.excludeStart} ${order[0]} ${instructionWords.mappingDetails.puzzleEnd}`;
+    const puzzleIdent =
+      instructionWords.mappingDetails.puzzleIdent[identLocation];
+    mappingDetails = `${instructionWords.mappingDetails.puzzleStart}. ${instructionWords.mappingDetails.excludeStart} ${order[0]} ${instructionWords.mappingDetails.puzzleEnd} ${puzzleIdent}`;
   }
 
   if (excludeMappingInfo) {
@@ -289,6 +303,7 @@ export function print(
   let instructionWords = instructionSet;
 
   const isMappingPuzzle = hasFeature(level, Feature.MAPPING_INFO_PUZZLE);
+  const identLocation = Math.round(Math.random());
 
   parts.push(() =>
     outputter(
@@ -299,11 +314,13 @@ export function print(
         hasFeature(level, Feature.EXCLUDE_MAPPING_INFO),
         instructionWords,
         isMappingPuzzle,
+        identLocation,
       ),
     ),
   );
 
   parts.push(() => {
+    const poorCodingStandards = hasFeature(level, Feature.POOR_CODING_STANDARDS);
     outputter(getTableMappingHeader(instructionWords));
     Object.entries(randomizeRecord(tokenMap)).forEach(([old, newS], i) => {
       outputter(
@@ -314,6 +331,8 @@ export function print(
           expression.expressionDefinition,
           i,
           isMappingPuzzle,
+          identLocation,
+          poorCodingStandards,
         ),
       );
     });

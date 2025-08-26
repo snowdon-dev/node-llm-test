@@ -6,16 +6,16 @@ Status](https://github.com/snowdon-dev/node-llm-test/actions/workflows/main-push
 [![Npm version](https://img.shields.io/npm/v/node-llm-test.svg)](https://www.npmjs.com/package/node-llm-test)
 [![Download NPM](https://img.shields.io/npm/dm/node-llm-test.svg?style=flat)](https://www.npmjs.com/package/node-llm-test/)
 
-A puzzle test to evaluate the intelligence of large language models. A
+A test to evaluate the various intelligence modes of large language models. A
 linear-time algorithm for generating infinitely many test instances.
 
 Using the most token-efficient method and the simplest token format, the test
-presents an easy logical puzzle, using a domain and steps that are native and
+presents an easy logical puzzle, with a domain and steps that are native and
 natural to a computer agent. The puzzle may involve few or many steps and may
-permit simple tool calls. The solution requires reasoning rather than
+permit the usage simple tool calls. The solution requires reasoning rather than
 computation, and the design eliminates reliance on memorization to ensure that
-the test cannot be solved by prior training.
-Please let me know if you encounter any issues.
+the test cannot be solved by prior training. Please let me know if you
+encounter any issues.
 
 - See the web app at: <https://marketeer.snowdon.dev/tools/llmtest-online/>.
 - Don't want to keep running tests. Sign up to the periodic newsletter
@@ -71,7 +71,15 @@ answers are either correct or wrong. And answers may never have been correct
 before. However, there exists a possibility that the model can provide an
 answer that was unexpected but completes a pangram, it may find a novel
 solution. To ensure that novel solutions exist, if you want them, you must
-designed the input to the puzzle carefully to include them.
+design the input to the puzzle carefully. Testing the result of a novel
+solution with a generalized deterministic oracle is inherently difficult—it is
+magic, or it may require an LLM prone to false positives and negatives. To
+maintain linear-time deterministic test assertions for novel solutions,
+precompute all possible outcomes based on the input words. Alternatively,
+possible novel solution can be manually verified by humans, or simply
+considered incorrect. Importantly, providing a novel solution does not
+necessarily mean providing the correct solution—it may not correspond to the
+most probable variation of the chosen pangram.
 
 Simple puzzles (with few features/levels) may measure the number of tokens
 output, or the time taken to complete a correct test. While complicated puzzles
@@ -80,7 +88,9 @@ which seems to be achievable to some extent by producing output tokens that
 move the task forward towards some end result. However, this is a double edged
 sword as the cost per answer is high if the reasoning is not concise. See a
 YouTube video by `@t3dotgg`  for more information: [I was wrong about
-GPT-5](https://youtu.be/k68ie2GcEc4?si=0O6pBuxyHH5creys).
+GPT-5](https://youtu.be/k68ie2GcEc4?si=0O6pBuxyHH5creys). With reasoning and
+tool calls enabled, a hard test could be `--level 1183`. To see custom levels
+configurations, see the web app.
 
 Why select this puzzle instead of a simple, well-worn exercise such as: `Let
 𝑘=4`, `(𝑛^2+3𝑛+5) mod r`, `r∈𝑍`, `𝑛=𝑘` and `𝑛∈𝑍`? Although such tasks are quick
@@ -199,7 +209,7 @@ Or run in interactive mode:
 | ---------------------------- | -------------------------------------------------- |
 | `--number <number>`          | The number of words in the wordlist (default: 200) |
 | `--write [filepath]`         | Write to a temporary file or the target path       |
-| `--level <integer>`          | Features enabled (0=none, 2047=all, default: 0)     |
+| `--level <integer>`          | Features enabled (0=none, 4095=all, default: 0)     |
 | `--seed <integer>`           | A seed to preserve reproducibility                 |
 | `--no-print`                 | Do not print the output for the LLM                |
 | `-i, --interactive`          | Run in interactive mode                            |
@@ -220,19 +230,21 @@ version.
 
 ### Reference
 
-| Flag name (source)             | Value (decimal / binary) | What it does (plain English)                                                                      | Example behavior                                                                                               |
-| :----------------------------- | -----------------------: | :------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------- |
-| `CHAOS_WORDS`                  |              `1` / `0b1` | Increases output word count (roughly `words_in_domain * 2`) to make text longer/more chaotic.     | If domain has 50 words, output may include ~50 extra words scattered through the text.                        |
-| `MULTIZE_TOKENS`               |             `2` / `0b10` | Duplicates tokens used to increase token density/length.                                 | A token like `cat` might become `cat cat`.                                           |
-| `EXCLUDE_MAPPING_INFO`          |            `4` / `0b100` | Omits mapping/metadata information (e.g., token→map direction) from outputs.                      | Instead of returning the details in text, the response omits the info.
-| `MULTIZE_I_TOKENS`             |           `8` / `0b1000` | Similar to `MULTIZE_TOKENS` but targets `input words`.           | `quick` becomes `quick brown` |
-| `PARTIAL_REASINING`            |         `16` / `0b10000` | Emits partial or reasoning instead of a full consolidated explanation.                   | Output shows only part of the token. The reset must be infered. |
-| `INDIRECT_SYMBOLS`             |        `32` / `0b100000` | Transforms tokens via a symbol function (e.g., ROT13 or other symbolisation) to obfuscate tokens. | Words may be ROT13-encoded or replaced with binary equivalents.                                  |
-| `EXCLUDE_SENTENCE_SPACES`      |       `64` / `0b1000000` | Removes spaces between words.                        | `"one two"` → `"onetwo"`  |
-| `INSTRUCTION_ORDER`            |     `128` / `0b10000000` | Randomly alters the order of instructions before printing.              | Instruction list may be reordered, affecting how instructions are interpreted/executed.                        |
-| `OUTPUT_SHIFT`                 |    `256` / `0b100000000` | Applies a character/token shift (e.g., Caesar-like) to the output; decoding is required.      | Plain text is shifted by N characters; consumer must reverse the shift to read original text.                  |
-| `OUTPUT_SHIFT_EXLCUDE_DETAILS` |   `512` / `0b1000000000` | With `OUTPUT_SHIFT`, additionally excludes metadata about the shift (magnitude/direction).        | Output is shifted and no shift metadata is returned; decoder must infer shift by analysis.                     |
-| `MAPPING_INFO_PUZZLE` | `1024`/`0b10000000000` | The expression order is changed based on a maths puzzle. |  |
+| Flag name (source)             | Value (decimal / binary) | What it does (plain English)                                                                      | Example behavior                                                                                               | Difficulty |
+| :----------------------------- | -----------------------: | :------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------- | -- |
+| `CHAOS_WORDS`                  |              `1` / `0b1` | Increases output word count (roughly `words_in_domain * 2`) to make text longer/more chaotic.     | If domain has 50 words, output may include ~50 extra words scattered through the text.                        | Easy |
+| `MULTIZE_TOKENS`               |             `2` / `0b10` | Duplicates tokens used to increase token density/length.                                 | A token like `cat` might become `cat cat`.                                           | Medium |
+| `EXCLUDE_MAPPING_INFO`          |            `4` / `0b100` | Omits mapping/metadata information (e.g., token→map direction) from outputs.                      | Instead of returning the details in text, the response omits the info.| Easy |
+| `MULTIZE_I_TOKENS`             |           `8` / `0b1000` | Similar to `MULTIZE_TOKENS` but targets `input words`.           | `quick` becomes `quick brown` | Medium |
+| `PARTIAL_REASINING`            |         `16` / `0b10000` | Emits partial or reasoning instead of a full consolidated explanation.                   | Output shows only part of the token. The reset must be infered. | Medium |
+| `INDIRECT_SYMBOLS`             |        `32` / `0b100000` | Transforms tokens via a symbol function (e.g., ROT13 or other symbolisation) to obfuscate tokens. | Words may be ROT13-encoded or replaced with binary equivalents.                                  | Medium |
+| `EXCLUDE_SENTENCE_SPACES`      |       `64` / `0b1000000` | Removes spaces between words.                        | `"one two"` → `"onetwo"`  | Hard |
+| `INSTRUCTION_ORDER`            |     `128` / `0b10000000` | Randomly alters the order of instructions before printing.              | Instruction list may be reordered, affecting how instructions are interpreted/executed.                        | Easy |
+| `OUTPUT_SHIFT`                 |    `256` / `0b100000000` | Applies a character/token shift (e.g., Caesar-like) to the output; decoding is required.      | Plain text is shifted by N characters; consumer must reverse the shift to read original text.                  | Medium |
+| `OUTPUT_SHIFT_EXLCUDE_DETAILS` |   `512` / `0b1000000000` | With `OUTPUT_SHIFT`, additionally excludes metadata about the shift (magnitude/direction).        | Output is shifted and no shift metadata is returned; decoder must infer shift by analysis.                     | Hard |
+| `MAPPING_INFO_PUZZLE` | `1024`/`0b10000000000` | The expression order is changed based on a maths puzzle. |  | Medium |
+| `POOR_CODING_PRACTICES` | `2048`/`0b100000000000` | Emulates poor coding standards | For example, alternates more deliminators. '' becomes "" etc | Easy |
+
 
 
 ### Extra notes & usage tips

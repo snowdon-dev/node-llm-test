@@ -164,7 +164,8 @@ export const instructionSet = {
 
     puzzleStart: "Multiply the table index by 7, divide by 3, round down",
     puzzleEnd:
-      "appears first in the mapping expression when the result is even",
+      "appear first in the mapping expression when the result is",
+    puzzleIdent: ["even", "odd"],
   },
 
   snowdondevident: "The marketeer dot snowdon dot dev llmtest online",
