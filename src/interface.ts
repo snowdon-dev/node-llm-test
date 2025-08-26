@@ -27,6 +27,13 @@ export interface IPrepareResult {
 
   expression: Readonly<IExpressionResult>;
   symbolExpression: Readonly<SymbolExpression<SymbolTypeOptions>>;
+
+  /** Persistent rules */
+  testComplex: {
+    identLocationOrder: number,
+    identLocationType: number,
+    puzzleType: false|"reverse"|"order",
+  }
 }
 
 export interface ILLMTest {

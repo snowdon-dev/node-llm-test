@@ -59,6 +59,7 @@ export class Puzzle implements ILLMTest {
       this.result.symbolExpression,
       this.level,
       output,
+      this.result.testComplex,
     );
   }
 
@@ -305,6 +306,11 @@ export function print(
   symbolExpression: SymbolExpression<SymbolTypeOptions>,
   level: number,
   output: (outs: string) => void,
+  testComplex: {
+    identLocationOrder: number,
+    identLocationType: number,
+    puzzleType: false|"reverse"|"order",
+  }
 ) {
   const symbol = expression.equalSymbol;
   const randomOrder = hasFeature(level, Feature.INSTRUCTION_ORDER);
@@ -320,7 +326,6 @@ export function print(
   let instructionWords = instructionSet;
 
   const isMappingPuzzle = hasFeature(level, Feature.MAPPING_INFO_PUZZLE);
-  const identLocation = Math.round(Math.random());
 
   const isExcludeMappingInfo = hasFeature(level, Feature.EXCLUDE_MAPPING_INFO);
 
@@ -333,7 +338,7 @@ export function print(
         isExcludeMappingInfo,
         instructionWords,
         isMappingPuzzle,
-        identLocation,
+        testComplex.identLocationOrder,
       ),
     ),
   );
@@ -343,11 +348,6 @@ export function print(
       level,
       Feature.POOR_CODING_STANDARDS,
     );
-    const puzzleType = isMappingPuzzle
-      ? Math.round(Math.random()) > 0
-        ? "reverse"
-        : "order"
-      : false;
 
     if (!isExcludeMappingInfo) {
       outputter(getTableMappingHeader(instructionWords));
@@ -361,9 +361,9 @@ export function print(
           symbol,
           expression.expressionDefinition,
           i,
-          identLocation,
+          testComplex.identLocationType,
           poorCodingStandards,
-          puzzleType,
+          testComplex.puzzleType,
         ),
       );
     });

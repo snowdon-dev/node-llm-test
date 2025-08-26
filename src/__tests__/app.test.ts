@@ -140,6 +140,11 @@ describe("print", () => {
       mockSymbolExpression,
       1,
       output,
+      {
+        identLocationOrder: 0,
+        identLocationType: 0,
+        puzzleType: false,
+      }
     );
 
     expect(output).toHaveBeenCalled();

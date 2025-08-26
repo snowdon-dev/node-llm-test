@@ -115,6 +115,16 @@ export class PuzzleBuilder {
       .map((w) => w.join(seperator))
       .join(seperator);
 
+    const testComplex = {
+      identLocationOrder: this.rand(1) > 0,
+      identLocationType: this.rand(1) > 0,
+      puzzleType: this.hasFeature(Feature.MAPPING_INFO_PUZZLE) 
+      ? this.rand(1) > 0
+        ? "reverse" as const
+        : "order" as const
+      : false as const,
+    }
+
     const res = {
       realMap,
       tokenMap,
@@ -135,6 +145,7 @@ export class PuzzleBuilder {
 
       expression,
       symbolExpression,
+      testComplex
     };
 
     return res;
