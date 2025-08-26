@@ -125,7 +125,7 @@ export function answer(strIn: string, context: Readonly<IAnswerContext>) {
 const computeMathExpression = (n: number, d: number) =>
   Math.floor((n * 7) / d) % 2;
 
-const delms = ['\'', '`', '"'] as const;
+const delms = ["'", "`", '"'] as const;
 
 export function getMappingMessage(
   oldS: string,
@@ -133,9 +133,9 @@ export function getMappingMessage(
   symbol: string,
   expressionDefinition: ExpressionPart[],
   i: number,
-  isMappingPuzzle: boolean,
   identLocation: number,
   poorCodingStandards: boolean,
+  expressionChange: false | "reverse" | "order",
 ): string {
   let delm: string;
   if (poorCodingStandards) {
@@ -151,12 +151,29 @@ export function getMappingMessage(
     [ExpressionPart.OPERATOR]: `${symbol}`,
   };
 
-  let build = expressionDefinition.map((key) => parts[key]);
+  const shouldChangeOrder = () => computeMathExpression(i, 3) !== identLocation;
 
-  if (isMappingPuzzle) {
-    if (computeMathExpression(i, 3) !== identLocation) {
-      build = build.reverse();
-    }
+  let expression = expressionDefinition.slice();
+  if (expressionChange === "order" && shouldChangeOrder()) {
+    const finder = (part: ExpressionPart) => (value: ExpressionPart) =>
+      value === part;
+
+    const newIdx = expressionDefinition.findIndex(
+      finder(ExpressionPart.NEW_OPARAND),
+    );
+    const oldIdx = expressionDefinition.findIndex(
+      finder(ExpressionPart.OLD_OPARAND),
+    );
+    [expression[newIdx], expression[oldIdx]] = [
+      expression[oldIdx],
+      expression[newIdx],
+    ];
+  }
+
+  let build = expression.map((key) => parts[key]);
+
+  if (expressionChange === "reverse" && shouldChangeOrder()) {
+    build = build.reverse();
   }
 
   build.splice(1, 0, " ");
@@ -320,7 +337,16 @@ export function print(
   );
 
   parts.push(() => {
-    const poorCodingStandards = hasFeature(level, Feature.POOR_CODING_STANDARDS);
+    const poorCodingStandards = hasFeature(
+      level,
+      Feature.POOR_CODING_STANDARDS,
+    );
+    const puzzleType = isMappingPuzzle
+      ? Math.round(Math.random()) > 0
+        ? "reverse"
+        : "order"
+      : false;
+
     outputter(getTableMappingHeader(instructionWords));
     Object.entries(randomizeRecord(tokenMap)).forEach(([old, newS], i) => {
       outputter(
@@ -330,9 +356,9 @@ export function print(
           symbol,
           expression.expressionDefinition,
           i,
-          isMappingPuzzle,
           identLocation,
           poorCodingStandards,
+          puzzleType,
         ),
       );
     });

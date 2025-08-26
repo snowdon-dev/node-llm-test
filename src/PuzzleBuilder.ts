@@ -78,7 +78,7 @@ export class PuzzleBuilder {
 
     const wordsSeqs = tokenStartWordIdx.map((start, i) => {
       const next = tokenStartWordIdx[i + 1];
-      const end =  next ? next  : this.words.length;
+      const end = next ? next : this.words.length;
       return this.words.slice(start, end);
     });
 

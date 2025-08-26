@@ -154,7 +154,7 @@ export const instructionSet = {
   mappingDetails: {
     start: "The",
     ending:
-      "operator defines a mapping between two character sequences enclosed in single quotes",
+      "operator defines a mapping between two character sequences enclosed in quotes",
 
     delemiter:
       "Each mapping entry in the table is separated by a newline character",
@@ -163,8 +163,7 @@ export const instructionSet = {
     excludeEnd: "is first in the mapping expression",
 
     puzzleStart: "Multiply the table index by 7, divide by 3, round down",
-    puzzleEnd:
-      "appear first in the mapping expression when the result is",
+    puzzleEnd: "appear first in the mapping expression when the result is",
     puzzleIdent: ["even", "odd"],
   },
 

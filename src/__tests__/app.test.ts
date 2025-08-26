@@ -154,17 +154,23 @@ describe("print", () => {
         mockSymbolExpression,
         false,
         instructionSet,
+        false,
+        0,
       ),
     );
     expect(allOutputCalls[2]).toBe(getTableMappingHeader(instructionSet));
 
     // Check for each mapping entry
-    Object.entries(mockTokenMap).forEach(([old, newS]) => {
+    Object.entries(mockTokenMap).forEach(([old, newS], i) => {
       const expectedMsg = getMappingMessage(
         old,
         newS,
         mockExpression.equalSymbol,
         mockExpression.expressionDefinition,
+        i,
+        0,
+        false,
+        false,
       );
       expect(allOutputCalls).toContain(expectedMsg);
     });

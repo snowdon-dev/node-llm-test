@@ -20,7 +20,7 @@ export interface IPrepareResult {
   partialWords: Readonly<string[]>;
 
   /** Word sequence chunks */
-  wordsSeqs: string[][]
+  wordsSeqs: string[][];
 
   correctAnswer: Readonly<string>;
   realAnswer: Readonly<string>;
@@ -64,9 +64,7 @@ export type SymbolTypeOptions =
   | BinaryOptions
   | BinaryRotOptions;
 
-export type SymbolRotOptions =
-  | RotOptions
-  | BinaryRotOptions;
+export type SymbolRotOptions = RotOptions | BinaryRotOptions;
 
 export interface SymbolExpression<T extends SymbolTypeOptions> {
   mapper: (w: string[]) => string[];
