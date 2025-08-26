@@ -116,8 +116,8 @@ export class PuzzleBuilder {
       .join(seperator);
 
     const testComplex = {
-      identLocationOrder: this.rand(1) > 0,
-      identLocationType: this.rand(1) > 0,
+      identLocationOrder: this.rand(1),
+      identLocationType: this.rand(1),
       puzzleType: this.hasFeature(Feature.MAPPING_INFO_PUZZLE) 
       ? this.rand(1) > 0
         ? "reverse" as const
