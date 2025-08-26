@@ -15,6 +15,7 @@ import { getRandomSelection, getRandomWords } from "./randomfile";
 import { Puzzle } from "./app";
 import { levelMax } from "./levels";
 import { once } from "events";
+import { finished } from "stream/promises";
 
 // TODO: allow writing a schemma and calling the API
 program
@@ -266,9 +267,11 @@ async function run() {
 
   if (writeStream !== null) {
     writeStream.end();
+    const task = finished(writeStream);
     writeStream = null;
     process.off("SIGINT", endWriteStream);
     process.off("SIGTERM", endWriteStream);
+    await task;
   }
 
   console.log("\n---- do not copy the following into the LLM\n" + msg);

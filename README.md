@@ -12,9 +12,9 @@ linear-time algorithm for generating infinitely many test instances.
 Using the most token-efficient method and the simplest token format, the test
 presents an easy logical puzzle, with a domain and steps that are native and
 natural to a computer agent. The puzzle may involve few or many steps and may
-permit the usage simple tool calls. The solution requires reasoning rather than
-computation, and the design eliminates reliance on memorization to ensure that
-the test cannot be solved by prior training. Please let me know if you
+permit the usage of simple tool calls. The solution requires reasoning rather
+than computation, and the design eliminates reliance on memorization to ensure
+that the test cannot be solved by prior training. Please let me know if you
 encounter any issues.
 
 - See the web app at: <https://marketeer.snowdon.dev/tools/llmtest-online/>.
