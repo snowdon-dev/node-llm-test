@@ -322,13 +322,15 @@ export function print(
   const isMappingPuzzle = hasFeature(level, Feature.MAPPING_INFO_PUZZLE);
   const identLocation = Math.round(Math.random());
 
+  const isExcludeMappingInfo = hasFeature(level, Feature.EXCLUDE_MAPPING_INFO);
+
   parts.push(() =>
     outputter(
       getInitialDescription(
         symbol,
         expression.expressionDefinition,
         symbolExpression,
-        hasFeature(level, Feature.EXCLUDE_MAPPING_INFO),
+        isExcludeMappingInfo,
         instructionWords,
         isMappingPuzzle,
         identLocation,
@@ -347,7 +349,10 @@ export function print(
         : "order"
       : false;
 
-    outputter(getTableMappingHeader(instructionWords));
+    if (!isExcludeMappingInfo) {
+      outputter(getTableMappingHeader(instructionWords));
+    }
+
     Object.entries(randomizeRecord(tokenMap)).forEach(([old, newS], i) => {
       outputter(
         getMappingMessage(
