@@ -14,14 +14,13 @@ import inquirer from "inquirer";
 import { getRandomSelection, getRandomWords } from "./randomfile";
 import { Puzzle } from "./app";
 import { levelMax } from "./levels";
-import { once } from "events";
 import { finished } from "stream/promises";
 
 // TODO: allow writing a schemma and calling the API
 program
   .name("llmtest")
   .description(
-    "Generate tests to evaluate the intelligence of large language models.",
+    "Generate tests to evaluate the intelligence modes of large language models.",
   )
   .option("--number <number>", "The number of words in the wordlist", "600")
   .option("--write [filepath]", "Write to a temporary file or the target path")
@@ -252,7 +251,7 @@ async function run() {
   const endWriteStream = async () => {
     if (writeStream === null) return;
     writeStream.end();
-    await once(writeStream, "finish");
+    await finished(writeStream);
     writeStream = null;
     process.exit();
   };
@@ -267,11 +266,10 @@ async function run() {
 
   if (writeStream !== null) {
     writeStream.end();
-    const task = finished(writeStream);
+    await finished(writeStream);
     writeStream = null;
     process.off("SIGINT", endWriteStream);
     process.off("SIGTERM", endWriteStream);
-    await task;
   }
 
   console.log("\n---- do not copy the following into the LLM\n" + msg);

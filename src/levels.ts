@@ -24,6 +24,8 @@ export enum Feature {
 
   POOR_CODING_STANDARDS = 1 << 11,
 
+  EXTRA_WORDS = 1 << 12,
+
   //MISSING_SENTENCE = 1 << 7,
 }
 

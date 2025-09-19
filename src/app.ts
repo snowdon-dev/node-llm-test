@@ -15,7 +15,12 @@ import {
 import { IPrepareResult } from "./interface";
 import { Feature, hasFeature } from "./levels";
 import { PuzzleBuilder } from "./PuzzleBuilder";
-import { getRandomOrder, randomizeRecord, simpleRandom } from "./random";
+import {
+  getRandomOrder,
+  kthPermutation,
+  randomizeRecord,
+  simpleRandom,
+} from "./random";
 
 interface IAnswerContext {
   tokenMap: Readonly<Record<string, string>>;
@@ -307,10 +312,11 @@ export function print(
   level: number,
   output: (outs: string) => void,
   testComplex: {
-    identLocationOrder: number,
-    identLocationType: number,
-    puzzleType: false|"reverse"|"order",
-  }
+    identLocationOrder: number;
+    identLocationType: number;
+    puzzleType: false | "reverse" | "order";
+    rand: (num: number) => number;
+  },
 ) {
   const symbol = expression.equalSymbol;
   const randomOrder = hasFeature(level, Feature.INSTRUCTION_ORDER);
@@ -321,7 +327,7 @@ export function print(
     ? (str: string) => output(rotN(str, randomShift))
     : output;
 
-  const parts: (() => void)[] = [];
+  let parts: (() => void)[] = [];
 
   let instructionWords = instructionSet;
 
@@ -374,7 +380,7 @@ export function print(
       getInstructionsMessage(
         hasFeature(level, Feature.INDIRECT_SYMBOLS),
         instructionWords,
-        hasFeature(level, Feature.INSTRUCTION_ORDER),
+        randomOrder,
       ),
     );
   });
@@ -386,7 +392,15 @@ export function print(
   );
 
   if (randomOrder) {
-    getRandomOrder(parts, simpleRandom);
+    function fac(n: number) {
+      return n < 2 ? 1 : n * fac(n - 1);
+    }
+    const permNum = testComplex.rand(fac(parts.length) - 1);
+
+    parts = kthPermutation(
+      Object.keys(parts).map((k) => parseInt(k)),
+      permNum,
+    ).map((target) => parts[String(target)]);
   }
 
   if (

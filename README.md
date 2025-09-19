@@ -205,11 +205,17 @@ Or run in interactive mode:
 
 `npx llmtest --interactive`
 
+Generate sequence of results in bash:
+```bash
+seq -f "%.0f" 1000000 1000010 \
+  |  xargs -n1 -P20 -I{} llmtest --write "test-{}.txt" --seed {} --no-answer > /dev/null 2>&1
+```
+
 | Argument                     | Description                                        |
 | ---------------------------- | -------------------------------------------------- |
 | `--number <number>`          | The number of words in the wordlist (default: 200) |
 | `--write [filepath]`         | Write to a temporary file or the target path       |
-| `--level <integer>`          | Features enabled (0=none, 4095=all, default: 0)     |
+| `--level <integer>`          | Features enabled (0=none, 8191=all, default: 0)     |
 | `--seed <integer>`           | A seed to preserve reproducibility                 |
 | `--no-print`                 | Do not print the output for the LLM                |
 | `-i, --interactive`          | Run in interactive mode                            |
@@ -234,9 +240,9 @@ version.
 | :----------------------------- | -----------------------: | :------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------- | -- |
 | `CHAOS_WORDS`                  |              `1` / `0b1` | Increases output word count (roughly `words_in_domain * 2`) to make text longer/more chaotic.     | If domain has 50 words, output may include ~50 extra words scattered through the text.                        | Easy |
 | `MULTIZE_TOKENS`               |             `2` / `0b10` | Duplicates tokens used to increase token density/length.                                 | A token like `cat` might become `cat cat`.                                           | Medium |
-| `EXCLUDE_MAPPING_INFO`          |            `4` / `0b100` | Omits mapping/metadata information (e.g., token→map direction) from outputs.                      | Instead of returning the details in text, the response omits the info.| Easy |
+| `EXCLUDE_MAPPING_INFO`          |            `4` / `0b100` | Omits mapping/metadata information (e.g., token→map direction) from output.                      | Instead of returning the details in text, the response omits the info.| Easy |
 | `MULTIZE_I_TOKENS`             |           `8` / `0b1000` | Similar to `MULTIZE_TOKENS` but targets `input words`.           | `quick` becomes `quick brown` | Medium |
-| `PARTIAL_REASINING`            |         `16` / `0b10000` | Emits partial or reasoning instead of a full consolidated explanation.                   | Output shows only part of the token. The reset must be infered. | Medium |
+| `PARTIAL_REASINING`            |         `16` / `0b10000` | Missing words may be partial instead of full | 'full word' becomes '[..] word'| Medium |
 | `INDIRECT_SYMBOLS`             |        `32` / `0b100000` | Transforms tokens via a symbol function (e.g., ROT13 or other symbolisation) to obfuscate tokens. | Words may be ROT13-encoded or replaced with binary equivalents.                                  | Medium |
 | `EXCLUDE_SENTENCE_SPACES`      |       `64` / `0b1000000` | Removes spaces between words.                        | `"one two"` → `"onetwo"`  | Hard |
 | `INSTRUCTION_ORDER`            |     `128` / `0b10000000` | Randomly alters the order of instructions before printing.              | Instruction list may be reordered, affecting how instructions are interpreted/executed.                        | Easy |
@@ -244,6 +250,7 @@ version.
 | `OUTPUT_SHIFT_EXLCUDE_DETAILS` |   `512` / `0b1000000000` | With `OUTPUT_SHIFT`, additionally excludes metadata about the shift (magnitude/direction).        | Output is shifted and no shift metadata is returned; decoder must infer shift by analysis.                     | Hard |
 | `MAPPING_INFO_PUZZLE` | `1024`/`0b10000000000` | The expression order is changed based on a maths puzzle. |  | Medium |
 | `POOR_CODING_PRACTICES` | `2048`/`0b100000000000` | Emulates poor coding standards | For example, alternates more deliminators. '' becomes "" etc | Easy |
+| `EXTRA_WORDS` | `4096`/`0b1000000000000` | Adds extra words from a pre defined list designed to complement the default | Adds words like "glib" which can be used to form novel solutions | Medium |
 
 
 

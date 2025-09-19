@@ -40,7 +40,7 @@ export class PuzzleBuilder {
     this.rand = (len: number) => Math.floor(randH() * (len + 1));
     this.sentenceIdx = this.rand(this.pangrams.length - 1);
     this.sentence = this.pangrams[this.sentenceIdx];
-    if (this.hasFeature(Feature.CHAOS_WORDS)) {
+    if (this.hasFeature(Feature.EXTRA_WORDS)) {
       const words = this.pangrams.map((p) => p.split(/\s/));
       this.pangramsWords = words.filter((_, i) => i !== this.sentenceIdx);
       this.pangramsWordsList = this.pangramsWords.flat();
@@ -123,6 +123,7 @@ export class PuzzleBuilder {
           ? ("reverse" as const)
           : ("order" as const)
         : (false as const),
+      rand: this.rand,
     };
 
     const res = {
@@ -151,19 +152,6 @@ export class PuzzleBuilder {
     return res;
   }
 
-  /*protected getBucket(input: string[]) {
-      return input;
-      if (!hasFeature(level, Feature.HALF_SENTENCE)) {
-        return input;
-      }
-      const midpointIndex = Math.floor(partialTokenizedWords.length / 2);
-      const res =
-        tokenRefRemoveIdx < missingWordIdx
-          ? input.splice(midpointIndex - 1)
-          : input.splice(0, midpointIndex + 1);
-      return res;
-    }*/
-
   protected preapreOtherWords() {
     const excludeWordsSet = new Set([
       ...this.words,
@@ -181,7 +169,7 @@ export class PuzzleBuilder {
         }
       }
     }
-    if (this.hasFeature(Feature.CHAOS_WORDS)) {
+    if (this.hasFeature(Feature.EXTRA_WORDS)) {
       for (let i = 0; i < this.pangramsWordsList.length; i++) {
         const v = this.pangramsWordsList[i];
         const word = reverseFirstLetter(v);
@@ -217,140 +205,159 @@ export class PuzzleBuilder {
       this.rand,
     );
 
-    let randomArr = randomDedupedWords.slice();
-    randomArr = randomArr.concat(this.words);
-    if (this.pangramsWordsList) {
-      randomArr = randomArr.concat(this.pangramsWordsList);
-    }
-    randomArr = getRandomOrder(randomArr, this.rand);
-
-    return this.prepareMappings(randomDedupedWords, randomArr);
+    return this.prepareMappings(randomDedupedWords);
   }
 
-  protected prepareMappings(inputDeduped: string[], randomArr: string[]) {
+  protected prepareMappings(inputDeduped: string[]) {
     const tokenMap: Record<string, string> = {};
     const realMap: Record<string, string> = {};
 
-    const pickRandom = <T>(arrays: T[][]): T => {
-      const totalLength = arrays.reduce((sum, arr) => sum + arr.length, 0);
-      let randIndex = this.rand(totalLength - 1);
-      for (const arr of arrays) {
-        if (randIndex < arr.length) {
-          return arr[randIndex];
-        }
-        randIndex -= arr.length;
-      }
-
-      throw new Error("Should never reach here");
-    };
-
-    const popNonDuplicate = () => randomArr.pop();
-    const popDuplicate = () => {
-      const arrs = [inputDeduped, this.pangramsWordsList, this.words].filter(
-        (a) => a !== undefined,
-      );
-      return pickRandom(arrs);
-    };
-    const firstPlacement = popNonDuplicate;
-    const secondPlacement = popDuplicate;
-
-    function popToken(multi = false, useMulti: boolean = false): string[] {
-      const tmptoken = firstPlacement();
-
-      if (
-        tmptoken === undefined ||
-        (tmptoken !== undefined && tmptoken.trim() === "")
-      ) {
-        throw new Error("Token pop error");
-      }
-      if (!multi) {
-        return [tmptoken];
-      }
-
-      const secondtoken = useMulti ? firstPlacement() : secondPlacement();
-
-      if (
-        multi &&
-        (secondtoken === undefined ||
-          (secondtoken !== undefined && secondtoken.trim() === ""))
-      ) {
-        throw new Error("Token second pop error");
-      }
-
-      // join em
-      return [tmptoken, secondtoken];
-    }
-
     const useMultI = this.hasFeature(Feature.MULTIZE_I_TOKENS);
     const useSecond = this.hasFeature(Feature.MULTIZE_TOKENS);
+    const spacingChars = " ";
 
-    const build = (idx: number, array: string[]) => {
-      const sTokenRoll = this.rand(1) > 0;
+    type TokenType = [string] | [string, string];
+    const readWords = (
+      idx: number,
+      array: string[],
+      multiActivation: boolean,
+    ) => {
       const multiWordRoll =
-        useMultI && this.rand(1) > 0
+        multiActivation && this.rand(1) > 0
           ? // can't read a word thats at set end
             idx !== array.length - 1
           : false;
 
       const word = array[idx];
-      let mtw: string;
-      let reads = 1;
+      let words: TokenType;
 
       if (multiWordRoll) {
         // sometimes takes two words
         const nextWord = array[idx + 1];
-        reads++;
-        mtw = `${word} ${nextWord}`;
+        words = [word, nextWord];
       } else {
-        mtw = word;
+        words = [word];
       }
 
-      if (tokenMap[mtw]) {
-        return { tokenItems: tokenMap[mtw].split(" "), reads };
-      }
-
-      // insert new the map
-      let multiToken: boolean = useSecond ? sTokenRoll : false;
-      const useMulti = multiWordRoll;
-      const token = popToken(multiToken, useMulti);
-      const tokenStr = token.join(" ");
-      let tokenItems = token;
-
-      tokenMap[mtw] = tokenStr;
-      realMap[tokenStr] = mtw;
-
-      return { tokenItems, reads };
+      return words;
     };
 
-    // for only non pangram words
-    for (let debupedIdx = 0; debupedIdx < inputDeduped.length; debupedIdx++) {
-      const info = build(debupedIdx, inputDeduped);
-      debupedIdx += info.reads - 1;
-    }
+    const readTokens = (idx: number, array: string[], sliding: string[]) => {
+      const elm = array[idx];
 
-    // for all pangram words that are not words
-    if (this.hasFeature(Feature.CHAOS_WORDS)) {
+      let token: TokenType;
+      if (useSecond && this.rand(1) > 0) {
+        token = [elm, sliding.pop()];
+      } else {
+        token = [elm];
+      }
+      return token;
+    };
+
+    let missingWords = [];
+    const totalWordsSliding = [];
+
+    const debupedTokens: Record<string, TokenType> = {};
+    for (let debupedIdx = 0; debupedIdx < inputDeduped.length; debupedIdx++) {
+      const words = readWords(debupedIdx, inputDeduped, useMultI);
+      debupedIdx += words.length - 1;
+      const wordsStr = words.join(spacingChars);
+      debupedTokens[wordsStr] = words;
+      if (words.length > 1) {
+        missingWords.push(words);
+      }
+      totalWordsSliding.push(wordsStr);
+    }
+    const chaosTokens: Record<string, TokenType> = {};
+    if (this.hasFeature(Feature.EXTRA_WORDS)) {
       for (let i = 0; i < this.pangramsWordsList.length; i++) {
-        const info = build(i, this.pangramsWordsList);
-        i += info.reads - 1;
+        const words = readWords(i, this.pangramsWordsList, useMultI);
+        i += words.length - 1;
+        const wordsStr = words.join(spacingChars);
+        chaosTokens[wordsStr] = words;
+        if (words.length > 1) {
+          missingWords.push(words);
+        }
+        totalWordsSliding.push(wordsStr);
       }
     }
-
-    // insert the sentence words
-    const tokenizedEntries: string[][] = [];
     const tokenStartWordIdx: number[] = [];
+    const sentenceTokens: Record<string, TokenType> = {};
     let wordIdx = 0;
     for (let npwi = 0; npwi < this.words.length; npwi++) {
-      const info = build(npwi, this.words);
-      tokenizedEntries.push(info.tokenItems);
+      const words = readWords(npwi, this.words, useMultI);
+      npwi += words.length - 1;
       tokenStartWordIdx.push(wordIdx);
-      // TODO: dont skip the next word consumed, given:
-      // quick brown => fox brown
-      // issue with reading the second consumed word:
-      // brown fox => quick the
-      npwi += info.reads - 1;
-      wordIdx += info.reads;
+      const wordsStr = words.join(spacingChars);
+      sentenceTokens[wordsStr] = words;
+      wordIdx += words.length;
+      if (words.length > 1) {
+        missingWords.push(words);
+      }
+      totalWordsSliding.push(wordsStr);
     }
+
+    getRandomOrder(totalWordsSliding, this.rand);
+
+    const buildTokens = () => {
+      const totalInput = getRandomOrder(
+        [...inputDeduped, ...(this.pangramsWordsList ?? []), ...this.words],
+        this.rand,
+      );
+      let tokens = [];
+      for (let i = 0; i < totalInput.length; i++) {
+        const words = readTokens(i, totalInput, totalWordsSliding);
+        tokens.push(words.join(spacingChars));
+      }
+      return tokens;
+    };
+
+    const tmpTotalWords = totalWordsSliding.slice();
+
+    const buildTokenMap = () => {
+      const totalTokens =
+        useSecond === useMultI
+          ? getRandomOrder(totalWordsSliding, this.rand)
+          : buildTokens();
+
+      return function (words: string) {
+        const tokens = totalTokens.pop();
+        tokenMap[words] = tokens;
+        realMap[tokens] = words;
+      };
+    };
+
+    const tokenMapper = buildTokenMap();
+
+    for (let i = 0; i < missingWords.length; i++) {
+      // ensure same number of lost words entries as tokens
+      // random words, not already used
+      const useMulti = useSecond && this.rand(1) > 0;
+      let tmp: TokenType;
+      const elms = missingWords[i];
+      if (useMulti) {
+        const nextWord =
+          totalWordsSliding[this.rand(totalWordsSliding.length - 1)];
+        tmp = elms.concat(nextWord);
+      } else {
+        tmp = elms;
+      }
+      tokenMapper(elms.join(spacingChars));
+    }
+
+    for (let i = 0; i < tmpTotalWords.length; i++) {
+      const tmpWords = tmpTotalWords[i];
+      if (tokenMap[tmpWords]) {
+        continue;
+      }
+      tokenMapper(tmpWords);
+    }
+
+    const tokenizedEntries: string[][] = Object.values(sentenceTokens).map(
+      (token) => {
+        return tokenMap[token.join(spacingChars)].split(" ");
+      },
+    );
 
     return {
       tokenMap,

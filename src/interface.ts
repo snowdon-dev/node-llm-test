@@ -11,7 +11,7 @@ export interface IPrepareResult {
 
   /** Encoding after symbol expression */
   partialTokenizedSentence: Readonly<string>;
-    
+
   /** Token sequence chunks */
   partialTokenizedWords: Readonly<string[][]>;
 
@@ -30,10 +30,11 @@ export interface IPrepareResult {
 
   /** Persistent rules */
   testComplex: {
-    identLocationOrder: number,
-    identLocationType: number,
-    puzzleType: false|"reverse"|"order",
-  }
+    identLocationOrder: number;
+    identLocationType: number;
+    puzzleType: false | "reverse" | "order";
+    rand: (num: number) => number;
+  };
 }
 
 export interface ILLMTest {
