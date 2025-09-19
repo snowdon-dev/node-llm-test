@@ -150,7 +150,7 @@ export const instructionSet = {
   multiEncodings: "and then converted to",
 
   introMsg:
-    "You have been given a character sequence that contains a missing part and has been encoded into a symbolised form",
+    "You have been given a sequence of encoded symbols that contains a missing part",
 
   mappingDetails: {
     start: "The",

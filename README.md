@@ -33,9 +33,10 @@ AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
   - [Implementation notes](#implementation-notes)
   - [Why was this created](#why-was-this-created)
   - [Usage](#usage)
+    - [Quick CLI usage](#quick-cli-usage)
     - [Installation](#installation)
     - [Programmatic Usage](#programmatic-usage)
-    - [CLI usage](#cli-usage)
+    - [CLI Reference](#cli-reference)
   - [Test Levels. Worked example](#test-levels-worked-example)
     - [Reference](#reference)
     - [Extra notes & usage tips](#extra-notes-usage-tips)
@@ -87,7 +88,7 @@ may test the total reasoning capability. This test forces the model to think,
 which seems to be achievable to some extent by producing output tokens that
 move the task forward towards some end result. However, this is a double edged
 sword as the cost per answer is high if the reasoning is not concise. See a
-YouTube video by `@t3dotgg`  for more information: [I was wrong about
+YouTube video by `@t3dotgg` for more information: [I was wrong about
 GPT-5](https://youtu.be/k68ie2GcEc4?si=0O6pBuxyHH5creys). With reasoning and
 tool calls enabled, a hard test could be `--level 1183`. To see custom levels
 configurations, see the web app.
@@ -112,6 +113,26 @@ small values of `𝑛` or `r`, the computation could even be precomputed and
 stored in a lookup table. Alternatively, the script itself could be cached at
 the token level, by respecting known parameters. In practice, a finite-state
 automata combined with a calculator (ACU) is sufficient to solve this test.
+
+There are numerous situations in which a puzzle may reasonably be considered
+correct, depending on the evaluation framework. For instance, consider a
+scenario where a structured output schema is not specified. If a language model
+produces `'every'` but the correct answer is `every`, should this be judged
+incorrect? Strictly speaking, it does not match exactly and the test has been
+designed to be interpreted as being not correct; however, within the
+constraints of a schema, the response would be functionally equivalent and thus
+acceptable. However, in the context of code generation and precise logical
+tasks, this constitutes a failure to adhere to the given instructions. This
+issue also illustrates a broader issue related to **negative feedback
+attention**. Providing feedback such as *“no”* or *“that answer is incorrect”*
+can destabilize the model’s reasoning process. In such cases, the system may be
+led to reinterpret a correct response as incorrect, a phenomenon sometimes
+described as *gaslighting the model*. Public demonstrations of this effect,
+often titled along the lines of *“Gaslighting GPT-5 into believing 2+2=5”,
+illustrate how easily a model can be misled by poor feedback. The implication
+is significant: in many instances, evaluators must supply the correct answer
+explicitly in order to reliably guide the model toward producing the correct
+response in future interactions.
 
 ## Implementation notes
 
@@ -163,10 +184,16 @@ proves it. This was prior to Chat GPT 5.
 
 ## Usage
 
-- [Create a Codespace](https://docs.github.com/en/codespaces/developing-in-a-codespace/opening-an-existing-codespace)
+### Quick CLI usage
+
+- [Create a
+Codespace](https://docs.github.com/en/codespaces/developing-in-a-codespace/opening-an-existing-codespace)
+on this repository.
 - Then simply, run the command `llmtest` in the terminal.
 
 ### Installation
+
+Install using any package manager with the NPM registry.
 
 `npm install node-llm-test`
 
@@ -189,7 +216,7 @@ const puzzle = Puzzle.New(
 puzzle.print(console.log);
 ```
 
-### CLI usage
+### CLI Reference 
 
 To run the CLI:
 
@@ -197,9 +224,11 @@ To run the CLI:
 
 For example:
 
-`npx llmtest --number 0 --write`
+`npx llmtest --seed 12345`
 
-`npx llmtest --number 0 --write ~/Documents/test1`
+`npx llmtest --number 10 --write`
+
+`npx llmtest --number 10 --write ~/Documents/test1`
 
 Or run in interactive mode:
 
@@ -213,7 +242,7 @@ seq -f "%.0f" 1000000 1000010 \
 
 | Argument                     | Description                                        |
 | ---------------------------- | -------------------------------------------------- |
-| `--number <number>`          | The number of words in the wordlist (default: 200) |
+| `--number <number>`          | The number of words in the wordlist (default: 0) |
 | `--write [filepath]`         | Write to a temporary file or the target path       |
 | `--level <integer>`          | Features enabled (0=none, 8191=all, default: 0)     |
 | `--seed <integer>`           | A seed to preserve reproducibility                 |
@@ -268,7 +297,7 @@ version.
 
 ```console
 # zero extra words, zero extra reasoning steps
-npx llmtest --number 0 --level 0
+npx llmtest --level 0
 ```
 
 ```txt
@@ -326,56 +355,28 @@ task and introduces a minimal layer of logical deduction.
 ### Level 14
 
 ```console
-npx llmtest -- --number 0 --level 14 --seed 123
+npx llmtest -- --level 14 --seed 12345
 
-The following describes a puzzle. To complete the game you must figure out the
-missing word without asking any questions.
+You have been given a character sequence that contains a missing part and has been encoded into a symbolised form.
+The '>' operator defines a mapping between two character sequences enclosed in quotes.
+Each mapping entry in the table is separated by a newline character.
+The marketeer dot snowdon dot dev llmtest online.
 
-The operator '>>>' defines a mapping between two character sequences enclosed
-within ''. Each mapping in the table is separated by a newline (\n) character.
-You will be given a sentence that has a missing word and has been encoded into
-a symbolised form.
+'quick' 'vex' >
+'waltz' 'quick' >
+'waltz nymph' 'waltz' >
+'Big waltz' 'Big waltz' >
+'vex' 'waltz nymph' >
+'Big fjords' 'Big fjords' >
 
+Take into account the given symbolised sequence of words and other contextual information.
+Complete the following tasks:
+- Determine the absent word
+- Present only the symbol or symbols that map to find the real word or words
+- Show the answer as concisely as possible
+- Do not ask any questions
+- Think carefully and respond only when confident
 
-
-🗺️ Table of mappings:
->>> 'low bid' 'low bid etchings'
->>> 'for zinc' 'examining bid'
->>> 'every' 'every bid'
->>> 'etchings' 'Just bid'
->>> 'quoted' 'keep Just'
->>> 'Just keep' 'quoted zinc'
->>> 'examining' 'for Just'
-
-
-Take into account the given symbolised sentence and
-other contextual information. Complete the following tasks:
-
-- Find the missing word in the sentence.
-- Print your answer as concisely as possible.
-- Provide your answer for the missing word.
-- Show the input sentence in symbolised form.
-- Do not provide the answer in english.
-- Provide the answer in the symbolised form.
-
-
-Symbolised sentence with missing word:
-quoted zinc for Just every bid low bid etchings keep Just examining bid [...]
-
-
----- do not copy the following into the LLM
-
-The correct answer is:
-quoted zinc for Just every bid low bid etchings keep Just examining bid Just bid
-The real sentence is:
-Just keep examining every low bid quoted for zinc etchings
-
-
---- Waiting to check answer...
-
-Fill in the missing word:
-Your answer: etchings
-
-
-❌ Incorrect. The correct word was: "Just bid"
+Symbolised sentence with a missing part or parts:
+Big fjords waltz nymph vex [...]
 ```

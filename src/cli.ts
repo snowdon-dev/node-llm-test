@@ -22,7 +22,7 @@ program
   .description(
     "Generate tests to evaluate the intelligence modes of large language models.",
   )
-  .option("--number <number>", "The number of words in the wordlist", "600")
+  .option("--number <number>", "The number of words in the wordlist", "0")
   .option("--write [filepath]", "Write to a temporary file or the target path")
   .option("--level <integer>", `Features enabled 0=none ${levelMax}=all`, "0")
   .option("--seed <integer>", "A seed to preserve reproducibility")

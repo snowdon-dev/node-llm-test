@@ -85,8 +85,8 @@ class FenwickTree {
   }
 }
 
-export function kthPermutation(arr: number[], k: number) {
-  const n = arr.length;
+export function kthPermutation(sortedArr: number[], k: number) {
+  const n = sortedArr.length;
   const fact = [1];
   for (let i = 1; i <= n; i++) fact[i] = fact[i - 1] * i;
 
@@ -96,7 +96,6 @@ export function kthPermutation(arr: number[], k: number) {
   for (let i = 1; i <= n; i++) fenwick.update(i, 1);
 
   const result = [];
-  const sortedArr = [...arr].sort((a, b) => a - b);
 
   for (let i = n; i >= 1; i--) {
     const f = fact[i - 1];

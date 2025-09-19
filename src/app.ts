@@ -276,7 +276,7 @@ export function getTableMappingHeader(
 export function getInstructionsMessage(
   indirectSymbols: boolean,
   instructionWords: typeof instructionSet,
-  random: boolean,
+  random: false|((num: number) => number),
 ): string {
   const instructions: string[] = [...instructionWords.all];
   if (indirectSymbols) {
@@ -285,8 +285,8 @@ export function getInstructionsMessage(
 
   const list = instructions.map((l) => "- " + l);
 
-  if (random) {
-    getRandomOrder(list, simpleRandom);
+  if (random !== false) {
+    getRandomOrder(list, random);
   }
 
   return [
@@ -380,7 +380,7 @@ export function print(
       getInstructionsMessage(
         hasFeature(level, Feature.INDIRECT_SYMBOLS),
         instructionWords,
-        randomOrder,
+        randomOrder ? testComplex.rand : false,
       ),
     );
   });
@@ -398,7 +398,7 @@ export function print(
     const permNum = testComplex.rand(fac(parts.length) - 1);
 
     parts = kthPermutation(
-      Object.keys(parts).map((k) => parseInt(k)),
+      parts.map((_, i) => i),
       permNum,
     ).map((target) => parts[String(target)]);
   }
