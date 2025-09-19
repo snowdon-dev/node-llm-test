@@ -17,7 +17,7 @@ import {
   ExpressionDefinitionType,
 } from "./interface";
 import { hasFeature, Feature, levelMax } from "./levels";
-import { mulberry32, getRandomOrder } from "./random";
+import { mulberry32, getRandomOrder, pickRandomBucket } from "./random";
 
 export class PuzzleBuilder {
   private readonly rand: (num: number) => number;
@@ -254,8 +254,8 @@ export class PuzzleBuilder {
       return token;
     };
 
-    let missingWords = [];
-    const totalWordsSliding = [];
+    let missingWords: [string, string][] = [];
+    const totalWordsSliding: string[] = [];
 
     const debupedTokens: Record<string, TokenType> = {};
     for (let debupedIdx = 0; debupedIdx < inputDeduped.length; debupedIdx++) {
@@ -264,7 +264,7 @@ export class PuzzleBuilder {
       const wordsStr = words.join(spacingChars);
       debupedTokens[wordsStr] = words;
       if (words.length > 1) {
-        missingWords.push(words);
+        missingWords.push(words as [string, string]);
       }
       totalWordsSliding.push(wordsStr);
     }
@@ -276,7 +276,7 @@ export class PuzzleBuilder {
         const wordsStr = words.join(spacingChars);
         chaosTokens[wordsStr] = words;
         if (words.length > 1) {
-          missingWords.push(words);
+          missingWords.push(words as [string, string]);
         }
         totalWordsSliding.push(wordsStr);
       }
@@ -292,18 +292,49 @@ export class PuzzleBuilder {
       sentenceTokens[wordsStr] = words;
       wordIdx += words.length;
       if (words.length > 1) {
-        missingWords.push(words);
+        missingWords.push(words as [string, string]);
       }
       totalWordsSliding.push(wordsStr);
+    }
+
+    const totalWordBuckets = [
+      inputDeduped,
+      this.pangramsWordsList,
+      this.words,
+    ].filter((a) => a !== undefined);
+    const totalBucketLength = totalWordBuckets.reduce(
+      (sum, arr) => sum + arr.length,
+      0,
+    );
+
+    for (let i = 0; i < missingWords.length; i++) {
+      // ensure same number of lost words entries as tokens
+      // random words, not already used
+      const useMulti = useSecond && this.rand(1) > 0;
+      let tmp: TokenType;
+      const elm: [string, string] = missingWords[i];
+      if (useMulti) {
+        const [idx, bucket] = pickRandomBucket(
+          totalWordBuckets,
+          totalBucketLength,
+          this.rand,
+        );
+        let nextWord = bucket[idx];
+        if (nextWord === elm[1]) {
+          nextWord = bucket[(idx + 1) % bucket.length]
+        }
+        tmp = [elm[0], nextWord];
+      } else {
+        tmp = [elm[0]];
+      }
+
+      totalWordsSliding.push(tmp.join(spacingChars));
     }
 
     getRandomOrder(totalWordsSliding, this.rand);
 
     const buildTokens = () => {
-      const totalInput = getRandomOrder(
-        [...inputDeduped, ...(this.pangramsWordsList ?? []), ...this.words],
-        this.rand,
-      );
+      const totalInput = getRandomOrder(totalWordBuckets.flat(), this.rand);
       let tokens = [];
       for (let i = 0; i < totalInput.length; i++) {
         const words = readTokens(i, totalInput, totalWordsSliding);
@@ -329,22 +360,6 @@ export class PuzzleBuilder {
 
     const tokenMapper = buildTokenMap();
 
-    for (let i = 0; i < missingWords.length; i++) {
-      // ensure same number of lost words entries as tokens
-      // random words, not already used
-      const useMulti = useSecond && this.rand(1) > 0;
-      let tmp: TokenType;
-      const elms = missingWords[i];
-      if (useMulti) {
-        const nextWord =
-          totalWordsSliding[this.rand(totalWordsSliding.length - 1)];
-        tmp = elms.concat(nextWord);
-      } else {
-        tmp = elms;
-      }
-      tokenMapper(elms.join(spacingChars));
-    }
-
     for (let i = 0; i < tmpTotalWords.length; i++) {
       const tmpWords = tmpTotalWords[i];
       if (tokenMap[tmpWords]) {
@@ -355,7 +370,7 @@ export class PuzzleBuilder {
 
     const tokenizedEntries: string[][] = Object.values(sentenceTokens).map(
       (token) => {
-        return tokenMap[token.join(spacingChars)].split(" ");
+        return tokenMap[token.join(spacingChars)].split(spacingChars);
       },
     );
 
