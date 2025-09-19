@@ -7,6 +7,7 @@ import {
   toBinary,
   equalSymblsSet,
   reverseFirstLetter,
+  spacingChars,
 } from "./characters";
 import {
   IPrepareResult,
@@ -65,7 +66,8 @@ export class PuzzleBuilder {
 
     const missingWordIdx = tokenStartWordIdx[tokenRefRemoveIdx];
 
-    const correctAnswer = tokenizedSequenceWords[tokenRefRemoveIdx].join(" ");
+    const correctAnswer =
+      tokenizedSequenceWords[tokenRefRemoveIdx].join(spacingChars);
     const realAnswer = this.words[missingWordIdx];
 
     if ([correctAnswer, realAnswer].includes(undefined)) {
@@ -214,7 +216,6 @@ export class PuzzleBuilder {
 
     const useMultI = this.hasFeature(Feature.MULTIZE_I_TOKENS);
     const useSecond = this.hasFeature(Feature.MULTIZE_TOKENS);
-    const spacingChars = " ";
 
     type TokenType = [string] | [string, string];
     const readWords = (
@@ -321,7 +322,7 @@ export class PuzzleBuilder {
         );
         let nextWord = bucket[idx];
         if (nextWord === elm[1]) {
-          nextWord = bucket[(idx + 1) % bucket.length]
+          nextWord = bucket[(idx + 1) % bucket.length];
         }
         tmp = [elm[0], nextWord];
       } else {
@@ -345,7 +346,7 @@ export class PuzzleBuilder {
 
     const tmpTotalWords = totalWordsSliding.slice();
 
-    const buildTokenMap = () => {
+    const buildWordMapper = () => {
       const totalTokens =
         useSecond === useMultI
           ? getRandomOrder(totalWordsSliding, this.rand)
@@ -358,14 +359,14 @@ export class PuzzleBuilder {
       };
     };
 
-    const tokenMapper = buildTokenMap();
+    const mapWords = buildWordMapper();
 
     for (let i = 0; i < tmpTotalWords.length; i++) {
       const tmpWords = tmpTotalWords[i];
       if (tokenMap[tmpWords]) {
         continue;
       }
-      tokenMapper(tmpWords);
+      mapWords(tmpWords);
     }
 
     const tokenizedEntries: string[][] = Object.values(sentenceTokens).map(

@@ -1,5 +1,6 @@
 // TODO: randomise
 export const blankWordToken = "[...]";
+export const spacingChars = " ";
 
 export const equalSymblsSet = [
   "+",

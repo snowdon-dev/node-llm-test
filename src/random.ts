@@ -35,7 +35,11 @@ export function getRandomOrder<T extends unknown[]>(
   return shuffled;
 }
 
-export function pickRandomBucket<T>(arrays: T[][], totalLength: number, rand: (num: number) => number): [number, T[]] {
+export function pickRandomBucket<T>(
+  arrays: T[][],
+  totalLength: number,
+  rand: (num: number) => number,
+): [number, T[]] {
   let randIndex = rand(totalLength - 1);
   for (const arr of arrays) {
     if (randIndex < arr.length) {
