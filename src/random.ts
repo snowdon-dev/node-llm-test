@@ -51,11 +51,3 @@ export function pickRandomBucket<T>(
   throw new Error("Should never reach here");
 }
 
-export function randomPermutation<T>(sortedArr: T[], rand: (num: number) => number) {
-  const res = sortedArr.slice();
-  for (let i = res.length - 1; i > 0; i--) {
-    const j = rand(i);
-    [res[i], res[j]] = [res[j], res[i]];
-  }
-  return res;
-}

@@ -18,7 +18,6 @@ import { PuzzleBuilder } from "./PuzzleBuilder";
 import {
   getRandomOrder,
   randomizeRecord,
-  randomPermutation,
   simpleRandom,
 } from "./random";
 
@@ -392,7 +391,7 @@ export function print(
   );
 
   if (randomOrder) {
-    parts = randomPermutation(parts.map((_, i) => i), testComplex.rand)
+    parts = getRandomOrder(parts.map((_, i) => i), testComplex.rand)
       .map((target) => parts[target]);
   }
 
