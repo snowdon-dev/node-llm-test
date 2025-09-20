@@ -15,11 +15,7 @@ import {
 import { IPrepareResult } from "./interface";
 import { Feature, hasFeature } from "./levels";
 import { PuzzleBuilder } from "./PuzzleBuilder";
-import {
-  getRandomOrder,
-  randomizeRecord,
-  simpleRandom,
-} from "./random";
+import { getRandomOrder, randomizeRecord, simpleRandom } from "./random";
 
 interface IAnswerContext {
   tokenMap: Readonly<Record<string, string>>;
@@ -391,8 +387,10 @@ export function print(
   );
 
   if (randomOrder) {
-    parts = getRandomOrder(parts.map((_, i) => i), testComplex.rand)
-      .map((target) => parts[target]);
+    parts = getRandomOrder(
+      parts.map((_, i) => i),
+      testComplex.rand,
+    ).map((target) => parts[target]);
   }
 
   if (

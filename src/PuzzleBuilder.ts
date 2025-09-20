@@ -218,10 +218,7 @@ export class PuzzleBuilder {
     const useSecond = this.hasFeature(Feature.MULTIZE_TOKENS);
 
     type TokenType = [string] | [string, string];
-    const readWords = (
-      idx: number,
-      array: string[],
-    ) => {
+    const readWords = (idx: number, array: string[]) => {
       const multiWordRoll =
         useMultI && this.rand(1) > 0
           ? // can't read a word thats at set end
@@ -254,44 +251,7 @@ export class PuzzleBuilder {
       return token;
     };
 
-    let missingWords: [string, string][] = [];
     const totalWordsSliding: string[] = [];
-
-    for (let debupedIdx = 0; debupedIdx < inputDeduped.length; debupedIdx++) {
-      const words = readWords(debupedIdx, inputDeduped);
-      debupedIdx += words.length - 1;
-      const wordsStr = words.join(spacingChars);
-      if (words.length > 1) {
-        missingWords.push(words as [string, string]);
-      }
-      totalWordsSliding.push(wordsStr);
-    }
-    if (this.hasFeature(Feature.EXTRA_WORDS)) {
-      for (let i = 0; i < this.pangramsWordsList.length; i++) {
-        const words = readWords(i, this.pangramsWordsList);
-        i += words.length - 1;
-        const wordsStr = words.join(spacingChars);
-        if (words.length > 1) {
-          missingWords.push(words as [string, string]);
-        }
-        totalWordsSliding.push(wordsStr);
-      }
-    }
-    const tokenStartWordIdx: number[] = [];
-    const sentenceWordsStr: string[] = [];
-    let wordIdx = 0;
-    for (let npwi = 0; npwi < this.words.length; npwi++) {
-      const words = readWords(npwi, this.words);
-      npwi += words.length - 1;
-      tokenStartWordIdx.push(wordIdx);
-      const wordsStr = words.join(spacingChars);
-      sentenceWordsStr.push(wordsStr)
-      wordIdx += words.length;
-      if (words.length > 1) {
-        missingWords.push(words as [string, string]);
-      }
-      totalWordsSliding.push(wordsStr);
-    }
 
     const totalWordBuckets = [
       inputDeduped,
@@ -303,12 +263,9 @@ export class PuzzleBuilder {
       0,
     );
 
-    for (let i = 0; i < missingWords.length; i++) {
-      // ensure same number of lost words entries as tokens
-      // random words, not already used
+    const addMissingWord = (words: [string, string]) => {
       const useMulti = useSecond && this.rand(1) > 0;
       let tmp: TokenType;
-      const elm: [string, string] = missingWords[i];
       if (useMulti) {
         const [idx, bucket] = pickRandomBucket(
           totalWordBuckets,
@@ -316,15 +273,48 @@ export class PuzzleBuilder {
           this.rand,
         );
         let nextWord = bucket[idx];
-        if (nextWord === elm[1]) {
+        if (nextWord === words[1]) {
           nextWord = bucket[(idx + 1) % bucket.length];
         }
-        tmp = [elm[0], nextWord];
+        tmp = [words[0], nextWord];
       } else {
-        tmp = [elm[0]];
+        tmp = [words[0]];
       }
-
       totalWordsSliding.push(tmp.join(spacingChars));
+    }
+
+    function buildWords(arr: string[]) {
+      for (let i = 0; i < arr.length; i++) {
+        const words = readWords(i, arr);
+        i += words.length - 1;
+        const wordsStr = words.join(spacingChars);
+        if (words.length > 1) {
+          addMissingWord(words as [string, string]);
+        }
+        totalWordsSliding.push(wordsStr);
+      }
+    }
+
+    buildWords(inputDeduped);
+
+    if (this.hasFeature(Feature.EXTRA_WORDS)) {
+      buildWords(this.pangramsWordsList);
+    }
+
+    const tokenStartWordIdx: number[] = [];
+    const sentenceWordsStr: string[] = [];
+    let wordIdx = 0;
+    for (let npwi = 0; npwi < this.words.length; npwi++) {
+      const words = readWords(npwi, this.words);
+      npwi += words.length - 1;
+      tokenStartWordIdx.push(wordIdx);
+      const wordsStr = words.join(spacingChars);
+      sentenceWordsStr.push(wordsStr);
+      wordIdx += words.length;
+      if (words.length > 1) {
+        addMissingWord(words as [string, string]);
+      }
+      totalWordsSliding.push(wordsStr);
     }
 
     getRandomOrder(totalWordsSliding, this.rand);
@@ -356,11 +346,9 @@ export class PuzzleBuilder {
       realMap[tokens] = tmpWords;
     }
 
-    const tokenizedEntries: string[][] = sentenceWordsStr.map(
-      (wordsStr) => {
-        return tokenMap[wordsStr].split(spacingChars);
-      },
-    );
+    const tokenizedEntries: string[][] = sentenceWordsStr.map((wordsStr) => {
+      return tokenMap[wordsStr].split(spacingChars);
+    });
 
     return {
       tokenMap,

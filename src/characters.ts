@@ -129,6 +129,7 @@ export const instructionSet = {
     "Present only the symbol or symbols that map to find the real word or words",
     "Show the answer as concisely as possible",
     "Do not ask any questions",
+    "The answer must be a strict match with case and character sensitively",
     //"- Think for as long as needed and only reply when confident.\n"
     "Think carefully and respond only when confident",
   ],
