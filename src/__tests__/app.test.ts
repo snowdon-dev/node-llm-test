@@ -144,7 +144,7 @@ describe("print", () => {
         identLocationOrder: 0,
         identLocationType: 0,
         puzzleType: false,
-      }
+      },
     );
 
     expect(output).toHaveBeenCalled();

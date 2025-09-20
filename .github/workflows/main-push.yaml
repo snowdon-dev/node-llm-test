@@ -32,14 +32,17 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
       - name: Install dependencies
         run: npm ci
 
+      - name: Pre test checks
+        run: npm run pretty:check
+
       - name: Run Jest tests
         run: npm run prod:test
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
 
       - run: mkdir -p coverage/site/badges/
       - run: npx coverage-badges --output coverage/site/badges/badges.svg

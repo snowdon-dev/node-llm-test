@@ -214,19 +214,30 @@ export class PuzzleBuilder {
     const tokenMap: Record<string, string> = {};
     const realMap: Record<string, string> = {};
 
-    const useMultI = this.hasFeature(Feature.MULTIZE_I_TOKENS);
-    const useSecond = this.hasFeature(Feature.MULTIZE_TOKENS);
+    const useMultiInput = this.hasFeature(Feature.MULTIZE_I_TOKENS);
+    const useMultiTokens = this.hasFeature(Feature.MULTIZE_TOKENS);
 
-    type TokenType = [string] | [string, string];
+    const otherWordLists = [inputDeduped, this.pangramsWordsList].filter(
+      (v) => v !== void 0,
+    );
+    const totalWordBuckets = [...otherWordLists, this.words];
+
+    const totalBucketLength = totalWordBuckets.reduce(
+      (sum, arr) => sum + arr.length,
+      0,
+    );
+
+    type SymbolType = [string] | [string, string];
+
     const readWords = (idx: number, array: string[]) => {
       const multiWordRoll =
-        useMultI && this.rand(1) > 0
+        useMultiInput && this.rand(1) > 0
           ? // can't read a word thats at set end
             idx !== array.length - 1
           : false;
 
       const word = array[idx];
-      let words: TokenType;
+      let words: SymbolType;
 
       if (multiWordRoll) {
         // sometimes takes two words
@@ -242,8 +253,8 @@ export class PuzzleBuilder {
     const readTokens = (idx: number, array: string[], sliding: string[]) => {
       const elm = array[idx];
 
-      let token: TokenType;
-      if (useSecond && this.rand(1) > 0) {
+      let token: SymbolType;
+      if (useMultiTokens && this.rand(1) > 0) {
         token = [elm, sliding.pop()];
       } else {
         token = [elm];
@@ -253,19 +264,9 @@ export class PuzzleBuilder {
 
     const totalWordsSliding: string[] = [];
 
-    const totalWordBuckets = [
-      inputDeduped,
-      this.pangramsWordsList,
-      this.words,
-    ].filter((a) => a !== undefined);
-    const totalBucketLength = totalWordBuckets.reduce(
-      (sum, arr) => sum + arr.length,
-      0,
-    );
-
-    const addMissingWord = (words: [string, string]) => {
-      const useMulti = useSecond && this.rand(1) > 0;
-      let tmp: TokenType;
+    const addMissingWords = (words: SymbolType) => {
+      const useMulti = useMultiTokens && this.rand(1) > 0;
+      let tmp: SymbolType;
       if (useMulti) {
         const [idx, bucket] = pickRandomBucket(
           totalWordBuckets,
@@ -273,7 +274,7 @@ export class PuzzleBuilder {
           this.rand,
         );
         let nextWord = bucket[idx];
-        if (nextWord === words[1]) {
+        if (words[1] !== undefined && nextWord === words[1]) {
           nextWord = bucket[(idx + 1) % bucket.length];
         }
         tmp = [words[0], nextWord];
@@ -281,25 +282,19 @@ export class PuzzleBuilder {
         tmp = [words[0]];
       }
       totalWordsSliding.push(tmp.join(spacingChars));
-    }
+    };
 
     function buildWords(arr: string[]) {
       for (let i = 0; i < arr.length; i++) {
         const words = readWords(i, arr);
         i += words.length - 1;
         const wordsStr = words.join(spacingChars);
-        if (words.length > 1) {
-          addMissingWord(words as [string, string]);
-        }
+        addMissingWords(words);
         totalWordsSliding.push(wordsStr);
       }
     }
 
-    buildWords(inputDeduped);
-
-    if (this.hasFeature(Feature.EXTRA_WORDS)) {
-      buildWords(this.pangramsWordsList);
-    }
+    otherWordLists.forEach((list) => buildWords(list));
 
     const tokenStartWordIdx: number[] = [];
     const sentenceWordsStr: string[] = [];
@@ -311,9 +306,7 @@ export class PuzzleBuilder {
       const wordsStr = words.join(spacingChars);
       sentenceWordsStr.push(wordsStr);
       wordIdx += words.length;
-      if (words.length > 1) {
-        addMissingWord(words as [string, string]);
-      }
+      addMissingWords(words);
       totalWordsSliding.push(wordsStr);
     }
 
@@ -332,7 +325,7 @@ export class PuzzleBuilder {
     const tmpTotalWords = totalWordsSliding.slice();
 
     const totalTokens =
-      useSecond === useMultI
+      useMultiTokens === useMultiInput
         ? getRandomOrder(totalWordsSliding, this.rand)
         : buildTokens();
 
