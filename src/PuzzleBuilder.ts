@@ -221,10 +221,9 @@ export class PuzzleBuilder {
     const readWords = (
       idx: number,
       array: string[],
-      multiActivation: boolean,
     ) => {
       const multiWordRoll =
-        multiActivation && this.rand(1) > 0
+        useMultI && this.rand(1) > 0
           ? // can't read a word thats at set end
             idx !== array.length - 1
           : false;
@@ -258,24 +257,20 @@ export class PuzzleBuilder {
     let missingWords: [string, string][] = [];
     const totalWordsSliding: string[] = [];
 
-    const debupedTokens: Record<string, TokenType> = {};
     for (let debupedIdx = 0; debupedIdx < inputDeduped.length; debupedIdx++) {
-      const words = readWords(debupedIdx, inputDeduped, useMultI);
+      const words = readWords(debupedIdx, inputDeduped);
       debupedIdx += words.length - 1;
       const wordsStr = words.join(spacingChars);
-      debupedTokens[wordsStr] = words;
       if (words.length > 1) {
         missingWords.push(words as [string, string]);
       }
       totalWordsSliding.push(wordsStr);
     }
-    const chaosTokens: Record<string, TokenType> = {};
     if (this.hasFeature(Feature.EXTRA_WORDS)) {
       for (let i = 0; i < this.pangramsWordsList.length; i++) {
-        const words = readWords(i, this.pangramsWordsList, useMultI);
+        const words = readWords(i, this.pangramsWordsList);
         i += words.length - 1;
         const wordsStr = words.join(spacingChars);
-        chaosTokens[wordsStr] = words;
         if (words.length > 1) {
           missingWords.push(words as [string, string]);
         }
@@ -283,14 +278,14 @@ export class PuzzleBuilder {
       }
     }
     const tokenStartWordIdx: number[] = [];
-    const sentenceTokens: Record<string, TokenType> = {};
+    const sentenceWordsStr: string[] = [];
     let wordIdx = 0;
     for (let npwi = 0; npwi < this.words.length; npwi++) {
-      const words = readWords(npwi, this.words, useMultI);
+      const words = readWords(npwi, this.words);
       npwi += words.length - 1;
       tokenStartWordIdx.push(wordIdx);
       const wordsStr = words.join(spacingChars);
-      sentenceTokens[wordsStr] = words;
+      sentenceWordsStr.push(wordsStr)
       wordIdx += words.length;
       if (words.length > 1) {
         missingWords.push(words as [string, string]);
@@ -346,32 +341,24 @@ export class PuzzleBuilder {
 
     const tmpTotalWords = totalWordsSliding.slice();
 
-    const buildWordMapper = () => {
-      const totalTokens =
-        useSecond === useMultI
-          ? getRandomOrder(totalWordsSliding, this.rand)
-          : buildTokens();
-
-      return function (words: string) {
-        const tokens = totalTokens.pop();
-        tokenMap[words] = tokens;
-        realMap[tokens] = words;
-      };
-    };
-
-    const mapWords = buildWordMapper();
+    const totalTokens =
+      useSecond === useMultI
+        ? getRandomOrder(totalWordsSliding, this.rand)
+        : buildTokens();
 
     for (let i = 0; i < tmpTotalWords.length; i++) {
       const tmpWords = tmpTotalWords[i];
       if (tokenMap[tmpWords]) {
         continue;
       }
-      mapWords(tmpWords);
+      const tokens = totalTokens.pop();
+      tokenMap[tmpWords] = tokens;
+      realMap[tokens] = tmpWords;
     }
 
-    const tokenizedEntries: string[][] = Object.values(sentenceTokens).map(
-      (token) => {
-        return tokenMap[token.join(spacingChars)].split(spacingChars);
+    const tokenizedEntries: string[][] = sentenceWordsStr.map(
+      (wordsStr) => {
+        return tokenMap[wordsStr].split(spacingChars);
       },
     );
 

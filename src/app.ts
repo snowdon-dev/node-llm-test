@@ -17,8 +17,8 @@ import { Feature, hasFeature } from "./levels";
 import { PuzzleBuilder } from "./PuzzleBuilder";
 import {
   getRandomOrder,
-  kthPermutation,
   randomizeRecord,
+  randomPermutation,
   simpleRandom,
 } from "./random";
 
@@ -276,7 +276,7 @@ export function getTableMappingHeader(
 export function getInstructionsMessage(
   indirectSymbols: boolean,
   instructionWords: typeof instructionSet,
-  random: false|((num: number) => number),
+  random: false | ((num: number) => number),
 ): string {
   const instructions: string[] = [...instructionWords.all];
   if (indirectSymbols) {
@@ -392,15 +392,8 @@ export function print(
   );
 
   if (randomOrder) {
-    function fac(n: number) {
-      return n < 2 ? 1 : n * fac(n - 1);
-    }
-    const permNum = testComplex.rand(fac(parts.length) - 1);
-
-    parts = kthPermutation(
-      parts.map((_, i) => i),
-      permNum,
-    ).map((target) => parts[String(target)]);
+    parts = randomPermutation(parts.map((_, i) => i), testComplex.rand)
+      .map((target) => parts[target]);
   }
 
   if (
