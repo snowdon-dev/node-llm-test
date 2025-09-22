@@ -1,6 +1,6 @@
 {
   "name": "node-llm-test",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "description": "Generate tests to evaluate the intelligence of large language models.",
   "author": "hello@snowdon.dev",
   "files": [
