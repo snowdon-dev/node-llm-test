@@ -53,6 +53,7 @@
     "coverage-badges-cli": "^2.1.0",
     "jest": "^30.0.4",
     "prettier": "^3.6.2",
+    "tinybench": "^5.0.1",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3"
   },

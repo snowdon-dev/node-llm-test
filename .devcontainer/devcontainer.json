@@ -2,5 +2,5 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
-  "postStartCommand": "npm install && npm link"
+  "postStartCommand": "npm ci && npm install -g node-llm-test"
 }

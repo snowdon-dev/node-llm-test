@@ -232,8 +232,7 @@ export class PuzzleBuilder {
     const readWords = (idx: number, array: string[]) => {
       const multiWordRoll =
         useMultiInput && this.rand(1) > 0
-          ? // can't read a word thats at set end
-            idx !== array.length - 1
+          ? idx !== array.length - 1
           : false;
 
       const word = array[idx];
@@ -265,34 +264,44 @@ export class PuzzleBuilder {
     const totalWordsSliding: string[] = [];
 
     const addMissingWords = (words: SymbolType) => {
-      const useMulti = useMultiTokens && this.rand(1) > 0;
-      let tmp: SymbolType;
-      if (useMulti) {
-        const [idx, bucket] = pickRandomBucket(
-          totalWordBuckets,
-          totalBucketLength,
-          this.rand,
-        );
-        let nextWord = bucket[idx];
-        if (words[1] !== undefined && nextWord === words[1]) {
-          nextWord = bucket[(idx + 1) % bucket.length];
-        }
-        tmp = [words[0], nextWord];
-      } else {
-        tmp = [words[0]];
+      if (words.length === 2) {
+        return [[words[0]], [words[1]]]
       }
-      totalWordsSliding.push(tmp.join(spacingChars));
+
+      const [idx, bucket] = pickRandomBucket(
+        totalWordBuckets,
+        totalBucketLength,
+        this.rand,
+      );
+
+      let nextWord = bucket[idx];
+      //if (words[1] !== undefined && nextWord === words[1]) {
+      //  nextWord = bucket[(idx + 1) % bucket.length];
+      //}
+      // len 1
+      return [[words[0], nextWord]];
     };
+
+    const findWords = (words: SymbolType) => {
+      if (useMultiTokens && useMultiInput) {
+        const missing = addMissingWords(words);
+        // if 2 words, want two one words
+        // if 1 words, want a onw two words
+        return [words, ...missing].map((s) => s.join(spacingChars));
+      }
+      // if 00 . both sides single words - no missing words
+      // if 01 or 10 . one side has missing no missing words
+      return [words.join(spacingChars)];
+    }
 
     function buildWords(arr: string[]) {
       for (let i = 0; i < arr.length; i++) {
         const words = readWords(i, arr);
         i += words.length - 1;
-        const wordsStr = words.join(spacingChars);
-        addMissingWords(words);
-        totalWordsSliding.push(wordsStr);
+        totalWordsSliding.push(...findWords(words));
       }
     }
+
 
     otherWordLists.forEach((list) => buildWords(list));
 
@@ -303,18 +312,17 @@ export class PuzzleBuilder {
       const words = readWords(npwi, this.words);
       npwi += words.length - 1;
       tokenStartWordIdx.push(wordIdx);
-      const wordsStr = words.join(spacingChars);
-      sentenceWordsStr.push(wordsStr);
       wordIdx += words.length;
-      addMissingWords(words);
-      totalWordsSliding.push(wordsStr);
+      const wordsStrs = findWords(words);
+      totalWordsSliding.push(...wordsStrs);
+      sentenceWordsStr.push(wordsStrs[0]);
     }
 
     getRandomOrder(totalWordsSliding, this.rand);
 
     const buildTokens = () => {
       const totalInput = getRandomOrder(totalWordBuckets.flat(), this.rand);
-      let tokens = [];
+      let tokens: string[] = [];
       for (let i = 0; i < totalInput.length; i++) {
         const words = readTokens(i, totalInput, totalWordsSliding);
         tokens.push(words.join(spacingChars));
@@ -330,13 +338,13 @@ export class PuzzleBuilder {
         : buildTokens();
 
     for (let i = 0; i < tmpTotalWords.length; i++) {
-      const tmpWords = tmpTotalWords[i];
-      if (tokenMap[tmpWords]) {
+      const tmpWordsStr = tmpTotalWords[i];
+      if (tokenMap[tmpWordsStr]) {
         continue;
       }
-      const tokens = totalTokens.pop();
-      tokenMap[tmpWords] = tokens;
-      realMap[tokens] = tmpWords;
+      const tokensStr = totalTokens.pop();
+      tokenMap[tmpWordsStr] = tokensStr;
+      realMap[tokensStr] = tmpWordsStr;
     }
 
     const tokenizedEntries: string[][] = sentenceWordsStr.map((wordsStr) => {
