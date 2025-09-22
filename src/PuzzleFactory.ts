@@ -201,7 +201,7 @@ class MappingFactory {
   public prepareMappings(
     inputWords: readonly string[],
     words: readonly string[],
-    pangramsWordsList: readonly string[],
+    pangramsWordsList?: readonly string[],
   ) {
     const tokenMap: Record<string, string> = {};
     const realMap: Record<string, string> = {};
@@ -309,7 +309,8 @@ export class PuzzleFactory {
   prepare(): IPrepareResult {
     const expression = this.buildExpresion();
 
-    let pangramsWordsList: readonly string[], words: readonly string[];
+    let pangramsWordsList: string[] | undefined;
+    let words: readonly string[];
 
     const sentenceIdx = this.rand(this.pangrams.length - 1);
     const sentence = this.pangrams[sentenceIdx];
@@ -320,6 +321,7 @@ export class PuzzleFactory {
       pangramsWordsList = pangramsWords.flat();
       words = tmpPangrams[sentenceIdx];
     } else {
+      pangramsWordsList = undefined;
       words = this.pangrams[sentenceIdx].split(/\s/);
     }
 

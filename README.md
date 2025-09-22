@@ -14,13 +14,13 @@ presents an easy logical puzzle, with a domain and steps that are native and
 natural to a computer agent. The puzzle may involve few or many steps and may
 permit the usage of simple tool calls. The solution requires reasoning rather
 than computation, and the design eliminates reliance on memorization to ensure
-that the test cannot be solved by prior training. Please let me know if you
-encounter any issues.
+that the test cannot be solved by prior training.
 
 - See the web app at: <https://marketeer.snowdon.dev/tools/llmtest-online/>.
 - Don't want to keep running tests. Sign up to the periodic newsletter
   containing results from the leading agents. And stay informed without spinning
   up infra. Just email: <llmtest@snowdon.dev>.
+- Issue reports welcome. Just let me know.
 
 Commercial use of this code package requires permission—please contact me at
 <hello@snowdon.dev> if you intend to use it for such purposes. The web app,
@@ -28,7 +28,6 @@ however, is freely available at your convenience. To learn more from the Oxford
 AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
 
 <!--toc:start-->
-
 - [node-llm-test](#node-llm-test)
   - [The puzzle](#the-puzzle)
   - [Implementation notes](#implementation-notes)
@@ -38,8 +37,12 @@ AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
     - [Installation](#installation)
     - [Programmatic Usage](#programmatic-usage)
     - [CLI Reference](#cli-reference)
-  - [Test Levels. Worked example](#test-levels-worked-example) - [Reference](#reference) - [Extra notes & usage tips](#extra-notes-usage-tips) - [Level 0](#level-0) - [Level 14](#level-14)
-  <!--toc:end-->
+  - [Test Levels. Worked example](#test-levels-worked-example)
+    - [Reference](#reference)
+    - [Extra notes & usage tips](#extra-notes-usage-tips)
+    - [Level 0](#level-0)
+    - [Level 14](#level-14)
+<!--toc:end-->
 
 ## The puzzle
 
@@ -73,7 +76,7 @@ design the input to the puzzle carefully. Testing the result of a novel
 solution with a generalized deterministic oracle is inherently difficult—it is
 magic, or it may require an LLM prone to false positives and negatives. To
 maintain linear-time deterministic test assertions for novel solutions,
-precompute all possible outcomes based on the input words. Alternatively,
+pre-compute all possible outcomes based on the input words. Alternatively,
 possible novel solution can be manually verified by humans, or simply
 considered incorrect. Importantly, providing a novel solution does not
 necessarily mean providing the correct solution—it may not correspond to the
@@ -125,7 +128,7 @@ attention**. Providing feedback such as _“no”_ or _“that answer is incorre
 can destabilize the model’s reasoning process. In such cases, the system may be
 led to reinterpret a correct response as incorrect, a phenomenon sometimes
 described as _gaslighting the model_. Public demonstrations of this effect,
-often titled along the lines of \*“Gaslighting GPT-5 into believing 2+2=5”,
+often titled along the lines of _“Gaslighting GPT-5 into believing 2+2=5”_,
 illustrate how easily a model can be misled by poor feedback. The implication
 is significant: in many instances, evaluators must supply the correct answer
 explicitly in order to reliably guide the model toward producing the correct
