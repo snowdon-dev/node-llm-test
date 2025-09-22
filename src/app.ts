@@ -2,6 +2,7 @@ import {
   blankWordToken,
   instructionSet,
   isFirstCharCapital,
+  pangramsDefault,
   rotN,
 } from "./characters";
 import {
@@ -14,7 +15,7 @@ import {
 } from "./interface";
 import { IPrepareResult } from "./interface";
 import { Feature, hasFeature } from "./levels";
-import { PuzzleBuilder } from "./PuzzleBuilder";
+import { PuzzleFactory } from "./PuzzleFactory";
 import { getRandomOrder, randomizeRecord, simpleRandom } from "./random";
 
 interface IAnswerContext {
@@ -37,12 +38,12 @@ export class Puzzle implements ILLMTest {
    * @param level The hardness of the game
    */
   static New = (
-    inputWords: undefined | string[],
-    seed: undefined | number,
-    pangrams: undefined | string[],
-    level: undefined | number,
+    inputWords: readonly string[] = [],
+    seed: number | undefined = 12345,
+    pangrams: readonly string[] | undefined = pangramsDefault,
+    level: number = 0,
   ) => {
-    const builder = new PuzzleBuilder(level, inputWords, pangrams, seed);
+    const builder = PuzzleFactory.New(level, inputWords, pangrams, seed);
     return new Puzzle(builder.prepare(), builder.level);
   };
 

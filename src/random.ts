@@ -36,10 +36,10 @@ export function getRandomOrder<T extends unknown[]>(
 }
 
 export function pickRandomBucket<T>(
-  arrays: T[][],
+  arrays: (readonly T[])[],
   totalLength: number,
   rand: (num: number) => number,
-): [number, T[]] {
+): [number, readonly T[]] {
   let randIndex = rand(totalLength - 1);
   for (const arr of arrays) {
     if (randIndex < arr.length) {

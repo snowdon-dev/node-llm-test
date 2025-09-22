@@ -7,23 +7,24 @@ import {
   getSymbolisedSentenceOutput,
   answer,
 } from "../app";
-import { createSymbolExpression } from "../PuzzleBuilder";
-import { PuzzleBuilder } from "../PuzzleBuilder";
+import { createSymbolExpression } from "../PuzzleFactory";
+import { PuzzleFactory } from "../PuzzleFactory";
 import { ExpressionPart } from "../interface";
 import { IPrepareResult } from "../interface";
 import { levelMax } from "../levels";
-import { instructionSet } from "../characters";
+import { instructionSet, pangramsDefault } from "../characters";
+import { simpleRandom } from "../random";
 
 describe("prepare", () => {
   const prepareArgs = [];
 
   function prepare(
     inputWords?: string[],
-    seed?: number,
-    pangrams?: string[],
-    level?: number,
+    seed: number = 1,
+    pangrams: readonly string[] = pangramsDefault,
+    level: number = 0,
   ) {
-    const builder = new PuzzleBuilder(level, inputWords, pangrams, seed);
+    const builder = PuzzleFactory.New(level, inputWords, pangrams, seed);
     return builder.prepare();
   }
 
@@ -144,6 +145,7 @@ describe("print", () => {
         identLocationOrder: 0,
         identLocationType: 0,
         puzzleType: false,
+        rand: simpleRandom,
       },
     );
 

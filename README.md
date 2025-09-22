@@ -19,8 +19,8 @@ encounter any issues.
 
 - See the web app at: <https://marketeer.snowdon.dev/tools/llmtest-online/>.
 - Don't want to keep running tests. Sign up to the periodic newsletter
-containing results from the leading agents. And stay informed without spinning
-up infra. Just email: <llmtest@snowdon.dev>.
+  containing results from the leading agents. And stay informed without spinning
+  up infra. Just email: <llmtest@snowdon.dev>.
 
 Commercial use of this code package requires permission—please contact me at
 <hello@snowdon.dev> if you intend to use it for such purposes. The web app,
@@ -28,6 +28,7 @@ however, is freely available at your convenience. To learn more from the Oxford
 AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
 
 <!--toc:start-->
+
 - [node-llm-test](#node-llm-test)
   - [The puzzle](#the-puzzle)
   - [Implementation notes](#implementation-notes)
@@ -37,12 +38,8 @@ AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
     - [Installation](#installation)
     - [Programmatic Usage](#programmatic-usage)
     - [CLI Reference](#cli-reference)
-  - [Test Levels. Worked example](#test-levels-worked-example)
-    - [Reference](#reference)
-    - [Extra notes & usage tips](#extra-notes-usage-tips)
-    - [Level 0](#level-0)
-    - [Level 14](#level-14)
-<!--toc:end-->
+  - [Test Levels. Worked example](#test-levels-worked-example) - [Reference](#reference) - [Extra notes & usage tips](#extra-notes-usage-tips) - [Level 0](#level-0) - [Level 14](#level-14)
+  <!--toc:end-->
 
 ## The puzzle
 
@@ -124,11 +121,11 @@ constraints of a schema, the response would be functionally equivalent and thus
 acceptable. However, in the context of code generation and precise logical
 tasks, this constitutes a failure to adhere to the given instructions. This
 issue also illustrates a broader issue related to **negative feedback
-attention**. Providing feedback such as *“no”* or *“that answer is incorrect”*
+attention**. Providing feedback such as _“no”_ or _“that answer is incorrect”_
 can destabilize the model’s reasoning process. In such cases, the system may be
 led to reinterpret a correct response as incorrect, a phenomenon sometimes
-described as *gaslighting the model*. Public demonstrations of this effect,
-often titled along the lines of *“Gaslighting GPT-5 into believing 2+2=5”,
+described as _gaslighting the model_. Public demonstrations of this effect,
+often titled along the lines of \*“Gaslighting GPT-5 into believing 2+2=5”,
 illustrate how easily a model can be misled by poor feedback. The implication
 is significant: in many instances, evaluators must supply the correct answer
 explicitly in order to reliably guide the model toward producing the correct
@@ -136,9 +133,9 @@ response in future interactions.
 
 ## Implementation notes
 
-> While the software is in development (v0.*), when incrementing a minor version
-I may intentionally break the interface to aid the development. If you would
-like an LTS or stable release, please get in contact.
+> While the software is in development (v0.\*), when incrementing a minor version
+> I may intentionally break the interface to aid the development. If you would
+> like an LTS or stable release, please get in contact.
 
 It’s worth noting that many of the mechanics operate on a 50% chance of
 activation. This means that even at the highest level, there is a real
@@ -187,8 +184,8 @@ proves it. This was prior to Chat GPT 5.
 ### Quick CLI usage
 
 - [Create a
-Codespace](https://docs.github.com/en/codespaces/developing-in-a-codespace/opening-an-existing-codespace)
-on this repository.
+  Codespace](https://docs.github.com/en/codespaces/developing-in-a-codespace/opening-an-existing-codespace)
+  on this repository.
 - Then simply, run the command `llmtest` in the terminal.
 
 ### Installation
@@ -216,7 +213,7 @@ const puzzle = Puzzle.New(
 puzzle.print(console.log);
 ```
 
-### CLI Reference 
+### CLI Reference
 
 To run the CLI:
 
@@ -235,23 +232,24 @@ Or run in interactive mode:
 `npx llmtest --interactive`
 
 Generate sequence of results in bash:
+
 ```bash
 seq -f "%.0f" 1000000 1000010 \
   |  xargs -n1 -P20 -I{} llmtest --write "test-{}.txt" --seed {} --no-answer > /dev/null 2>&1
 ```
 
-| Argument                     | Description                                        |
-| ---------------------------- | -------------------------------------------------- |
-| `--number <number>`          | The number of words in the wordlist (default: 0) |
-| `--write [filepath]`         | Write to a temporary file or the target path       |
-| `--level <integer>`          | Features enabled (0=none, 8191=all, default: 0)     |
-| `--seed <integer>`           | A seed to preserve reproducibility                 |
-| `--no-print`                 | Do not print the output for the LLM                |
-| `-i, --interactive`          | Run in interactive mode                            |
-| `--wordlist-file <filepath>` | Load wordlist from a file                          |
-| `--answer <string>`          | Provide answer via arguments, implies --no-answer  |
-| `--no-answer`                | Do not wait for an answer on stdin                 |
-| `--verbose`                  | Print more debug information                       |
+| Argument                     | Description                                       |
+| ---------------------------- | ------------------------------------------------- |
+| `--number <number>`          | The number of words in the wordlist (default: 0)  |
+| `--write [filepath]`         | Write to a temporary file or the target path      |
+| `--level <integer>`          | Features enabled (0=none, 8191=all, default: 0)   |
+| `--seed <integer>`           | A seed to preserve reproducibility                |
+| `--no-print`                 | Do not print the output for the LLM               |
+| `-i, --interactive`          | Run in interactive mode                           |
+| `--wordlist-file <filepath>` | Load wordlist from a file                         |
+| `--answer <string>`          | Provide answer via arguments, implies --no-answer |
+| `--no-answer`                | Do not wait for an answer on stdin                |
+| `--verbose`                  | Print more debug information                      |
 
 ---
 
@@ -265,23 +263,21 @@ version.
 
 ### Reference
 
-| Flag name (source)             | Value (decimal / binary) | What it does (plain English)                                                                      | Example behavior                                                                                               | Difficulty |
-| :----------------------------- | -----------------------: | :------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------- | -- |
-| `CHAOS_WORDS`                  |              `1` / `0b1` | Increases output word count (roughly `words_in_domain * 2`) to make text longer/more chaotic.     | If domain has 50 words, output may include ~50 extra words scattered through the text.                        | Easy |
-| `MULTIZE_TOKENS`               |             `2` / `0b10` | Duplicates tokens used to increase token density/length.                                 | A token like `cat` might become `cat cat`.                                           | Medium |
-| `EXCLUDE_MAPPING_INFO`          |            `4` / `0b100` | Omits mapping/metadata information (e.g., token→map direction) from output.                      | Instead of returning the details in text, the response omits the info.| Easy |
-| `MULTIZE_I_TOKENS`             |           `8` / `0b1000` | Similar to `MULTIZE_TOKENS` but targets `input words`.           | `quick` becomes `quick brown` | Medium |
-| `PARTIAL_REASINING`            |         `16` / `0b10000` | Missing words may be partial instead of full | 'full word' becomes '[..] word'| Medium |
-| `INDIRECT_SYMBOLS`             |        `32` / `0b100000` | Transforms tokens via a symbol function (e.g., ROT13 or other symbolisation) to obfuscate tokens. | Words may be ROT13-encoded or replaced with binary equivalents.                                  | Medium |
-| `EXCLUDE_SENTENCE_SPACES`      |       `64` / `0b1000000` | Removes spaces between words.                        | `"one two"` → `"onetwo"`  | Hard |
-| `INSTRUCTION_ORDER`            |     `128` / `0b10000000` | Randomly alters the order of instructions before printing.              | Instruction list may be reordered, affecting how instructions are interpreted/executed.                        | Easy |
-| `OUTPUT_SHIFT`                 |    `256` / `0b100000000` | Applies a character/token shift (e.g., Caesar-like) to the output; decoding is required.      | Plain text is shifted by N characters; consumer must reverse the shift to read original text.                  | Medium |
-| `OUTPUT_SHIFT_EXLCUDE_DETAILS` |   `512` / `0b1000000000` | With `OUTPUT_SHIFT`, additionally excludes metadata about the shift (magnitude/direction).        | Output is shifted and no shift metadata is returned; decoder must infer shift by analysis.                     | Hard |
-| `MAPPING_INFO_PUZZLE` | `1024`/`0b10000000000` | The expression order is changed based on a maths puzzle. |  | Medium |
-| `POOR_CODING_PRACTICES` | `2048`/`0b100000000000` | Emulates poor coding standards | For example, alternates more deliminators. '' becomes "" etc | Easy |
-| `EXTRA_WORDS` | `4096`/`0b1000000000000` | Adds extra words from a pre defined list designed to complement the default | Adds words like "glib" which can be used to form novel solutions | Medium |
-
-
+| Flag name (source)             | Value (decimal / binary) | What it does (plain English)                                                                      | Example behavior                                                                              | Difficulty |
+| :----------------------------- | -----------------------: | :------------------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------------------- | ---------- |
+| `CHAOS_WORDS`                  |              `1` / `0b1` | Increases output word count (roughly `words_in_domain * 2`) to make text longer/more chaotic.     | If domain has 50 words, output may include ~50 extra words scattered through the text.        | Easy       |
+| `MULTIZE_TOKENS`               |             `2` / `0b10` | Duplicates tokens used to increase token density/length.                                          | A token like `cat` might become `cat cat`.                                                    | Medium     |
+| `EXCLUDE_MAPPING_INFO`         |            `4` / `0b100` | Omits mapping/metadata information (e.g., token→map direction) from output.                       | Instead of returning the details in text, the response omits the info.                        | Easy       |
+| `MULTIZE_I_TOKENS`             |           `8` / `0b1000` | Similar to `MULTIZE_TOKENS` but targets `input words`.                                            | `quick` becomes `quick brown`                                                                 | Medium     |
+| `PARTIAL_REASINING`            |         `16` / `0b10000` | Missing words may be partial instead of full                                                      | 'full word' becomes '[..] word'                                                               | Medium     |
+| `INDIRECT_SYMBOLS`             |        `32` / `0b100000` | Transforms tokens via a symbol function (e.g., ROT13 or other symbolisation) to obfuscate tokens. | Words may be ROT13-encoded or replaced with binary equivalents.                               | Medium     |
+| `EXCLUDE_SENTENCE_SPACES`      |       `64` / `0b1000000` | Removes spaces between words.                                                                     | `"one two"` → `"onetwo"`                                                                      | Hard       |
+| `INSTRUCTION_ORDER`            |     `128` / `0b10000000` | Randomly alters the order of instructions before printing.                                        | Instruction list may be reordered, affecting how instructions are interpreted/executed.       | Easy       |
+| `OUTPUT_SHIFT`                 |    `256` / `0b100000000` | Applies a character/token shift (e.g., Caesar-like) to the output; decoding is required.          | Plain text is shifted by N characters; consumer must reverse the shift to read original text. | Medium     |
+| `OUTPUT_SHIFT_EXLCUDE_DETAILS` |   `512` / `0b1000000000` | With `OUTPUT_SHIFT`, additionally excludes metadata about the shift (magnitude/direction).        | Output is shifted and no shift metadata is returned; decoder must infer shift by analysis.    | Hard       |
+| `MAPPING_INFO_PUZZLE`          |   `1024`/`0b10000000000` | The expression order is changed based on a maths puzzle.                                          |                                                                                               | Medium     |
+| `POOR_CODING_PRACTICES`        |  `2048`/`0b100000000000` | Emulates poor coding standards                                                                    | For example, alternates more deliminators. '' becomes "" etc                                  | Easy       |
+| `EXTRA_WORDS`                  | `4096`/`0b1000000000000` | Adds extra words from a pre defined list designed to complement the default                       | Adds words like "glib" which can be used to form novel solutions                              | Medium     |
 
 ### Extra notes & usage tips
 
@@ -357,17 +353,27 @@ task and introduces a minimal layer of logical deduction.
 ```console
 npx llmtest -- --level 14 --seed 12345
 
-You have been given a character sequence that contains a missing part and has been encoded into a symbolised form.
-The '>' operator defines a mapping between two character sequences enclosed in quotes.
+You have been given a sequence of encoded symbols that contains a missing part.
+The '=>' operator defines a mapping between two character sequences enclosed in quotes.
 Each mapping entry in the table is separated by a newline character.
 The marketeer dot snowdon dot dev llmtest online.
 
-'quick' 'vex' >
-'waltz' 'quick' >
-'waltz nymph' 'waltz' >
-'Big waltz' 'Big waltz' >
-'vex' 'waltz nymph' >
-'Big fjords' 'Big fjords' >
+=> 'keep' 'Just keep'
+=> 'for zinc' 'bid quoted'
+=> 'etchings etchings' 'low'
+=> 'Just' 'every'
+=> 'zinc' 'examining Just'
+=> 'bid quoted' 'bid'
+=> 'for' 'examining'
+=> 'Just keep' 'etchings etchings'
+=> 'low' 'zinc'
+=> 'etchings' 'Just'
+=> 'quoted' 'for'
+=> 'bid' 'etchings'
+=> 'every low' 'keep'
+=> 'every' 'quoted'
+=> 'examining' 'for zinc'
+=> 'examining Just' 'every low'
 
 Take into account the given symbolised sequence of words and other contextual information.
 Complete the following tasks:
@@ -375,8 +381,16 @@ Complete the following tasks:
 - Present only the symbol or symbols that map to find the real word or words
 - Show the answer as concisely as possible
 - Do not ask any questions
+- The answer must be a strict match with case and character sensitively
 - Think carefully and respond only when confident
 
 Symbolised sentence with a missing part or parts:
-Big fjords waltz nymph vex [...]
+keep for examining Just for zinc examining [...]
+
+---- do not copy the following into the LLM
+
+The correct answer is:
+keep for examining Just for zinc examining bid
+The real sentence is:
+Just keep examining every low bid quoted for zinc etchings
 ```
