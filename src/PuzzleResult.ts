@@ -63,9 +63,14 @@ class OtherWordsFactory {
     if (this.options.extraWords && pangramsWordsList) {
       for (let i = 0; i < pangramsWordsList.length; i++) {
         const v = pangramsWordsList[i];
-        const word = reverseFirstLetter(v);
-        if (!excludeWordsSet.has(word)) {
-          otherWords.add(word);
+        if (!excludeWordsSet.has(v)) {
+          otherWords.add(v);
+        }
+        if (this.options.chaosWords) {
+          const word = reverseFirstLetter(v);
+          if (!excludeWordsSet.has(word)) {
+            otherWords.add(word);
+          }
         }
       }
       for (let elm of chaosWords) {
@@ -73,9 +78,11 @@ class OtherWordsFactory {
         if (!excludeWordsSet.has(lower)) {
           otherWords.add(lower);
         }
-        const upper = capitalizeFirstLetter(lower);
-        if (!excludeWordsSet.has(upper)) {
-          otherWords.add(upper);
+        if (this.options.chaosWords) {
+          const upper = capitalizeFirstLetter(lower);
+          if (!excludeWordsSet.has(upper)) {
+            otherWords.add(upper);
+          }
         }
       }
     }
@@ -275,8 +282,8 @@ export function makePuzzleService(
   const rand = (len: number) => Math.floor(randH() * (len + 1));
 
   const otherWordsFact = new OtherWordsFactory({
-    extraWords: hasFeature(level, Feature.CHAOS_WORDS),
-    chaosWords: hasFeature(level, Feature.EXTRA_WORDS),
+    extraWords: hasFeature(level, Feature.EXTRA_WORDS),
+    chaosWords: hasFeature(level, Feature.CHAOS_WORDS),
   });
 
   const symbolFact = new SymbolFactory(rand, {
