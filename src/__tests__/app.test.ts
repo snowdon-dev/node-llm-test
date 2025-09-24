@@ -7,8 +7,7 @@ import {
   getSymbolisedSentenceOutput,
   answer,
 } from "../app";
-import { createSymbolExpression } from "../PuzzleFactory";
-import { PuzzleFactory } from "../PuzzleFactory";
+import { createSymbolExpression, makePuzzleService } from "../PuzzleResult";
 import { ExpressionPart } from "../interface";
 import { IPrepareResult } from "../interface";
 import { levelMax } from "../levels";
@@ -24,7 +23,7 @@ describe("prepare", () => {
     pangrams: readonly string[] = pangramsDefault,
     level: number = 0,
   ) {
-    const builder = PuzzleFactory.New(level, inputWords, pangrams, seed);
+    const builder = makePuzzleService(level, inputWords ?? [], pangrams, seed);
     return builder.prepare();
   }
 

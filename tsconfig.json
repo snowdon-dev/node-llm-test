@@ -6,7 +6,8 @@
       "node",
       "jest"
     ],
-    "isolatedModules": true
+    "isolatedModules": true,
+    "strictNullChecks": true,
   },
   "include": [
     "src/**/*.ts"

@@ -15,7 +15,7 @@ import {
 } from "./interface";
 import { IPrepareResult } from "./interface";
 import { Feature, hasFeature } from "./levels";
-import { PuzzleFactory } from "./PuzzleFactory";
+import { makePuzzleService } from "./PuzzleResult";
 import { getRandomOrder, randomizeRecord, simpleRandom } from "./random";
 
 interface IAnswerContext {
@@ -43,8 +43,8 @@ export class Puzzle implements ILLMTest {
     pangrams: readonly string[] | undefined = pangramsDefault,
     level: number = 0,
   ) => {
-    const builder = PuzzleFactory.New(level, inputWords, pangrams, seed);
-    return new Puzzle(builder.prepare(), builder.level);
+    const service = makePuzzleService(level, inputWords, pangrams, seed);
+    return new Puzzle(service.prepare(), service.level);
   };
 
   private constructor(
@@ -234,7 +234,8 @@ export function getInitialDescription(
 
   let mappingDelm = `${instructionWords.mappingDetails.start} '${symbol}' ${instructionWords.mappingDetails.ending}`;
 
-  let mappingDetails = `${instructionWords.mappingDetails.excludeStart} ${order[0]} ${instructionWords.mappingDetails.excludeEnd}`;
+  let mappingDetails: string | null =
+    `${instructionWords.mappingDetails.excludeStart} ${order[0]} ${instructionWords.mappingDetails.excludeEnd}`;
 
   if (isMappingPuzzle) {
     const puzzleIdent =

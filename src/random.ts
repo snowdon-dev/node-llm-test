@@ -36,7 +36,7 @@ export function getRandomOrder<T extends unknown[]>(
 }
 
 export function pickRandomBucket<T>(
-  arrays: (readonly T[])[],
+  arrays: readonly (readonly T[])[],
   totalLength: number,
   rand: (num: number) => number,
 ): [number, readonly T[]] {

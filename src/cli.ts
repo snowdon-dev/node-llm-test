@@ -209,7 +209,7 @@ async function run() {
         englishWords = getRandomSelection(
           fileContent.split(/\s+/).filter(Boolean),
           number,
-          seed,
+          seedToUse,
         );
       }
 
@@ -241,10 +241,14 @@ async function run() {
       process.exit(1);
     });
     writerFn = function (...outs: string[]) {
+      const lws = writeStream;
+      if (lws === null) {
+        throw new Error("Unexpected failure");
+      }
       outs.forEach((line) => {
-        writeStream.write(line);
+        lws.write(line);
       });
-      writeStream.write("\n");
+      lws.write("\n");
     };
   }
 
@@ -298,7 +302,7 @@ async function run() {
     return checkAnswerSync(puzzle, answer);
   }
 
-  let rl = createInterface({
+  let rl: Interface | null = createInterface({
     input: process.stdin,
     output: process.stdout,
   });
