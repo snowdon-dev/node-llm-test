@@ -60,19 +60,7 @@ class OtherWordsFactory {
         }
       }
     }
-    if (this.options.extraWords && pangramsWordsList) {
-      for (let i = 0; i < pangramsWordsList.length; i++) {
-        const v = pangramsWordsList[i];
-        if (!excludeWordsSet.has(v)) {
-          otherWords.add(v);
-        }
-        if (this.options.chaosWords) {
-          const word = reverseFirstLetter(v);
-          if (!excludeWordsSet.has(word)) {
-            otherWords.add(word);
-          }
-        }
-      }
+    if (this.options.extraWords) {
       for (let elm of chaosWords) {
         const lower = elm.toLowerCase();
         if (!excludeWordsSet.has(lower)) {
@@ -83,6 +71,15 @@ class OtherWordsFactory {
           if (!excludeWordsSet.has(upper)) {
             otherWords.add(upper);
           }
+        }
+      }
+    }
+
+    if (this.options.chaosWords && pangramsWordsList) {
+      for (let i = 0; i < pangramsWordsList.length; i++) {
+        const word = reverseFirstLetter(pangramsWordsList[i]);
+        if (!excludeWordsSet.has(word)) {
+          otherWords.add(word);
         }
       }
     }
@@ -114,10 +111,7 @@ class SymbolFactory {
       return getRandomOrder(totalSymbols.slice(), this.rand);
     }
 
-    const totalWords = getRandomOrder(
-      totalWordBuckets.flat(),
-      this.rand,
-    );
+    const totalWords = getRandomOrder(totalWordBuckets.flat(), this.rand);
     let tokens: string[] = [];
     for (let i = 0; i < totalWords.length; i++) {
       let symbols: SymbolType;
@@ -169,20 +163,13 @@ class SymbolFactory {
     return multiWordRoll ? [array[idx], array[idx + 1]] : [array[idx]];
   }
 
-  private pickMissingSymbol(
-    words: SymbolType,
-    totalWordsBuckets: BucketType,
-  ) {
+  private pickMissingSymbol(words: SymbolType, totalWordsBuckets: BucketType) {
     if (words.length === 2) {
       return [[words[0]], [words[1]]];
     }
 
     const len = totalWordsBuckets.reduce((sum, arr) => sum + arr.length, 0);
-    const [idx, bucket] = pickRandomBucket(
-      totalWordsBuckets,
-      len,
-      this.rand,
-    );
+    const [idx, bucket] = pickRandomBucket(totalWordsBuckets, len, this.rand);
 
     return [[words[0], bucket[idx]]];
   }
