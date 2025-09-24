@@ -325,6 +325,7 @@ export class PuzzleService {
 
     const tokenizedSequenceWords: string[][] = tokenizedEntries;
 
+    // TODO: tune position to min(panagrams) length?
     const tokenRefRemoveIdx = this.rand(tokenizedSequenceWords.length - 1);
 
     const correctAnswer =
@@ -443,7 +444,6 @@ export class PuzzleService {
   }
 
   private prepareActivePangram(pangrams: readonly string[]) {
-    // TODO: tune position to min(panagrams) length?
     const sentenceIdx = this.rand(pangrams.length - 1);
 
     let pangramsWordsList: readonly string[] | undefined;
