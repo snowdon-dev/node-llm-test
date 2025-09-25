@@ -517,10 +517,13 @@ export class PuzzleService {
     let words: readonly string[];
 
     let tmpPangrams: readonly string[][];
-    if (pangrams === pangramsDefault && this._pangramsDefault !== undefined) {
+    const usingDefault = pangrams === pangramsDefault;
+    if (usingDefault && this._pangramsDefault === undefined) {
       tmpPangrams = this._pangramsDefault = pangramsDefault.map((p) =>
         p.split(/\s/),
       );
+    } else if (usingDefault && this._pangramsDefault !== undefined) {
+      tmpPangrams = this._pangramsDefault;
     } else {
       tmpPangrams = pangrams.map((p) => p.split(/\s/));
     }
