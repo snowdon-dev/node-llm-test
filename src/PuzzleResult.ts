@@ -1,6 +1,6 @@
 import {
   blankWordToken,
-  chaosWords,
+  extraWords,
   capitalizeFirstLetter,
   rotN,
   toBinary,
@@ -26,7 +26,7 @@ type BucketType = readonly (readonly string[])[];
 interface PuzzleContext {
   chosen: readonly string[];
   active?: readonly string[];
-  otherWords: ReadonlySet<string>;
+  otherWords: readonly string[];
   totalWordsBuckets: BucketType;
   otherWordsBuckets: BucketType;
 }
@@ -61,7 +61,7 @@ class OtherWordsFactory {
       }
     }
     if (this.options.extraWords) {
-      for (let elm of chaosWords) {
+      for (let elm of extraWords) {
         const lower = elm.toLowerCase();
         if (!excludeWordsSet.has(lower)) {
           otherWords.add(lower);
@@ -165,7 +165,12 @@ class SymbolFactory {
 
   private pickMissingSymbol(words: SymbolType, totalWordsBuckets: BucketType) {
     if (words.length === 2) {
-      return [[words[0]], [words[1]]];
+      const candidates = [[words[0]], [words[1]]];
+      if (this.rand(1) > 0) {
+        return candidates;
+      } else {
+        return candidates.splice(this.rand(1), 1);
+      }
     }
 
     const len = totalWordsBuckets.reduce((sum, arr) => sum + arr.length, 0);
@@ -207,7 +212,6 @@ class MappingFactory {
     const realMap: Record<string, string> = {};
 
     // TODO: missing words when some multiI level?
-    // TODO: missing words balance on both sides multi
     const { totalSymbols, tokenStartWordIdx, sentenceWordsSymbols } =
       this.symbolFact.buildSymbols(context);
 
@@ -300,7 +304,7 @@ export class PuzzleService {
     private readonly inputWords: readonly string[],
   ) {}
 
-  protected hasFeature(feature: Feature) {
+  private hasFeature(feature: Feature) {
     return hasFeature(this.level, feature);
   }
 
@@ -400,22 +404,18 @@ export class PuzzleService {
     return res;
   }
 
-  protected createContext() {
+  private createContext() {
     const { words, pangramsWordsList } = this.prepareActivePangram(
       this.pangrams,
     );
 
-    const otherWords = this.otherWordsFact.build(
-      this.inputWords,
-      pangramsWordsList,
-      words,
+    const otherWords = Array.from(
+      this.otherWordsFact.build(this.inputWords, pangramsWordsList, words),
     );
 
     const active = pangramsWordsList;
 
-    const otherWordsBuckets = [Array.from(otherWords), active].filter(
-      (v) => v !== void 0,
-    );
+    const otherWordsBuckets = [otherWords, active].filter((v) => v !== void 0);
 
     const totalWordsBuckets = [...otherWordsBuckets, words];
 
@@ -449,7 +449,7 @@ export class PuzzleService {
     return { words, pangramsWordsList };
   }
 
-  protected buildSymbolExpression(): SymbolExpression<SymbolTypeOptions> {
+  private buildSymbolExpression(): SymbolExpression<SymbolTypeOptions> {
     if (!this.hasFeature(Feature.INDIRECT_SYMBOLS)) {
       return createSymbolExpression({
         mapper: (w) => w,
@@ -489,7 +489,7 @@ export class PuzzleService {
     throw new Error("Should never reach here");
   }
 
-  protected buildExpresion(): IExpressionResult {
+  private buildExpresion(): IExpressionResult {
     const equalSymbol = equalSymblsSet[this.rand(equalSymblsSet.length - 1)];
     const expressionDefinition = getRandomOrder(
       [

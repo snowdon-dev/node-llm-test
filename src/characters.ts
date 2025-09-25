@@ -76,7 +76,7 @@ export const chaosWordsArr = [
   "klutz",
 ] as const;
 
-export const chaosWords = new Set(chaosWordsArr);
+export const extraWords = new Set(chaosWordsArr);
 
 export const characterDigitAlpha = [
   "zero",
