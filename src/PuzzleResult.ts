@@ -27,7 +27,8 @@ interface SymbolMapper<T extends SymbolTypeOptions>
   mapper: (w: SymbolRaw) => SymbolRaw;
 }
 
-let pangramsDefaultCache: readonly (readonly string[])[] | undefined = undefined;
+let pangramsDefaultCache: readonly (readonly string[])[] | undefined =
+  undefined;
 
 type BucketType = readonly (readonly string[])[];
 
@@ -516,7 +517,7 @@ export class PuzzleService {
     let pangramsWordsList: readonly string[] | undefined;
     let words: readonly string[];
 
-    let tmpPangrams: readonly ( readonly string[])[];
+    let tmpPangrams: readonly (readonly string[])[];
     const usingDefault = pangrams === pangramsDefault;
 
     if (!usingDefault) {
