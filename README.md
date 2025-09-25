@@ -22,24 +22,49 @@ that the test cannot be solved by prior training.
   up infra. Just email: <llmtest@snowdon.dev>.
 - Issue reports welcome. Just let me know.
 
+
+## Installation
+
+Install using any package manager with the NPM registry.
+
+```bash
+npm install node-llm-test
+```
+
+Install globally as a command.
+
+```bash
+npm install --global node-llm-test
+```
+
+
 Commercial use of this code package requires permission—please contact me at
 <hello@snowdon.dev> if you intend to use it for such purposes. The web app,
 however, is freely available at your convenience. To learn more from the Oxford
 AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
 
+## Quick CLI
+
+- [Create a
+  Codespace](https://docs.github.com/en/codespaces/developing-in-a-codespace/opening-an-existing-codespace)
+  on this repository.
+- Then simply, run the command `llmtest` in the terminal.
+
+---
+
 <!--toc:start-->
 - [node-llm-test](#node-llm-test)
+  - [Installation](#installation)
+  - [Quick CLI](#quick-cli)
   - [The puzzle](#the-puzzle)
   - [Implementation notes](#implementation-notes)
   - [Why was this created](#why-was-this-created)
   - [Usage](#usage)
-    - [Quick CLI usage](#quick-cli-usage)
-    - [Installation](#installation)
-    - [Programmatic Usage](#programmatic-usage)
     - [CLI Reference](#cli-reference)
-  - [Test Levels. Worked example](#test-levels-worked-example)
+    - [Programmatic](#programmatic)
+  - [Test Levels](#test-levels)
     - [Reference](#reference)
-    - [Extra notes & usage tips](#extra-notes-usage-tips)
+    - [Usage tips](#usage-tips)
     - [Level 0](#level-0)
     - [Level 14](#level-14)
 <!--toc:end-->
@@ -102,17 +127,17 @@ An LLM can classify the input as a Mathematica-like computable expression,
 directly yielding the result. In practice, parsers can construct an abstract
 syntax tree (AST) for the expression, and most of the semantic annotations
 required for execution are either recoverable from the structure or explicit in
-the grammar.
-The AST implicitly encodes type information: for example, no mathematical
-parser interprets the `+` operator as string concatenation, so the digits on
-either side of the infix operator are necessarily of type number. As a result,
-this kind of test can be trivially solved by a non-reasoning system, or reduced
-by a reasoning model to just three steps: identify the parameter, retrieve the
-appropriate script, and invoke it with the parameter to obtain the result. For
-small values of `𝑛` or `r`, the computation could even be precomputed and
-stored in a lookup table. Alternatively, the script itself could be cached at
-the token level, by respecting known parameters. In practice, a finite-state
-automata combined with a calculator (ACU) is sufficient to solve this test.
+the grammar. The AST implicitly encodes type information: for example, no
+mathematical parser interprets the `+` operator as string concatenation, so the
+digits on either side of the infix operator are necessarily of type number. As
+a result, this kind of test can be trivially solved by a non-reasoning system,
+or reduced by a reasoning model to just three steps: identify the parameter,
+retrieve the appropriate script, and invoke it with the parameter to obtain the
+result. For small values of `𝑛` or `r`, the computation could even be
+precomputed and stored in a lookup table. Alternatively, the script itself
+could be cached at the token level, by respecting known parameters. In
+practice, a finite-state automata combined with a calculator (ACU) is
+sufficient to solve this test.
 
 There are numerous situations in which a puzzle may reasonably be considered
 correct, depending on the evaluation framework. For instance, consider a
@@ -184,61 +209,47 @@ proves it. This was prior to Chat GPT 5.
 
 ## Usage
 
-### Quick CLI usage
-
-- [Create a
-  Codespace](https://docs.github.com/en/codespaces/developing-in-a-codespace/opening-an-existing-codespace)
-  on this repository.
-- Then simply, run the command `llmtest` in the terminal.
-
-### Installation
-
-Install using any package manager with the NPM registry.
-
-`npm install node-llm-test`
-
-### Programmatic Usage
-
-```javascript
-import { Puzzle } from "node-llm-test";
-import { getRandomWords } from "node-llm-test/randomfile";
-
-const seed = Math.floor(Math.random() * (2 ** 31 - 1));
-const wordList = await getRandomWords(600, seed);
-const puzzle = Puzzle.New(
-  [
-    /*someWordList*/
-  ],
-  seed,
-);
-//const puzzle2 = Puzzle.New();
-
-puzzle.print(console.log);
-```
-
 ### CLI Reference
 
 To run the CLI:
 
-`npx llmtest`
+```bash
+npx llmtest
+```
 
 For example:
 
-`npx llmtest --seed 12345`
+```bash
+npx llmtest --seed 12345
+```
 
-`npx llmtest --number 10 --write`
+```bash
+npx llmtest --number 10 --write
+```
 
-`npx llmtest --number 10 --write ~/Documents/test1`
+```bash
+npx llmtest --number 10 --write ~/Documents/test1
+```
 
 Or run in interactive mode:
 
-`npx llmtest --interactive`
+```bash
+npx llmtest --interactive
+```
 
 Generate sequence of results in bash:
 
 ```bash
-seq -f "%.0f" 1000000 1000010 \
-  |  xargs -n1 -P20 -I{} llmtest --write "test-{}.txt" --seed {} --no-answer > /dev/null 2>&1
+seq -f "%.0f" 1000000 1000010 | \
+  xargs \
+    -n1 \
+    -P2 \
+    -I{} \
+    llmtest \
+      --write "test-{}.txt" \
+      --seed {} \
+      --no-answer \
+    > /dev/null 2>&1
 ```
 
 | Argument                     | Description                                       |
@@ -254,9 +265,33 @@ seq -f "%.0f" 1000000 1000010 \
 | `--no-answer`                | Do not wait for an answer on stdin                |
 | `--verbose`                  | Print more debug information                      |
 
+
+### Programmatic
+
+```javascript
+import { Puzzle, Feature } from "node-llm-test";
+import { getRandomWords } from "node-llm-test/randomfile";
+
+async function run() {
+  const seed = Math.floor(Math.random() * (2 ** 31 - 1));
+  const wordList = await getRandomWords(600, seed);
+  const level = Feature.CHAOS_WORDS | Feature.EXTRA_WORDS;
+  const puzzle = Puzzle.New(
+    [
+      /*someWordList*/
+    ],
+    seed,
+    level,
+  );
+  //const puzzle2 = Puzzle.New();
+
+  puzzle.print(console.log);
+}
+```
+
 ---
 
-## Test Levels. Worked example
+## Test Levels
 
 I recommend trying the game out at a low level and word count, at least
 once. Some information is omitted here. See web app link at the top of file.
@@ -282,7 +317,7 @@ version.
 | `POOR_CODING_PRACTICES`        |  `2048`/`0b100000000000` | Emulates poor coding standards                                                                    | For example, alternates more deliminators. '' becomes "" etc                                  | Easy       |
 | `EXTRA_WORDS`                  | `4096`/`0b1000000000000` | Adds extra words from a pre defined list designed to complement the default                       | Adds words like "glib" which can be used to form novel solutions                              | Medium     |
 
-### Extra notes & usage tips
+### Usage tips
 
 - **Combining flags:** these are bit flags — combine with bitwise OR (for
   example `flags = CHAOS_WORDS | INDIRECT_SYMBOLS`), and test membership with
@@ -357,26 +392,20 @@ task and introduces a minimal layer of logical deduction.
 npx llmtest -- --level 14 --seed 12345
 
 You have been given a sequence of encoded symbols that contains a missing part.
-The '=>' operator defines a mapping between two character sequences enclosed in quotes.
+The '~' operator defines a mapping between two character sequences enclosed in quotes.
 Each mapping entry in the table is separated by a newline character.
 The marketeer dot snowdon dot dev llmtest online.
 
-=> 'keep' 'Just keep'
-=> 'for zinc' 'bid quoted'
-=> 'etchings etchings' 'low'
-=> 'Just' 'every'
-=> 'zinc' 'examining Just'
-=> 'bid quoted' 'bid'
-=> 'for' 'examining'
-=> 'Just keep' 'etchings etchings'
-=> 'low' 'zinc'
-=> 'etchings' 'Just'
-=> 'quoted' 'for'
-=> 'bid' 'etchings'
-=> 'every low' 'keep'
-=> 'every' 'quoted'
-=> 'examining' 'for zinc'
-=> 'examining Just' 'every low'
+~ 'Big vex' 'quick'
+~ 'waltz' 'quick Big'
+~ 'quick' 'Big'
+~ 'waltz nymph' 'fjords vex'
+~ 'quick Big' 'nymph'
+~ 'fjords vex' 'waltz nymph'
+~ 'nymph' 'waltz'
+~ 'Big' 'vex'
+~ 'vex' 'Big vex'
+~ 'fjords' 'fjords'
 
 Take into account the given symbolised sequence of words and other contextual information.
 Complete the following tasks:
@@ -388,12 +417,15 @@ Complete the following tasks:
 - Think carefully and respond only when confident
 
 Symbolised sentence with a missing part or parts:
-keep for examining Just for zinc examining [...]
+[...] waltz nymph Big fjords vex
+```
 
----- do not copy the following into the LLM
-
-The correct answer is:
-keep for examining Just for zinc examining bid
-The real sentence is:
-Just keep examining every low bid quoted for zinc etchings
+FYI:
+```
++-------+-------------+-------+-------------+
+| Big   | fjords vex  | quick | waltz nymph |
++-------+-------------+-------+-------------+
+| [...] | waltz nymph | Big   | fjords vex  |
+| vex   | waltz nymph | Big   | fjords vex  |
++-------+-------------+-------+-------------+
 ```

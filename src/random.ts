@@ -11,11 +11,11 @@ export function mulberry32(seed: number) {
 export const simpleRandom = (len: number) =>
   Math.floor(Math.random() * (len + 1));
 
-export function randomizeRecord(
-  record: Record<string, string>,
+export function randomizeRecord<T>(
+  record: Record<string, T>,
   rand: (len: number) => number = simpleRandom,
   stepsIn = 1,
-): Record<string, string> {
+): Record<string, T> {
   const entries = getRandomOrder(Object.entries(record), rand, stepsIn);
   return Object.fromEntries(entries);
 }

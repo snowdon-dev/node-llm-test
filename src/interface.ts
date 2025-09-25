@@ -1,29 +1,35 @@
+export interface ISymbols {
+  readonly str: string;
+  readonly els: SymbolRaw,
+}
+export type SymbolRaw = readonly [string] | readonly [string, string];
+
 export interface IPrepareResult {
   /** Map from the real to the tokenizedWords */
-  tokenMap: Readonly<Record<string, string>>;
+  tokenMap: Readonly<Record<string, ISymbols>>;
   /** Map from the tokenized words to the real words */
-  realMap: Readonly<Record<string, string>>;
+  realMap: Readonly<Record<string, ISymbols>>;
 
-  tokenizedWords: Readonly<string[][]>;
+  tokenizedWords: ISymbols[];
 
   /** Sentence as tokens (symbols) */
-  tokenizedSentence: Readonly<string>;
+  readonly tokenizedSentence: string;
 
   /** Encoding after symbol expression */
-  partialTokenizedSentence: Readonly<string>;
+  readonly partialTokenizedSentence: string;
 
   /** Token sequence chunks */
-  partialTokenizedWords: Readonly<string[][]>;
+  readonly partialTokenizedWords: SymbolRaw[];
 
-  sentence: Readonly<string>;
-  sentenceWords: Readonly<string[]>;
-  partialWords: Readonly<string[]>;
+  readonly sentence: string;
+  readonly sentenceWords: readonly string[];
+  readonly partialWords: readonly string[];
 
   /** Word sequence chunks */
-  wordsSeqs: string[][];
+  readonly wordsSeqs: ISymbols[];
 
-  correctAnswer: Readonly<string>;
-  realAnswer: Readonly<string>;
+  readonly correctAnswer: string;
+  readonly realAnswer: string;
 
   expression: Readonly<IExpressionResult>;
   symbolExpression: Readonly<SymbolExpression<SymbolTypeOptions>>;
@@ -75,7 +81,6 @@ export type SymbolTypeOptions =
 export type SymbolRotOptions = RotOptions | BinaryRotOptions;
 
 export interface SymbolExpression<T extends SymbolTypeOptions> {
-  mapper: (w: string[]) => string[];
   options: T;
 }
 

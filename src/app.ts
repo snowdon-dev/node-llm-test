@@ -9,6 +9,7 @@ import {
   ExpressionPart,
   IExpressionResult,
   ILLMTest,
+  ISymbols,
   SymbolExpression,
   SymbolRotOptions,
   SymbolTypeOptions,
@@ -19,8 +20,8 @@ import { makePuzzleService } from "./PuzzleResult";
 import { getRandomOrder, randomizeRecord, simpleRandom } from "./random";
 
 interface IAnswerContext {
-  tokenMap: Readonly<Record<string, string>>;
-  realMap: Readonly<Record<string, string>>;
+  tokenMap: Readonly<Record<string, ISymbols>>;
+  realMap: Readonly<Record<string, ISymbols>>;
 
   partialWords: Readonly<string[]>;
 
@@ -95,7 +96,7 @@ export function answer(strIn: string, context: Readonly<IAnswerContext>) {
     if (wordSequence === undefined) {
       return { exact: false, possible: false };
     }
-    if (context.tokenMap[wordSequence] === undefined) {
+    if (context.tokenMap[wordSequence.str] === undefined) {
       return { exact: false, possible: false };
     }
 
@@ -105,12 +106,12 @@ export function answer(strIn: string, context: Readonly<IAnswerContext>) {
 
     const realWord = context.sentenceWords[idx];
 
-    if (isFirstCharCapital(realWord) !== isFirstCharCapital(wordSequence)) {
+    if (isFirstCharCapital(realWord) !== isFirstCharCapital(wordSequence.str)) {
       return { exact: false, possible: false };
     }
 
     // insert into the partial sentence
-    tmpRealWords.splice(idx, 1, wordSequence);
+    tmpRealWords.splice(idx, 1, wordSequence.str);
     const charsSet = new Set(
       tmpRealWords.join("").replaceAll(" ", "").toLowerCase().split(""),
     );
@@ -303,7 +304,7 @@ export function getSymbolisedSentenceOutput(
 
 export function print(
   partialTokenizedSentence: string,
-  tokenMap: Record<string, string>,
+  tokenMap: Record<string, ISymbols>,
   expression: IExpressionResult,
   symbolExpression: SymbolExpression<SymbolTypeOptions>,
   level: number,
@@ -360,7 +361,7 @@ export function print(
       outputter(
         getMappingMessage(
           old,
-          newS,
+          newS.str,
           symbol,
           expression.expressionDefinition,
           i,
