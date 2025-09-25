@@ -27,6 +27,8 @@ interface SymbolMapper<T extends SymbolTypeOptions>
   mapper: (w: SymbolRaw) => SymbolRaw;
 }
 
+let pangramsDefaultCache: readonly (readonly string[])[] | undefined = undefined;
+
 type BucketType = readonly (readonly string[])[];
 
 interface PuzzleContext {
@@ -359,8 +361,6 @@ export function makePuzzleService(
 }
 
 export class PuzzleService {
-  private _pangramsDefault?: readonly string[][];
-
   constructor(
     private readonly randSource: RandomSource,
     private readonly mappingFact: MappingFactory,
@@ -516,16 +516,19 @@ export class PuzzleService {
     let pangramsWordsList: readonly string[] | undefined;
     let words: readonly string[];
 
-    let tmpPangrams: readonly string[][];
+    let tmpPangrams: readonly ( readonly string[])[];
     const usingDefault = pangrams === pangramsDefault;
-    if (usingDefault && this._pangramsDefault === undefined) {
-      tmpPangrams = this._pangramsDefault = pangramsDefault.map((p) =>
+
+    if (!usingDefault) {
+      tmpPangrams = pangrams.map((p) => p.split(/\s/));
+    } else if (usingDefault && pangramsDefaultCache === undefined) {
+      tmpPangrams = pangramsDefaultCache = pangramsDefault.map((p) =>
         p.split(/\s/),
       );
-    } else if (usingDefault && this._pangramsDefault !== undefined) {
-      tmpPangrams = this._pangramsDefault;
+    } else if (usingDefault && pangramsDefaultCache !== undefined) {
+      tmpPangrams = pangramsDefaultCache;
     } else {
-      tmpPangrams = pangrams.map((p) => p.split(/\s/));
+      throw new Error();
     }
 
     const minCount = Math.min(...tmpPangrams.map((v) => v.length));
