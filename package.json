@@ -38,6 +38,7 @@
   "scripts": {
     "test": "jest --workerThreads -b",
     "build": "tsc --project tsconfig.build.json",
+    "deploy": "prettier src/ --check && npm run bulid",
     "prod:test": "jest --coverage --workerThreads -b",
     "prepare": "npm run build",
     "run": "tsx --tsconfig tsconfig.build.json src/cli.ts",

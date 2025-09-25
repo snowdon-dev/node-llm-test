@@ -14,15 +14,15 @@ import { levelMax } from "../levels";
 import { instructionSet, pangramsDefault } from "../characters";
 import { simpleRandom } from "../random";
 
-
 function createISymbol(words: string): ISymbols {
   const [first, second] = words.split(" ");
   return {
     str: words,
-    els: [first, second].filter((v) => v !== void 0) as [string]|[string|string],
+    els: [first, second].filter((v) => v !== void 0) as
+      | [string]
+      | [string | string],
   };
 }
-
 
 describe("prepare", () => {
   const prepareArgs = [];

@@ -1,6 +1,6 @@
 export interface ISymbols {
   readonly str: string;
-  readonly els: SymbolRaw,
+  readonly els: SymbolRaw;
 }
 export type SymbolRaw = readonly [string] | readonly [string, string];
 
