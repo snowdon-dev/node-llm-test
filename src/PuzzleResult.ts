@@ -242,16 +242,15 @@ class SymbolFactory {
             .map((v) => new SymbolObj(v));
     }
 
-    const bucketObj = this.pickRandomBucket(
+    const [bucketIdx, bucket ]= this.pickRandomBucket(
       context.totalWordsBuckets,
       context.totallen,
     );
 
-    const bucket = bucketObj[1];
-    let idx =
-      words.els[0] === nextWord
-        ? (bucketObj[0] + 1) % bucket.length
-        : bucketObj[0];
+    const idx =
+      bucket[bucketIdx] === nextWord
+        ? (bucketIdx + 1) % bucket.length
+        : bucketIdx;
 
     return ([[words.els[0], bucket[idx]]] as SymbolRaw[]).map(
       (v: SymbolRaw) => new SymbolObj(v),
