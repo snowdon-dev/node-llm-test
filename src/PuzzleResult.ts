@@ -242,7 +242,7 @@ class SymbolFactory {
             .map((v) => new SymbolObj(v));
     }
 
-    const [bucketIdx, bucket ]= this.pickRandomBucket(
+    const [bucketIdx, bucket] = this.pickRandomBucket(
       context.totalWordsBuckets,
       context.totallen,
     );
