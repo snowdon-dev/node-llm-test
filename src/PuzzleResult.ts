@@ -653,7 +653,7 @@ const validatePangrams = (list: readonly string[]) => {
 };
 
 const validateSeed = (num?: number) => {
-  const isNum = typeof num === "number" 
+  const isNum = typeof num === "number";
   if (isNum && !(num > 0 && num <= 2 ** 31 - 1)) {
     throw new TypeError("Invalid seed number");
   } else if (!isNum && num !== undefined) {
