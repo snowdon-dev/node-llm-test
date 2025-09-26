@@ -15,6 +15,7 @@ import { getRandomSelection, getRandomWords } from "./randomfile";
 import { Puzzle } from "./app";
 import { levelMax } from "./levels";
 import { finished } from "stream/promises";
+import { module_version } from "./config";
 
 // TODO: allow writing a schemma and calling the API
 program
@@ -34,13 +35,20 @@ program
   )
   .option("-i, --interactive", "Run in interactive mode")
   .option("--wordlist-file <filepath>", "Load wordlist from a file")
-  .option("--verbose", "Print more details about the test");
+  .option("--verbose", "Print more details about the test")
+  .action(run);
+
+program
+  .command("version")
+  .description("Print the version")
+  .action(() => {
+    console.log("node-llm-test@" + module_version);
+    process.exit(0);
+  });
 
 program.parse(process.argv);
 
-const options = program.opts();
-
-async function run() {
+async function run(options: any) {
   let answers = {
     number: parseInt(options.number, 10),
     write: options.write,
@@ -291,8 +299,8 @@ async function run() {
     console.log("wordcount: " + englishWords.length);
     console.log("seed: " + seedToUse);
   }
-  console.log("The correct answer is:\n" + puzzle.result.tokenizedSentence);
-  console.log("The real sentence is:\n" + puzzle.result.sentence);
+
+  console.log(puzzle.printWork());
 
   if (noAnswer) {
     process.exit();
@@ -330,7 +338,7 @@ function getPossibleMessage(
     "The answer completes the alphabet, but was not the expected result.\n" +
     "It may be correct if it works in the original sentence,\n" +
     `The correct token was: "${puzzle.result.correctAnswer}"\n` +
-    `The correct word was: "${answer.possibleReal}"`
+    `The correct word was: "${answer.possibleReal?.str}"`
   );
 }
 
@@ -380,5 +388,3 @@ async function checkAnswer(rl: Interface, puzzle: Puzzle): Promise<boolean> {
   }
   return true;
 }
-
-run();

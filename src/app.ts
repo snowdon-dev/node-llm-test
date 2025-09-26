@@ -5,6 +5,7 @@ import {
   pangramsDefault,
   rotN,
 } from "./characters";
+import { module_version } from "./config";
 import {
   ExpressionPart,
   IExpressionResult,
@@ -30,6 +31,34 @@ interface IAnswerContext {
   sentenceWords: Readonly<string[]>;
 }
 
+function asciiTable(headers: string[], rows: string[][]) {
+  // Calculate max width for each column
+  const colWidths = headers.map((h, i) => {
+    return Math.max(h.length, ...rows.map((r) => String(r[i]).length));
+  });
+
+  // Helper to format a row
+  const formatRow = (row: string[]) =>
+    "| " +
+    row.map((cell, i) => String(cell).padEnd(colWidths[i], " ")).join(" | ") +
+    " |";
+
+  // Separator line
+  const separator =
+    "+-" + colWidths.map((w) => "-".repeat(w)).join("-+-") + "-+";
+
+  // Build table
+  let output = separator + "\n";
+  output += formatRow(headers) + "\n";
+  output += separator + "\n";
+  rows.forEach((r) => {
+    output += formatRow(r) + "\n";
+  });
+  output += separator;
+
+  return output;
+}
+
 export class Puzzle implements ILLMTest {
   /**
    * @param inputWords A list of words to be appended into a word list of the
@@ -47,6 +76,8 @@ export class Puzzle implements ILLMTest {
     const service = makePuzzleService(level, inputWords, pangrams, seed);
     return new Puzzle(service.prepare(), service.level);
   };
+
+  public static readonly VERSION = module_version;
 
   private constructor(
     public readonly result: Readonly<IPrepareResult>,
@@ -74,6 +105,15 @@ export class Puzzle implements ILLMTest {
       correctAnswer: this.result.correctAnswer,
       sentenceWords: this.result.sentenceWords,
     });
+  }
+
+  public printWork() {
+    const headers = this.result.wordsSeqs.map((s) => s.str);
+    const rows = [
+      this.result.partialTokenizedWords.map((s) => s.join(" ")),
+      this.result.tokenizedWords.map((s) => s.str),
+    ];
+    return asciiTable(headers, rows);
   }
 }
 

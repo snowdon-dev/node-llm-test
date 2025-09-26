@@ -3,6 +3,7 @@
   "version": "0.15.4",
   "description": "Generate tests to evaluate the intelligence of large language models.",
   "author": "hello@snowdon.dev",
+  "type": "commonjs",
   "files": [
     "./README.md",
     "./LICENSE",
@@ -29,7 +30,6 @@
     "url": "git+https://github.com/snowdon-dev/node-llm-test.git"
   },
   "license": "SEE LICENSE IN LICENSE",
-  "type": "commonjs",
   "bin": {
     "node-llm-test": "dist/cli.js",
     "llmtest": "dist/cli.js"
@@ -37,8 +37,8 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "jest --workerThreads -b",
-    "build": "tsc --project tsconfig.build.json",
-    "deploy": "prettier src/ --check && npm run bulid",
+    "build": "node esbuild.config.cjs && tsc --emitDeclarationOnly --project tsconfig.build.json",
+    "deploy": "prettier src/ --check && npm run build",
     "prod:test": "jest --coverage --workerThreads -b",
     "prepare": "npm run build",
     "run": "tsx --tsconfig tsconfig.build.json src/cli.ts",
@@ -61,6 +61,7 @@
   "dependencies": {
     "@types/inquirer": "^9.0.8",
     "commander": "^14.0.0",
+    "esbuild": "^0.25.10",
     "inquirer": "^9.0.0"
   }
 }

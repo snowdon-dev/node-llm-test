@@ -53,8 +53,31 @@ interface PuzzleContext {
   /** The smallest pangrams length */
   minCount: number;
 }
+type RandomType = keyof typeof RandomSource.TYPES;
 
-class RandomSource {
+export class RandomSource {
+  static readonly TYPES = {
+    small: "small",
+    none: "none",
+  } as const;
+
+  private static createHandler(
+    type: RandomType,
+  ): (seed: unknown) => () => number {
+    switch (type) {
+      case RandomSource.TYPES.small:
+        return (num: number = 0) => mulberry32(num);
+      case RandomSource.TYPES.none:
+        return (_) => Math.random;
+    }
+  }
+
+  static New(type: RandomType = RandomSource.TYPES.small, seed?: number) {
+    const randH = RandomSource.createHandler(type)(seed);
+    const rand = (len: number) => Math.floor(randH() * (len + 1));
+    return new RandomSource(rand);
+  }
+
   constructor(private readonly _rand: (num: number) => number) {}
 
   bool() {
@@ -327,16 +350,16 @@ export function makePuzzleService(
   level: number,
   inputWords: readonly string[],
   pangrams: readonly string[],
-  seed: number,
+  seed?: number,
 ) {
   validateLevel(level);
   validatePangrams(pangrams);
   validateSeed(seed);
 
-  const randH = seed !== undefined ? mulberry32(seed) : Math.random;
-  const rand = (len: number) => Math.floor(randH() * (len + 1));
-
-  const randomSource = new RandomSource(rand);
+  const randomSource = RandomSource.New(
+    seed !== undefined ? RandomSource.TYPES[0] : RandomSource.TYPES[1],
+    seed,
+  );
 
   const otherWordsFact = new OtherWordsFactory({
     extraWords: hasFeature(level, Feature.EXTRA_WORDS),
@@ -386,9 +409,10 @@ export class PuzzleService {
       tokenizedSequenceWords.length - 1,
     );
 
+    const minIndex = context.minCount - 1;
     const tokenRefRemoveIdx =
-      this.randSource.rand(2) > 0
-        ? Math.min(totalPosition, this.randSource.rand(context.minCount - 1))
+      totalPosition > minIndex && this.randSource.rand(2) > 0
+        ? this.randSource.rand(minIndex)
         : totalPosition;
 
     const correctAnswer = tokenizedSequenceWords[tokenRefRemoveIdx].str;
@@ -628,8 +652,11 @@ const validatePangrams = (list: readonly string[]) => {
   }
 };
 
-const validateSeed = (num: number) => {
-  if (!(num > 0 && num <= 2 ** 31 - 1)) {
+const validateSeed = (num?: number) => {
+  const isNum = typeof num === "number" 
+  if (isNum && !(num > 0 && num <= 2 ** 31 - 1)) {
     throw new TypeError("Invalid seed number");
+  } else if (!isNum && num !== undefined) {
+    throw new TypeError("Invalid seed prop");
   }
 };
