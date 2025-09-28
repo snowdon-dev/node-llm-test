@@ -178,7 +178,7 @@ export class SymbolFactory {
       : this.buildFlatTokens;
   }
 
-  buildTotalTokens(totalSymbols: ISymbols[], _: PuzzleContext) {
+  private buildTotalTokens(totalSymbols: ISymbols[], _: PuzzleContext) {
     return this.random.randOrder(totalSymbols);
   }
 
