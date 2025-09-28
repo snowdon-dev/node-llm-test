@@ -50,3 +50,49 @@ export function pickRandomBucket<T>(
 
   throw new Error("Should never reach here");
 }
+
+type RandomType = keyof typeof RandomSource.TYPES;
+
+export class RandomSource {
+  static readonly TYPES = {
+    small: "small",
+    none: "none",
+  } as const;
+
+  private static createHandler(
+    type: RandomType,
+  ): (seed: unknown) => () => number {
+    switch (type) {
+      case RandomSource.TYPES.small:
+        return (num: number = 0) => mulberry32(num);
+      case RandomSource.TYPES.none:
+        return (_) => Math.random;
+    }
+  }
+
+  static New(type: RandomType = RandomSource.TYPES.small, seed?: number) {
+    const randH = RandomSource.createHandler(type)(seed);
+    const rand = (len: number) => Math.floor(randH() * (len + 1));
+    return new RandomSource(rand);
+  }
+
+  static SimpleSource = (start: number = 0) => new SimpleSourceImpl(start);
+
+  constructor(public readonly rand: (num: number) => number) {}
+
+  bool() {
+    return Boolean(this.rand(1));
+  }
+
+  randOrder<T>(input: T[]) {
+    return getRandomOrder(input, this.rand);
+  }
+}
+
+class SimpleSourceImpl extends RandomSource {
+  constructor(private counter: number) {
+    super((num) => {
+      return this.counter++ % num;
+    });
+  }
+}

@@ -20,7 +20,7 @@ import {
   SymbolRaw,
 } from "./interface";
 import { hasFeature, Feature, levelMax } from "./levels";
-import { mulberry32, getRandomOrder, pickRandomBucket } from "./random";
+import { getRandomOrder, RandomSource } from "./random";
 
 interface SymbolMapper<T extends SymbolTypeOptions>
   extends SymbolExpression<T> {
@@ -30,9 +30,9 @@ interface SymbolMapper<T extends SymbolTypeOptions>
 let pangramsDefaultCache: readonly (readonly string[])[] | undefined =
   undefined;
 
-type BucketType = readonly (readonly string[])[];
+export type BucketType = readonly (readonly string[])[];
 
-interface PuzzleContext {
+export interface PuzzleContext {
   /** The chosen pangram */
   chosen: readonly string[];
 
@@ -47,51 +47,10 @@ interface PuzzleContext {
   /** The total length of all words */
   totallen: number;
 
-  /** all - words */
-  otherWordsBuckets: BucketType;
-
   /** The smallest pangrams length */
   minCount: number;
 }
-type RandomType = keyof typeof RandomSource.TYPES;
-
-export class RandomSource {
-  static readonly TYPES = {
-    small: "small",
-    none: "none",
-  } as const;
-
-  private static createHandler(
-    type: RandomType,
-  ): (seed: unknown) => () => number {
-    switch (type) {
-      case RandomSource.TYPES.small:
-        return (num: number = 0) => mulberry32(num);
-      case RandomSource.TYPES.none:
-        return (_) => Math.random;
-    }
-  }
-
-  static New(type: RandomType = RandomSource.TYPES.small, seed?: number) {
-    const randH = RandomSource.createHandler(type)(seed);
-    const rand = (len: number) => Math.floor(randH() * (len + 1));
-    return new RandomSource(rand);
-  }
-
-  constructor(private readonly _rand: (num: number) => number) {}
-
-  bool() {
-    return Boolean(this._rand(1));
-  }
-
-  rand = (num: number) => {
-    return this._rand(num);
-  };
-
-  randOrder<T>(input: T[]) {
-    return getRandomOrder(input, this._rand);
-  }
-}
+type ReadWordFn = (idx: number, array: readonly string[]) => SymbolObj;
 
 class OtherWordsFactory {
   constructor(
@@ -159,33 +118,81 @@ class OtherWordsFactory {
   }
 }
 
-class SymbolObj implements ISymbols {
+export class SymbolObj implements ISymbols {
   public readonly str: string;
   constructor(public readonly els: SymbolRaw) {
     this.str = els.join(spacingChars);
   }
 }
 
-class SymbolFactory {
+export class SymbolFactory {
+  private readonly used: Set<string>;
+  private readonly findSymbols: (
+    words: ISymbols,
+    nextWord: string,
+    context: PuzzleContext,
+  ) => ISymbols[];
+  private readonly buildTokens: (
+    totalSymbols: ISymbols[],
+    context: PuzzleContext,
+  ) => ISymbols[];
+  private readonly readWords: (
+    idx: number,
+    array: readonly string[],
+  ) => SymbolObj;
+
   constructor(
-    private readonly randSource: RandomSource,
+    private readonly random: RandomSource,
     private readonly options: Readonly<{
       multiTokens: boolean;
       multiInput: boolean;
     }>,
-  ) {}
+  ) {
+    this.used = new Set<string>();
+    this.findSymbols = this.makeFind();
+    this.buildTokens = this.makeBuildTokens();
+    this.readWords = this.buildReadWords();
+  }
 
-  public buildTokens(totalSymbols: ISymbols[], totalWordBuckets: BucketType) {
-    if (this.options.multiTokens === this.options.multiInput) {
-      return this.randSource.randOrder(totalSymbols.slice());
-    }
+  private makeFind() {
+    return this.options.multiTokens && this.options.multiInput
+      ? this.findWithSymbols
+      : this.findNull;
+  }
 
-    const totalWords = this.randSource.randOrder(totalWordBuckets.flat());
+  private findWithSymbols(
+    words: ISymbols,
+    nextWord: string,
+    context: PuzzleContext,
+  ) {
+    return [words, ...this.pickMissingSymbol(words, nextWord, context)];
+  }
+
+  private findNull(words: ISymbols, _: string, __: PuzzleContext) {
+    return [words];
+  }
+
+  private makeBuildTokens() {
+    return this.options.multiTokens === this.options.multiInput
+      ? this.buildTotalTokens
+      : this.buildFlatTokens;
+  }
+
+  buildTotalTokens(totalSymbols: ISymbols[], _: PuzzleContext) {
+    return this.random.randOrder(totalSymbols);
+  }
+
+  private buildFlatTokens = (_: ISymbols[], context: PuzzleContext) => {
+    const total = Array.from(
+      new Set([...(context.active ?? []), ...context.chosen]),
+    ).concat(context.otherWords);
+    const totalWords = this.random.randOrder(total);
     let tokens: ISymbols[] = [];
+
     for (let i = 0; i < totalWords.length; i++) {
       let symbols: SymbolRaw;
-      if (this.options.multiTokens && this.randSource.bool()) {
-        const idx = this.randSource.rand(totalWords.length - 1);
+      if (this.options.multiTokens && this.random.bool()) {
+        const idx = this.random.rand(totalWords.length - 1);
         symbols = [totalWords[i], totalWords[idx]];
       } else {
         symbols = [totalWords[i]];
@@ -193,31 +200,59 @@ class SymbolFactory {
       tokens.push(new SymbolObj(symbols));
     }
     return tokens;
+  };
+
+  private buildReadWords(): ReadWordFn {
+    return this.options.multiInput ? this.readMultiWords : this.readSingleWord;
+  }
+
+  private readMultiWords(idx: number, array: string[]) {
+    return new SymbolObj(
+      this.random.bool() && idx !== array.length - 1
+        ? [array[idx], array[idx + 1]]
+        : [array[idx]],
+    );
+  }
+
+  private readSingleWord(idx: number, array: string[]) {
+    return new SymbolObj([array[idx]]);
   }
 
   public buildSymbols(context: PuzzleContext) {
     const totalSymbols: ISymbols[] = [];
 
-    context.otherWordsBuckets.forEach((bucket) =>
-      this.buildWords(bucket, context, totalSymbols),
-    );
+    this.buildWords(context.otherWords, context, totalSymbols);
+    if (context.active !== undefined) {
+      this.buildWords(context.active, context, totalSymbols, true);
+    }
 
     const sentenceWordsSymbols: ISymbols[] = [];
     const wordsSeqs: ISymbols[] = [];
     for (let npwi = 0; npwi < context.chosen.length; npwi++) {
       const tmpWords = this.readWords(npwi, context.chosen);
       const nextWord = context.chosen[npwi + tmpWords.els.length];
-      const symbols = this.findSymbols(tmpWords, nextWord, context);
 
       wordsSeqs.push(tmpWords);
-      totalSymbols.push(...symbols);
-      sentenceWordsSymbols.push(symbols[0]);
-
+      sentenceWordsSymbols.push(tmpWords);
       npwi += tmpWords.els.length - 1;
+
+      if (this.used.has(tmpWords.str)) continue;
+
+      const symbols = this.findSymbols(tmpWords, nextWord, context);
+
+      for (let k = 0; k < symbols.length; k++) {
+        this.used.add(symbols[k].str);
+        totalSymbols.push(symbols[k]);
+      }
     }
+
+    const tokens = this.buildTokens(totalSymbols, context);
+    this.random.randOrder(totalSymbols);
 
     return {
       totalSymbols,
+      tokens,
+
       wordsSeqs,
       sentenceWordsSymbols,
     };
@@ -227,25 +262,22 @@ class SymbolFactory {
     arr: readonly string[],
     context: PuzzleContext,
     totalSymbols: ISymbols[],
+    removeDupes: boolean = false,
   ) {
     for (let i = 0; i < arr.length; i++) {
       const words = this.readWords(i, arr);
       const nextWord: string | undefined = arr[i + words.els.length];
-
-      totalSymbols.push(...this.findSymbols(words, nextWord, context));
+      const symbols = this.findSymbols(words, nextWord, context);
 
       i += words.els.length - 1;
-    }
-  }
 
-  private readWords(idx: number, array: readonly string[]): ISymbols {
-    const multiWordRoll =
-      this.options.multiInput && this.randSource.bool()
-        ? idx !== array.length - 1
-        : false;
-    return new SymbolObj(
-      multiWordRoll ? [array[idx], array[idx + 1]] : [array[idx]],
-    );
+      if (removeDupes && this.used.has(words.str)) continue;
+
+      for (let k = 0; k < symbols.length; k++) {
+        this.used.add(symbols[k].str);
+        totalSymbols.push(symbols[k]);
+      }
+    }
   }
 
   private pickMissingSymbol(
@@ -254,15 +286,14 @@ class SymbolFactory {
     context: PuzzleContext,
   ): ISymbols[] {
     if (words.els.length === 2) {
-      const candidates: [SymbolRaw, SymbolRaw] = [
-        [words.els[0]],
-        [words.els[1]],
-      ];
-      return this.randSource.bool()
-        ? candidates.map((v) => new SymbolObj(v))
-        : candidates
-            .splice(this.randSource.rand(1), 1)
-            .map((v) => new SymbolObj(v));
+      let candidates: string[] = [];
+      for (const word of words.els) {
+        if (!this.used.has(word)) candidates.push(word);
+      }
+      if (candidates.length === 0) {
+        return [];
+      }
+      return [new SymbolObj([words.els[this.random.rand(1)]])];
     }
 
     const [bucketIdx, bucket] = this.pickRandomBucket(
@@ -275,62 +306,54 @@ class SymbolFactory {
         ? (bucketIdx + 1) % bucket.length
         : bucketIdx;
 
-    return ([[words.els[0], bucket[idx]]] as SymbolRaw[]).map(
-      (v: SymbolRaw) => new SymbolObj(v),
-    );
+    return [new SymbolObj([words.els[0], bucket[idx]])];
   }
 
-  private pickRandomBucket(totalWordsBuckets: BucketType, len: number) {
-    return pickRandomBucket(totalWordsBuckets, len, this.randSource.rand);
-  }
+  private pickRandomBucket(
+    totalWordsBuckets: BucketType,
+    len: number,
+  ): [number, readonly string[]] {
+    let randIndex = this.random.rand(len - 1);
 
-  private findSymbols(
-    words: ISymbols,
-    nextWord: string,
-    context: PuzzleContext,
-  ) {
-    if (this.options.multiTokens && this.options.multiInput) {
-      return [words, ...this.pickMissingSymbol(words, nextWord, context)];
+    const arr0 = totalWordsBuckets[0];
+    if (randIndex < arr0.length) return [randIndex, arr0];
+    randIndex -= arr0.length;
+
+    if (totalWordsBuckets.length > 1) {
+      const arr1 = totalWordsBuckets[1];
+      if (randIndex < arr1.length) return [randIndex, arr1];
+      randIndex -= arr1.length;
     }
-    return [words];
+
+    if (totalWordsBuckets.length > 2) {
+      const arr2 = totalWordsBuckets[2];
+      if (randIndex < arr2.length) return [randIndex, arr2];
+    }
+    throw new Error();
   }
 }
 
-class MappingFactory {
-  constructor(
-    private readonly randSource: RandomSource,
-    private readonly symbolFact: SymbolFactory,
-  ) {}
+export class MappingFactory {
+  public prepareMappings(context: ReturnType<SymbolFactory["buildSymbols"]>) {
+    const tokenMap: Record<string, ISymbols> = Object.create(null);
+    const realMap: Record<string, ISymbols> = Object.create(null);
 
-  public prepareMappings(context: PuzzleContext) {
-    const tokenMap: Record<string, ISymbols> = {};
-    const realMap: Record<string, ISymbols> = {};
+    const { totalSymbols, wordsSeqs, sentenceWordsSymbols } = context;
 
-    // TODO: missing words when multiI level?
-    const { totalSymbols, wordsSeqs, sentenceWordsSymbols } =
-      this.symbolFact.buildSymbols(context);
-
-    this.getRandomOrder(totalSymbols);
-
-    const totalTokens = this.symbolFact.buildTokens(
-      totalSymbols,
-      context.totalWordsBuckets,
-    );
+    const totalTokens = context.tokens;
 
     for (let i = 0; i < totalSymbols.length; i++) {
       const symbolObj = totalSymbols[i];
-      if (tokenMap[symbolObj.str]) {
-        continue;
-      }
       const tokenObj = totalTokens[totalTokens.length - 1 - i];
 
       tokenMap[symbolObj.str] = tokenObj;
       realMap[tokenObj.str] = symbolObj;
     }
 
-    const tokenizedEntries: ISymbols[] = sentenceWordsSymbols.map((words) => {
-      return tokenMap[words.str];
-    });
+    const tokenizedEntries: ISymbols[] = [];
+    for (const word of sentenceWordsSymbols) {
+      tokenizedEntries.push(tokenMap[word.str]);
+    }
 
     return {
       tokenMap,
@@ -340,10 +363,13 @@ class MappingFactory {
       wordsSeqs,
     };
   }
+}
 
-  private getRandomOrder<T>(arr: T[]) {
-    return getRandomOrder(arr, this.randSource.rand);
-  }
+function mappingProvider(symbols: SymbolFactory, mapping: MappingFactory) {
+  return function (context: PuzzleContext) {
+    const symResult = symbols.buildSymbols(context);
+    return mapping.prepareMappings(symResult);
+  };
 }
 
 export function makePuzzleService(
@@ -371,11 +397,12 @@ export function makePuzzleService(
     multiTokens: hasFeature(level, Feature.MULTIZE_TOKENS),
   });
 
-  const mappingFact = new MappingFactory(randomSource, symbolFact);
+  const mappingFact = new MappingFactory();
 
+  const mappings = mappingProvider(symbolFact, mappingFact);
   return new PuzzleService(
     randomSource,
-    mappingFact,
+    mappings,
     otherWordsFact,
     level,
     pangrams,
@@ -385,8 +412,8 @@ export function makePuzzleService(
 
 export class PuzzleService {
   constructor(
-    private readonly randSource: RandomSource,
-    private readonly mappingFact: MappingFactory,
+    private readonly random: RandomSource,
+    private readonly mappings: ReturnType<typeof mappingProvider>,
     private readonly otherWordsFact: OtherWordsFactory,
     public readonly level: number,
     private readonly pangrams: readonly string[],
@@ -401,38 +428,34 @@ export class PuzzleService {
     const context = this.createContext();
 
     const { tokenMap, realMap, tokenizedEntries, wordsSeqs } =
-      this.mappingFact.prepareMappings(context);
+      this.mappings(context);
 
     const tokenizedSequenceWords: ISymbols[] = tokenizedEntries;
 
-    const totalPosition = this.randSource.rand(
+    const totalPosition = this.random.rand(
       tokenizedSequenceWords.length - 1,
     );
 
     const minIndex = context.minCount - 1;
     const tokenRefRemoveIdx =
-      totalPosition > minIndex && this.randSource.rand(2) > 0
-        ? this.randSource.rand(minIndex)
+      totalPosition > minIndex && this.random.rand(2) > 0
+        ? this.random.rand(minIndex)
         : totalPosition;
 
     const correctAnswer = tokenizedSequenceWords[tokenRefRemoveIdx].str;
-
     const realAnswer = wordsSeqs[tokenRefRemoveIdx].str;
 
-    if ([correctAnswer as any, realAnswer as any].includes(undefined)) {
-      throw new Error("Mapping failure");
-    }
+    const symbolExpression = this.buildSymbolMapper();
 
     // insert a missing identifier
     const partialWords = [...wordsSeqs.map((v) => v.str)];
     partialWords[tokenRefRemoveIdx] = blankWordToken;
 
     // insert missing tokenized part
-    const symbolExpression = this.buildSymbolMapper();
-    const partialTokenizedWords = [...tokenizedSequenceWords]
-      .map((obj) => obj.els)
-      .map(symbolExpression.mapper);
-
+    const partialTokenizedWords: SymbolRaw[] = [];
+    for (const obj of tokenizedSequenceWords) {
+      partialTokenizedWords.push(symbolExpression.mapper(obj.els));
+    }
     const isPartialReason = this.hasFeature(Feature.PARTIAL_REASINING);
     const activePartial: [string] | [string, string] = [
       ...partialTokenizedWords[tokenRefRemoveIdx],
@@ -440,7 +463,7 @@ export class PuzzleService {
     if (
       isPartialReason &&
       activePartial.length !== 1 &&
-      this.randSource.bool()
+      this.random.bool()
     ) {
       activePartial[0] = blankWordToken;
       partialTokenizedWords[tokenRefRemoveIdx] = activePartial;
@@ -459,23 +482,31 @@ export class PuzzleService {
       ? " "
       : seperator;
 
-    const partialTokenizedSentence = partialTokenizedWords
-      .map((w) => w.join(binarySeperator))
-      .join(binarySeperator);
+    let partialTokenizedSentence = "";
+    for (let i = 0; i < partialTokenizedWords.length; i++) {
+      const arr = partialTokenizedWords[i];
+      for (let j = 0; j < arr.length; j++) {
+        if (partialTokenizedSentence)
+          partialTokenizedSentence += binarySeperator;
+        partialTokenizedSentence += arr[j];
+      }
+    }
 
-    const tokenizedSentence = tokenizedSequenceWords
-      .map((w) => w.str)
-      .join(seperator);
+    let tokenizedSentence = "";
+    for (let i = 0; i < tokenizedSequenceWords.length; i++) {
+      if (i > 0) tokenizedSentence += seperator;
+      tokenizedSentence += tokenizedSequenceWords[i].str;
+    }
 
     const testComplex = {
-      identLocationOrder: this.randSource.rand(1),
-      identLocationType: this.randSource.rand(1),
+      identLocationOrder: this.random.rand(1),
+      identLocationType: this.random.rand(1),
       puzzleType: this.hasFeature(Feature.MAPPING_INFO_PUZZLE)
-        ? this.randSource.bool()
+        ? this.random.bool()
           ? ("reverse" as const)
           : ("order" as const)
         : (false as const),
-      rand: this.randSource.rand,
+      rand: this.random.rand,
     };
 
     const expression = this.buildExpresion();
@@ -511,15 +542,19 @@ export class PuzzleService {
       this.pangrams,
     );
 
-    const otherWords = Array.from(
-      this.otherWordsFact.build(this.inputWords, pangramsWordsList, words),
+    const otherSet = this.otherWordsFact.build(
+      this.inputWords,
+      pangramsWordsList,
+      words,
     );
+    const otherWords = Array.from(otherSet);
 
     const active = pangramsWordsList;
 
-    const otherWordsBuckets = [otherWords, active].filter((v) => v !== void 0);
-
-    const totalWordsBuckets = [...otherWordsBuckets, words];
+    const totalWordsBuckets = [
+      ...[otherWords, active].filter((v) => v !== void 0),
+      words,
+    ];
     const len = totalWordsBuckets.reduce((sum, arr) => sum + arr.length, 0);
     const context: PuzzleContext = {
       chosen: words,
@@ -527,7 +562,6 @@ export class PuzzleService {
       otherWords,
       totalWordsBuckets,
       totallen: len,
-      otherWordsBuckets,
       minCount,
     };
 
@@ -535,7 +569,7 @@ export class PuzzleService {
   }
 
   private prepareActivePangram(pangrams: readonly string[]) {
-    const sentenceIdx = this.randSource.rand(pangrams.length - 1);
+    const sentenceIdx = this.random.rand(pangrams.length - 1);
 
     let pangramsWordsList: readonly string[] | undefined;
     let words: readonly string[];
@@ -545,14 +579,14 @@ export class PuzzleService {
 
     if (!usingDefault) {
       tmpPangrams = pangrams.map((p) => p.split(/\s/));
-    } else if (usingDefault && pangramsDefaultCache === undefined) {
-      tmpPangrams = pangramsDefaultCache = pangramsDefault.map((p) =>
-        p.split(/\s/),
-      );
-    } else if (usingDefault && pangramsDefaultCache !== undefined) {
-      tmpPangrams = pangramsDefaultCache;
     } else {
-      throw new Error();
+      if (pangramsDefaultCache === undefined) {
+        tmpPangrams = pangramsDefaultCache = pangramsDefault.map((p) =>
+          p.split(/\s/),
+        );
+      } else {
+        tmpPangrams = pangramsDefaultCache;
+      }
     }
 
     const minCount = Math.min(...tmpPangrams.map((v) => v.length));
@@ -578,10 +612,10 @@ export class PuzzleService {
         options: { type: "none" },
       });
     }
-    const type = this.randSource.rand(2);
+    const type = this.random.rand(2);
     switch (type) {
       case 0: {
-        const shift = this.randSource.rand(24) + 1;
+        const shift = this.random.rand(24) + 1;
         return createSymbolExpression({
           mapper: (w) => w.map((wIn) => rotN(wIn, shift)) as MappedSymbol,
           options: {
@@ -597,7 +631,7 @@ export class PuzzleService {
         });
       }
       case 2: {
-        const shift = this.randSource.rand(24) + 1;
+        const shift = this.random.rand(24) + 1;
         return createSymbolExpression({
           mapper: (w) =>
             w.map((wIn) => toBinary(rotN(wIn, shift))) as MappedSymbol,
@@ -614,14 +648,14 @@ export class PuzzleService {
 
   private buildExpresion(): IExpressionResult {
     const equalSymbol =
-      equalSymblsSet[this.randSource.rand(equalSymblsSet.length - 1)];
+      equalSymblsSet[this.random.rand(equalSymblsSet.length - 1)];
     const expressionDefinition = getRandomOrder(
       [
         ExpressionPart.OLD_OPARAND,
         ExpressionPart.OPERATOR,
         ExpressionPart.NEW_OPARAND,
       ] as ExpressionDefinitionType,
-      this.randSource.rand,
+      this.random.rand,
     );
     const idx = expressionDefinition.indexOf(ExpressionPart.OPERATOR);
     const expressionType =

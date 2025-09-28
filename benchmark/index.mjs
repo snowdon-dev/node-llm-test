@@ -3,7 +3,7 @@ import * as PuzzleMod from "../dist/index.js";
 const { Puzzle } = PuzzleMod.default;
 import packageData from "../package.json" with { type: "json" };
 
-const bench = new Bench({ name: "simple benchmark", time: 1000 });
+const bench = new Bench({ name: "simple benchmark", time: 10_000 });
 
 const wordsTmp = Array.from({ length: 600 }).map((_, i) => String(i));
 

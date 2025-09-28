@@ -56,13 +56,41 @@ describe("prepare", () => {
       expect(result).toHaveProperty("expression");
     }
 
-    it("with only inputWords", () => {
+    it("throws invalid seed", () => {
+      expect(() => prepare([], -1)).toThrow();
+      expect(() => prepare([], 2**31)).toThrow();
+    });
+
+    it("throws invalid panagrams", () => {
+      expect(() => prepare([], 1, [])).toThrow();
+    })
+
+    it("throws invalid level", () => {
+      expect(() => prepare([], 1, void 0, levelMax + 1)).toThrow();
+      expect(() => prepare([], 1, void 0, -1)).toThrow();
+    })
+
+    it("with blank inputWords", () => {
       const result = prepare(prepareArgs);
+      testResult(result);
+    });
+    
+    it("with inputWords", () => {
+      const result = prepare(["anotherasdkjnfsdfj"]);
+      testResult(result);
+    });
+
+    it("with inputWords and chaosWords", () => {
+      const result = prepare(["anotherasdkjnfsdfj"], 1, void 0, 1);
       testResult(result);
     });
 
     it("with a seed", () => {
       testResult(prepare(prepareArgs, 1));
+    });
+
+    it("with a math random", () => {
+      testResult(prepare(prepareArgs, undefined));
     });
 
     it("with input pangrams", () => {
@@ -71,7 +99,7 @@ describe("prepare", () => {
 
     Array(levelMax - 1)
       .fill(0)
-      .map((_, i) => i + 2)
+      .map((_, i) => i + 1)
       .forEach((l) => {
         it("with only inputWords, + level " + l, () => {
           const result = prepare(prepareArgs, undefined, undefined, l);
