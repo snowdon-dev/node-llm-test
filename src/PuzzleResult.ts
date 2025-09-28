@@ -182,7 +182,7 @@ export class SymbolFactory {
     return this.random.randOrder(totalSymbols);
   }
 
-  private buildFlatTokens = (_: ISymbols[], context: PuzzleContext) => {
+  private buildFlatTokens (_: ISymbols[], context: PuzzleContext) {
     const total = Array.from(
       new Set([...(context.active ?? []), ...context.chosen]),
     ).concat(context.otherWords);
