@@ -34,7 +34,7 @@
     "node-llm-test": "dist/interface/cli.js",
     "llmtest": "dist/interface/cli.js"
   },
-  "main": "dist/interface/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "jest --workerThreads -b",
     "build": "node esbuild.config.cjs && tsc --emitDeclarationOnly --project tsconfig.build.json",
