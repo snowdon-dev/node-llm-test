@@ -52,12 +52,6 @@ export class SymbolManager {
     const totalWords = this.random.randOrder(this.source.all());
     let tokens: ISymbols[] = [];
 
-    // TODO: read symbols until token length
-    // symbols may be greater than total words
-    // when not both sides, where n is totalSymbols.length
-    //  if multiInput size < n , len is n
-    //  if miltiTokens size < n, len is n | BROKEN
-    //
     // TODO: when multi input, it takes two words, but then input symbols is <
     // n - if I add each missing word, to account for encode instructions,
     // input symbols > n,  tokens = n.
