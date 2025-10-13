@@ -2,7 +2,10 @@ export interface ISymbols {
   readonly str: string;
   readonly els: SymbolRaw;
 }
+
 export type SymbolRaw = readonly [string] | readonly [string, string];
+
+export type InstructionWordType = Record<string, any>;
 
 export interface IPrepareResult {
   /** Map from the real to the tokenizedWords */
@@ -31,21 +34,45 @@ export interface IPrepareResult {
   readonly correctAnswer: string;
   readonly realAnswer: string;
 
-  expression: Readonly<IExpressionResult>;
-  symbolExpression: Readonly<SymbolExpression<SymbolTypeOptions>>;
+  readonly expression: Readonly<IExpressionResult>;
+  readonly symbolExpression: Readonly<SymbolExpression<SymbolTypeOptions>>;
+
+  readonly instructionWords: InstructionWordType;
 
   /** Persistent rules */
   testComplex: {
     identLocationOrder: number;
     identLocationType: number;
     puzzleType: false | "reverse" | "order";
-    rand: (num: number) => number;
   };
 }
 
+export interface IPuzzleResult extends IPrepareResult {
+  wordTable(): { headers: string[]; rows: string[][] };
+  answer(input: string):
+    | {
+        exact: boolean;
+        possible: boolean;
+        possibleReal?: undefined;
+      }
+    | {
+        exact: boolean;
+        possible: boolean;
+        possibleReal: ISymbols;
+      };
+}
+
 export interface ILLMTest {
-  print(output: (outs: string) => unknown): void;
-  answer(strIn: string): { exact: boolean; possible: boolean };
+  result(
+    inputWords: readonly string[],
+    pangrams: readonly string[],
+  ): IPuzzleResult;
+  print(result: IPuzzleResult, output: (outs: string) => unknown): void;
+  answer(
+    result: IPuzzleResult,
+    strIn: string,
+  ): { exact: boolean; possible: boolean };
+  printWork(result: IPuzzleResult): string;
 }
 
 export interface IExpressionResult {

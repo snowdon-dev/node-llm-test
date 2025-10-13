@@ -11,7 +11,7 @@ linear-time algorithm for generating infinitely many test instances.
 
 Using the most token-efficient method and the simplest token format, the test
 presents an easy logical puzzle, with a domain and steps that are native and
-natural to a computer agent. The puzzle may involve few or many steps and may
+natural to a computer agent. The puzzle may involve few or many steps, and may
 permit the usage of simple tool calls. The solution requires reasoning rather
 than computation, and the design eliminates reliance on memorization to ensure
 that the test cannot be solved by prior training.
@@ -21,7 +21,6 @@ that the test cannot be solved by prior training.
   containing results from the leading agents. And stay informed without spinning
   up infra. Just email: <llmtest@snowdon.dev>.
 - Issue reports welcome. Just let me know.
-
 
 ## Installation
 
@@ -36,7 +35,6 @@ Install globally as a command.
 ```bash
 npm install --global node-llm-test
 ```
-
 
 Commercial use of this code package requires permission—please contact me at
 <hello@snowdon.dev> if you intend to use it for such purposes. The web app,
@@ -71,7 +69,7 @@ AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
 
 ## The puzzle
 
-The quick brown fox lookup test. A test that is solved by the simple act of
+Quick fox lookup test. A test that is solved by the simple act of
 looking things up.
 
 LLMs cannot solve this simple puzzle effectively because they rely on
@@ -256,7 +254,7 @@ seq -f "%.0f" 1000000 1000010 | \
 | ---------------------------- | ------------------------------------------------- |
 | `--number <number>`          | The number of words in the wordlist (default: 0)  |
 | `--write [filepath]`         | Write to a temporary file or the target path      |
-| `--level <integer>`          | Features enabled (0=none, 8191=all, default: 0)   |
+| `--level <integer>`          | Features enabled (0=none, 16383=all, default: 0)  |
 | `--seed <integer>`           | A seed to preserve reproducibility                |
 | `--no-print`                 | Do not print the output for the LLM               |
 | `-i, --interactive`          | Run in interactive mode                           |
@@ -270,22 +268,22 @@ seq -f "%.0f" 1000000 1000010 | \
 
 ```javascript
 import { Puzzle, Feature } from "node-llm-test";
-import { getRandomWords } from "node-llm-test/randomfile";
+import { getRandomWords } from "node-llm-test/app/getRandWords";
 
 async function run() {
   const seed = Math.floor(Math.random() * (2 ** 31 - 1));
   const wordList = await getRandomWords(600, seed);
   const level = Feature.CHAOS_WORDS | Feature.EXTRA_WORDS;
   const puzzle = Puzzle.New(
+    seed,
+    level,
     [
       /*someWordList*/
     ],
-    seed,
-    level,
   );
   //const puzzle2 = Puzzle.New();
 
-  puzzle.print(console.log);
+  puzzle.print(puzzle.result(), console.log);
 }
 ```
 
@@ -301,7 +299,7 @@ version.
 
 ### Reference
 
-| Flag name (source)             | Value (decimal / binary) | What it does (plain English)                                                                      | Example behavior                                                                              | Difficulty |
+| Flag name           | Value (decimal / binary) | What it does  | Example behavior | Difficulty |
 | :----------------------------- | -----------------------: | :------------------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------------------- | ---------- |
 | `CHAOS_WORDS`                  |              `1` / `0b1` | Increases output word count (roughly `words_in_domain * 2`) to make text longer/more chaotic.     | If domain has 50 words, output may include ~50 extra words scattered through the text.        | Easy       |
 | `MULTIZE_TOKENS`               |             `2` / `0b10` | Duplicates tokens used to increase token density/length.                                          | A token like `cat` might become `cat cat`.                                                    | Medium     |
@@ -313,9 +311,10 @@ version.
 | `INSTRUCTION_ORDER`            |     `128` / `0b10000000` | Randomly alters the order of instructions before printing.                                        | Instruction list may be reordered, affecting how instructions are interpreted/executed.       | Easy       |
 | `OUTPUT_SHIFT`                 |    `256` / `0b100000000` | Applies a character/token shift (e.g., Caesar-like) to the output; decoding is required.          | Plain text is shifted by N characters; consumer must reverse the shift to read original text. | Medium     |
 | `OUTPUT_SHIFT_EXLCUDE_DETAILS` |   `512` / `0b1000000000` | With `OUTPUT_SHIFT`, additionally excludes metadata about the shift (magnitude/direction).        | Output is shifted and no shift metadata is returned; decoder must infer shift by analysis.    | Hard       |
-| `MAPPING_INFO_PUZZLE`          |   `1024`/`0b10000000000` | The expression order is changed based on a maths puzzle.                                          |                                                                                               | Medium     |
+| `MAPPING_INFO_PUZZLE`          |   `1024`/`0b10000000000` | The expression order is changed based on a maths puzzle. | A expression like, 'one' > 'two' may change to 'two' > 'one'. The ordering is swapped | Medium |
 | `POOR_CODING_PRACTICES`        |  `2048`/`0b100000000000` | Emulates poor coding standards                                                                    | For example, alternates more deliminators. '' becomes "" etc                                  | Easy       |
 | `EXTRA_WORDS`                  | `4096`/`0b1000000000000` | Adds extra words from a pre defined list designed to complement the default                       | Adds words like "glib" which can be used to form novel solutions                              | Medium     |
+| `ENCODE_INSTRUCTIONS` |  `8192`/`0b10000000000000` | Encodes the instructions when `Feature.MULTIZE_I_TOKENS \| Feature.MULTIZE_TOKENS`  | Instruction are gibberish, unless the task is understood ahead of time  | Medium |
 
 ### Usage tips
 

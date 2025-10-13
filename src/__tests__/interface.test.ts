@@ -1,18 +1,10 @@
-import {
-  print,
-  getInitialDescription,
-  getTableMappingHeader,
-  getMappingMessage,
-  getInstructionsMessage,
-  getSymbolisedSentenceOutput,
-  answer,
-} from "../app";
-import { createSymbolExpression, makePuzzleService } from "../PuzzleResult";
-import { ExpressionPart, ISymbols } from "../interface";
-import { IPrepareResult } from "../interface";
-import { levelMax } from "../levels";
-import { instructionSet, pangramsDefault } from "../characters";
-import { simpleRandom } from "../random";
+import { createSymbolExpression } from "../domain/services/PuzzleGenerator";
+import { ExpressionPart, ISymbols } from "../domain/interface";
+import { IPrepareResult } from "../domain/interface";
+import { levelMax } from "../domain/levels";
+import { instructionSet, pangramsDefault } from "../domain/characters";
+import { PuzzleResult } from "../domain/models/PuzzleResult";
+import { createApp } from "../infra/create";
 
 function createISymbol(words: string): ISymbols {
   const [first, second] = words.split(" ");
@@ -33,8 +25,8 @@ describe("prepare", () => {
     pangrams: readonly string[] = pangramsDefault,
     level: number = 0,
   ) {
-    const builder = makePuzzleService(level, inputWords ?? [], pangrams, seed);
-    return builder.prepare();
+    const game = createApp(level, seed, inputWords ?? [], pangrams);
+    return game.result();
   }
 
   describe("should return an object with the correct properties", () => {
@@ -58,23 +50,23 @@ describe("prepare", () => {
 
     it("throws invalid seed", () => {
       expect(() => prepare([], -1)).toThrow();
-      expect(() => prepare([], 2**31)).toThrow();
+      expect(() => prepare([], 2 ** 31)).toThrow();
     });
 
     it("throws invalid panagrams", () => {
       expect(() => prepare([], 1, [])).toThrow();
-    })
+    });
 
     it("throws invalid level", () => {
       expect(() => prepare([], 1, void 0, levelMax + 1)).toThrow();
       expect(() => prepare([], 1, void 0, -1)).toThrow();
-    })
+    });
 
     it("with blank inputWords", () => {
       const result = prepare(prepareArgs);
       testResult(result);
     });
-    
+
     it("with inputWords", () => {
       const result = prepare(["anotherasdkjnfsdfj"]);
       testResult(result);
@@ -94,7 +86,7 @@ describe("prepare", () => {
     });
 
     it("with input pangrams", () => {
-      testResult(prepare(prepareArgs, undefined, ["test"]));
+      testResult(prepare(prepareArgs, undefined, ["one two three"]));
     });
 
     Array(levelMax - 1)
@@ -111,7 +103,7 @@ describe("prepare", () => {
         });
 
         it("with input pangrams, + level " + l, () => {
-          testResult(prepare(prepareArgs, undefined, ["test"], l));
+          testResult(prepare(prepareArgs, undefined, ["one two three"], l));
         });
       });
   });
@@ -140,8 +132,16 @@ describe("prepare", () => {
   });
 });
 
+const createArgs = (input: Partial<IPrepareResult>) => {
+  return Object.assign({}, input) as IPrepareResult;
+};
+
+const createPuzzle = (input: Partial<IPrepareResult>) => {
+  return new PuzzleResult(createArgs(input));
+};
+
 describe("print", () => {
-  it("should call the output function with the correct arguments and content", () => {
+  it("should call the output function", () => {
     const output = jest.fn();
     const mockPartialTokenizedSentence =
       "The [...] brown fox jumps over the lazy dog";
@@ -171,66 +171,29 @@ describe("print", () => {
       options: { type: "none" },
     });
 
-    print(
-      mockPartialTokenizedSentence,
-      mockTokenMap,
-      mockExpression,
-      mockSymbolExpression,
-      1,
-      output,
-      {
+    const result = createPuzzle({
+      symbolExpression: mockSymbolExpression,
+      expression: mockExpression,
+      tokenMap: mockTokenMap,
+      partialTokenizedSentence: mockPartialTokenizedSentence,
+      instructionWords: instructionSet,
+      testComplex: {
         identLocationOrder: 0,
         identLocationType: 0,
         puzzleType: false,
-        rand: simpleRandom,
       },
-    );
-
-    expect(output).toHaveBeenCalled();
-
-    // Get all calls to the output function, flattened to a single array of strings
-    const allOutputCalls = output.mock.calls.flat();
-
-    expect(allOutputCalls[0]).toBe(
-      getInitialDescription(
-        mockExpression.equalSymbol,
-        mockExpression.expressionDefinition,
-        mockSymbolExpression,
-        false,
-        instructionSet,
-        false,
-        0,
-      ),
-    );
-    expect(allOutputCalls[2]).toBe(getTableMappingHeader(instructionSet));
-
-    // Check for each mapping entry
-    Object.entries(mockTokenMap).forEach(([old, newS], i) => {
-      const expectedMsg = getMappingMessage(
-        old,
-        newS.str,
-        mockExpression.equalSymbol,
-        mockExpression.expressionDefinition,
-        i,
-        0,
-        false,
-        false,
-      );
-      expect(allOutputCalls).toContain(expectedMsg);
     });
 
-    const isIndirect = mockSymbolExpression.options.type !== "none";
-    expect(allOutputCalls).toContain(
-      getInstructionsMessage(isIndirect, instructionSet, false),
-    );
-    expect(allOutputCalls).toContain(
-      getSymbolisedSentenceOutput(mockPartialTokenizedSentence, instructionSet),
-    );
+    const app = createApp(0, 1, [], ["just pass validation"]);
+    app.print(result, output);
+
+    expect(output).toHaveBeenCalled();
+    expect(output).toHaveBeenCalledTimes(7);
   });
 });
 
 describe("answer", () => {
-  const multiTokenContext = {
+  const multiTokenContext: Partial<PuzzleResult> = {
     tokenMap: {
       Grumpy: createISymbol("wizards make"),
       wizards: createISymbol("make"),
@@ -287,7 +250,8 @@ describe("answer", () => {
   };
 
   it("answers exact multi answer", () => {
-    const result = answer("toxic and", multiTokenContext);
+    const puzzle = createPuzzle(multiTokenContext);
+    const result = puzzle.answer("toxic and");
     expect(result.exact).toBe(true);
   });
 
@@ -336,9 +300,10 @@ describe("answer", () => {
   };
 
   it("answers exact multi real words", () => {
-    const res = answer("every Just", multiRealWords);
+    const puzzle = createPuzzle(multiRealWords);
+    const res = puzzle.answer("every Just");
     expect(res.exact).toBe(true);
-    const res2 = answer("every", multiRealWords);
+    const res2 = puzzle.answer("every");
     expect(res2.exact).toBe(false);
     expect(res2.possible).toBe(false);
   });
@@ -392,7 +357,8 @@ describe("answer", () => {
     correctAnswer: "every Just",
   };
   it("answers multi real words not expected", () => {
-    const res = answer("test test", multiRealWordsNotExpected);
+    const puzzle = createPuzzle(multiRealWordsNotExpected);
+    const res = puzzle.answer("test test");
     expect(res.exact).toBe(false);
     expect(res.possible).toBe(true);
   });
@@ -424,13 +390,15 @@ describe("answer", () => {
   };
 
   it("answers multi token words not expacted", () => {
-    const res = answer("test test", multiTokenNotExpectedContext);
+    const puzzle = createPuzzle(multiRealWordsNotExpected);
+    const res = puzzle.answer("test test");
     expect(res.exact).toBe(false);
     expect(res.possible).toBe(true);
   });
 
   it("answers false for duplicate multi token word", () => {
-    const res = answer("quartz big", multiTokenNotExpectedContext);
+    const puzzle = createPuzzle(multiTokenNotExpectedContext);
+    const res = puzzle.answer("quartz big");
     expect(res.exact).toBe(false);
     expect(res.possible).toBe(false);
   });

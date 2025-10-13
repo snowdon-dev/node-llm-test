@@ -1,4 +1,3 @@
-
 export function permute<T>(arr: readonly T[]): T[][] {
   return arr.length === 0
     ? [[]]
@@ -9,4 +8,3 @@ export function permute<T>(arr: readonly T[]): T[][] {
         ]),
       );
 }
-

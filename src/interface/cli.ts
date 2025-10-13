@@ -11,11 +11,10 @@ import {
 } from "fs";
 import { program } from "commander";
 import inquirer from "inquirer";
-import { getRandomSelection, getRandomWords } from "./randomfile";
-import { Puzzle } from "./app";
-import { levelMax } from "./levels";
 import { finished } from "stream/promises";
-import { module_version } from "./config";
+import { module_version } from "../config";
+import { IPuzzleResult, Puzzle, levelMax } from "..";
+import { getRandomSelection, getRandomWords } from "../app/getRandWords";
 
 // TODO: allow writing a schemma and calling the API
 program
@@ -234,7 +233,18 @@ async function run(options: any) {
   } else {
     englishWords = await getRandomWords(number, seedToUse);
   }
-  const puzzle = Puzzle.New(englishWords, seedToUse, undefined, level);
+
+  let puzzle: Puzzle, result: IPuzzleResult;
+  try {
+    puzzle = Puzzle.New(seedToUse, level, englishWords);
+    result = puzzle.result();
+  } catch (e) {
+    if (e instanceof TypeError) {
+      console.error(e.message);
+      process.exit(1);
+    }
+    throw e;
+  }
 
   let writerFn: (...outs: string[]) => void = console.log;
   let msg = "";
@@ -273,7 +283,7 @@ async function run(options: any) {
   }
 
   if (print) {
-    puzzle.print(writerFn);
+    puzzle.print(result, writerFn);
   }
 
   if (writeStream !== null) {
@@ -287,27 +297,24 @@ async function run(options: any) {
   console.log("\n---- do not copy the following into the LLM\n" + msg);
 
   if (answers.verbose) {
-    console.log(
-      "expression: ",
-      JSON.stringify(puzzle.result.expression, null, 1),
-    );
+    console.log("expression: ", JSON.stringify(result.expression, null, 1));
     console.log(
       "symbol expression: ",
-      JSON.stringify(puzzle.result.symbolExpression, null, 1),
+      JSON.stringify(result.symbolExpression, null, 1),
     );
     console.log("level: " + level);
     console.log("wordcount: " + englishWords.length);
     console.log("seed: " + seedToUse);
   }
 
-  console.log(puzzle.printWork());
+  console.log(puzzle.printWork(result));
 
   if (noAnswer) {
     process.exit();
   }
 
   if (typeof answer === "string") {
-    return checkAnswerSync(puzzle, answer);
+    return checkAnswerSync(puzzle, result, answer);
   }
 
   let rl: Interface | null = createInterface({
@@ -322,7 +329,7 @@ async function run(options: any) {
   process.on("SIGINT", closeSdInterface);
   process.on("SIGTERM", closeSdInterface);
 
-  await checkAnswer(rl, puzzle);
+  await checkAnswer(rl, puzzle, result);
   process.exit();
 }
 
@@ -331,38 +338,46 @@ function getCorrectMessage() {
 }
 
 function getPossibleMessage(
-  puzzle: Puzzle,
+  result: IPuzzleResult,
   answer: ReturnType<Puzzle["answer"]>,
 ) {
   return (
     "The answer completes the alphabet, but was not the expected result.\n" +
     "It may be correct if it works in the original sentence,\n" +
-    `The correct token was: "${puzzle.result.correctAnswer}"\n` +
+    `The correct token was: "${result.correctAnswer}"\n` +
     `The correct word was: "${answer.possibleReal?.str}"`
   );
 }
 
-function getIncorrectMessage(puzzle: Puzzle) {
-  return `❌ Incorrect. The correct token was: "${puzzle.result.correctAnswer}"`;
+function getIncorrectMessage(result: IPuzzleResult) {
+  return `❌ Incorrect. The correct token was: "${result.correctAnswer}"`;
 }
 
-function checkAnswerSync(puzzle: Puzzle, answerIn: string) {
-  const answer = puzzle.answer(answerIn.trim());
+function checkAnswerSync(
+  puzzle: Puzzle,
+  result: IPuzzleResult,
+  answerIn: string,
+) {
+  const answer = puzzle.answer(result, answerIn.trim());
   console.log("\n--- The answer check\n");
   console.log("Your provided answer: " + answerIn + "\n");
   if (answer.exact) {
     console.log(getCorrectMessage());
     process.exit();
   } else if (answer.possible) {
-    console.log(getPossibleMessage(puzzle, answer));
+    console.log(getPossibleMessage(result, answer));
     process.exit();
   } else {
-    console.log(getIncorrectMessage(puzzle));
+    console.log(getIncorrectMessage(result));
     process.exit(2);
   }
 }
 
-async function checkAnswer(rl: Interface, puzzle: Puzzle): Promise<boolean> {
+async function checkAnswer(
+  rl: Interface,
+  puzzle: Puzzle,
+  result: IPuzzleResult,
+): Promise<boolean> {
   let correct = false;
   while (!correct) {
     console.log("\n--- Waiting to check answer...\n");
@@ -375,15 +390,15 @@ async function checkAnswer(rl: Interface, puzzle: Puzzle): Promise<boolean> {
     if (answerStr === "") {
       continue;
     }
-    const answer = puzzle.answer(answerStr);
+    const answer = puzzle.answer(result, answerStr);
     if (answer.exact) {
       console.log(getCorrectMessage());
       correct = true;
     } else if (answer.possible) {
-      console.log(getPossibleMessage(puzzle, answer));
+      console.log(getPossibleMessage(result, answer));
       correct = true;
     } else {
-      console.log(getIncorrectMessage(puzzle));
+      console.log(getIncorrectMessage(result));
     }
   }
   return true;

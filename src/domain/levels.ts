@@ -26,6 +26,8 @@ export enum Feature {
 
   EXTRA_WORDS = 1 << 12,
 
+  ENCODE_INSTRUCTIONS = 1 << 13,
+
   //MISSING_SENTENCE = 1 << 7,
 }
 
@@ -35,4 +37,22 @@ export const levelMax = Object.values(Feature)
 
 export function hasFeature(level: number, feature: Feature): boolean {
   return (level & feature) !== 0;
+}
+
+export type LevelsType = Record<keyof typeof Feature, boolean>;
+
+export function enumFlagsToBooleans<E extends Record<string, number | string>>(
+  enumType: E,
+  bitmask: number,
+): Record<Extract<keyof E, string>, boolean> {
+  const result = {} as Record<Extract<keyof E, string>, boolean>;
+
+  for (const key of Object.keys(enumType)) {
+    const value = enumType[key as keyof E];
+    if (typeof value === "number") {
+      result[key as Extract<keyof E, string>] = (bitmask & value) === value;
+    }
+  }
+
+  return result;
 }

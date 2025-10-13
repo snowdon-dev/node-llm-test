@@ -6,7 +6,8 @@ module.exports = {
     '^.+\.(ts|tsx)$' : 'babel-jest',
   },
   testPathIgnorePatterns: [
-    "/__tests__/utils.ts",
+    '/dist',
+    "/src/__tests__/utils.ts",
   ],
   "coverageReporters": [
     "lcov",

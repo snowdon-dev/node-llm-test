@@ -1,3 +1,5 @@
+import { IRandom } from "../domain/IRandom";
+
 export function mulberry32(seed: number) {
   return function () {
     seed |= 0;
@@ -10,15 +12,6 @@ export function mulberry32(seed: number) {
 
 export const simpleRandom = (len: number) =>
   Math.floor(Math.random() * (len + 1));
-
-export function randomizeRecord<T>(
-  record: Record<string, T>,
-  rand: (len: number) => number = simpleRandom,
-  stepsIn = 1,
-): Record<string, T> {
-  const entries = getRandomOrder(Object.entries(record), rand, stepsIn);
-  return Object.fromEntries(entries);
-}
 
 // Shuffle using Fisher-Yates algorithm
 export function getRandomOrder<T extends unknown[]>(
@@ -51,12 +44,19 @@ export function pickRandomBucket<T>(
   throw new Error("Should never reach here");
 }
 
+function cryptoRandom() {
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  return array[0] / 0xffffffff;
+}
+
 type RandomType = keyof typeof RandomSource.TYPES;
 
-export class RandomSource {
+export class RandomSource implements IRandom {
   static readonly TYPES = {
     small: "small",
     none: "none",
+    smallcrypto: "smallcrypto",
   } as const;
 
   private static createHandler(
@@ -64,13 +64,20 @@ export class RandomSource {
   ): (seed: unknown) => () => number {
     switch (type) {
       case RandomSource.TYPES.small:
-        return (num: number = 0) => mulberry32(num);
+        return mulberry32;
+      case RandomSource.TYPES.smallcrypto:
+        return (_) => cryptoRandom;
       case RandomSource.TYPES.none:
         return (_) => Math.random;
+      default:
+        throw new Error();
     }
   }
 
-  static New(type: RandomType = RandomSource.TYPES.small, seed?: number) {
+  static New(
+    type: RandomType = RandomSource.TYPES.small,
+    seed?: number | null,
+  ) {
     const randH = RandomSource.createHandler(type)(seed);
     const rand = (len: number) => Math.floor(randH() * (len + 1));
     return new RandomSource(rand);
@@ -91,8 +98,6 @@ export class RandomSource {
 
 class SimpleSourceImpl extends RandomSource {
   constructor(private counter: number) {
-    super((num) => {
-      return this.counter++ % num;
-    });
+    super((num) => this.counter++ % num);
   }
 }

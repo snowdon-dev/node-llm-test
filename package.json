@@ -31,18 +31,19 @@
   },
   "license": "SEE LICENSE IN LICENSE",
   "bin": {
-    "node-llm-test": "dist/cli.js",
-    "llmtest": "dist/cli.js"
+    "node-llm-test": "dist/interface/cli.js",
+    "llmtest": "dist/interface/cli.js"
   },
-  "main": "dist/index.js",
+  "main": "dist/interface/index.js",
   "scripts": {
     "test": "jest --workerThreads -b",
     "build": "node esbuild.config.cjs && tsc --emitDeclarationOnly --project tsconfig.build.json",
     "deploy": "prettier src/ --check && npm run build",
+    "check": "tsc --noEmit",
     "prod:test": "jest --coverage --workerThreads -b",
     "prepare": "npm run build",
-    "run": "tsx --tsconfig tsconfig.build.json src/cli.ts",
-    "genwords": "tsx --tsconfig tsconfig.build.json src/genwords.ts",
+    "run": "tsx --tsconfig tsconfig.build.json src/interface/cli.ts",
+    "genwords": "tsx --tsconfig tsconfig.build.json src/interface/genwords.ts",
     "pretty": "prettier src/ --write",
     "pretty:check": "prettier src/ --check"
   },
@@ -56,12 +57,13 @@
     "prettier": "3.6.2",
     "tinybench": "5.0.1",
     "ts-jest": "^29.4.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "tsx": "^4.20.6",
+    "esbuild": "^0.25.10"
   },
   "dependencies": {
     "@types/inquirer": "^9.0.8",
     "commander": "^14.0.0",
-    "esbuild": "^0.25.10",
     "inquirer": "^9.0.0"
   }
 }

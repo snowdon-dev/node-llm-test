@@ -1,9 +1,9 @@
-export { Puzzle } from "./app";
+export { Puzzle } from "./infra/api";
 
-export * from "./interface";
+export * from "./domain/interface";
 
-export { Feature } from "./levels";
+export { Feature, levelMax } from "./domain/levels";
 
-export { pangramsDefault } from "./characters";
+export { pangramsDefault } from "./domain/characters";
 
 export * from "./config";
