@@ -137,7 +137,7 @@ export const instructionSet = {
   //? "- Omit any extra encoding steps applied to the symbolised sentence."
   indirect: ["Omit any encoding applied on the symbolised sentence"],
   easySchema:
-    "The output characters must be A through Z including a through z and spaces",
+    "The output characters must only be A through Z including a through z and spaces",
 
   identSymbolSentence: "Symbolised sentence with a missing part or parts",
 
