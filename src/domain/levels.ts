@@ -28,6 +28,8 @@ export enum Feature {
 
   ENCODE_INSTRUCTIONS = 1 << 13,
 
+  EASY_SCHEMA = 1 << 14,
+
   //MISSING_SENTENCE = 1 << 7,
 }
 

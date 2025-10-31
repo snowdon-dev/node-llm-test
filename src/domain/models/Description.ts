@@ -159,10 +159,14 @@ export class Description {
     indirectSymbols: boolean,
     instructionWords: InstructionWordType,
     random: boolean,
+    easySchema: boolean,
   ): string[] {
     const instructions: string[] = [...instructionWords.all];
     if (indirectSymbols) {
       instructions.push(...instructionWords.indirect);
+    }
+    if (easySchema) {
+      instructions.push(instructionWords.easySchema);
     }
 
     const list = instructions.map((l) => "- " + l);

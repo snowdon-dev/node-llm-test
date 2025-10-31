@@ -74,7 +74,7 @@ export class SymbolScanner {
   }
 
   private findMissing(words: ISymbols, nextWord: null | string) {
-    const tmp = this.findNull(words, nextWord);
+    const tmp = this.findNull(words);
     const candidates =
       words.els.length === 2
         ? this.readFromTwo(tmp, words)
@@ -82,7 +82,7 @@ export class SymbolScanner {
     return candidates;
   }
 
-  private findNull(words: ISymbols, _: null | string) {
+  private findNull(words: ISymbols) {
     return [words];
   }
 
@@ -99,15 +99,13 @@ export class SymbolScanner {
     nextWord: null | string,
   ): ISymbols[] {
     const idx = this.random.rand(this.source.all().length - 1);
-    const consumedWords = [nextWord].filter((v) => v !== null);
+    const consumedWords: string[] = [];
+    if (nextWord !== null) consumedWords.push(nextWord);
     const other = this.source.randNot(idx, consumedWords);
-
     consumedWords.push(other);
+    tmp.push(new SymbolObj([words.els[0], other]));
     const secondOther = this.source.randNot(idx, consumedWords);
-    const obj: ISymbols = new SymbolObj([words.els[0], other]);
-    tmp.push(obj);
-    const obj2: ISymbols = new SymbolObj([words.els[0], secondOther]);
-    tmp.push(obj2);
+    tmp.push(new SymbolObj([words.els[0], secondOther]));
 
     return tmp;
   }

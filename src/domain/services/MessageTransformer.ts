@@ -84,6 +84,7 @@ export class MessageTransfomer {
             this.level.INDIRECT_SYMBOLS,
             result.instructionWords,
             randomOrder,
+            this.level.EASY_SCHEMA,
           )
           .join("\n"),
       ),

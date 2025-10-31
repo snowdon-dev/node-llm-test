@@ -7,8 +7,8 @@ import { SymbolManager } from "../reader/SymbolManager";
 
 export class MappingTransformer {
   constructor(
-    private random: IRandom,
-    private opts: SymbolManagerOpts,
+    private readonly random: IRandom,
+    private readonly opts: SymbolManagerOpts,
   ) {}
 
   public create(context: PuzzleContext) {
