@@ -148,10 +148,10 @@ export class MessageTransfomer {
         return (
           (!isLast ? instructionWords.inceptionWait + ".\n" : "") +
           instructionWords.inceptionUserOneIdent +
-          " " +
+          ": " +
           (instructionWords.inceptionSystem + ` ${real}` + ".\n") +
           instructionWords.inceptionUserTwoIdent +
-          " " +
+          ": " +
           userMsg
         );
       };
