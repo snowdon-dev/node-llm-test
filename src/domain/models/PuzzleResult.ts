@@ -1,4 +1,8 @@
-import { blankWordToken, isFirstCharCapital } from "../characters";
+import {
+  blankWordToken,
+  instructionSet,
+  isFirstCharCapital,
+} from "../characters";
 import {
   IExpressionResult,
   InstructionWordType,

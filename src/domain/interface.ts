@@ -1,3 +1,6 @@
+import { WidenLiterals } from "../utils/ts";
+import { instructionSet } from "./characters";
+
 export interface ISymbols {
   readonly str: string;
   readonly els: SymbolRaw;
@@ -5,7 +8,9 @@ export interface ISymbols {
 
 export type SymbolRaw = readonly [string] | readonly [string, string];
 
-export type InstructionWordType = Record<string, any>;
+export type InstructionWordType =
+  | WidenLiterals<typeof instructionSet>
+  | typeof instructionSet;
 
 export interface IPrepareResult {
   /** Map from the real to the tokenizedWords */

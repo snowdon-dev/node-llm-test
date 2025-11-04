@@ -29,6 +29,12 @@ describe("MappingTransformer", () => {
         const tokenArr = Object.keys(result.realMap);
         const encoded = sentenceWords.map((word) => result.tokenMap[word].str);
         const decoded = encoded.map((token) => result.realMap[token].str);
+        expect(
+          realWords.some((v) => typeof v !== "string" || v.trim().length < 1),
+        ).toBe(false);
+        expect(
+          tokenArr.some((v) => typeof v !== "string" || v.trim().length < 1),
+        ).toBe(false);
         expect(decoded.join(" ")).toBe(sentence);
         expect(tokenArr.length === realWords.length).toBe(true);
       });

@@ -4,6 +4,17 @@ import { IRandom } from "../IRandom";
 import { LevelsType } from "../levels";
 import { Description } from "../models/Description";
 
+function* objectEntries<T extends object>(
+  obj: T,
+): Generator<[keyof T, T[keyof T]], void, unknown> {
+  for (const key in obj) {
+    if (Object.hasOwn(obj, key)) {
+      // TypeScript needs a small cast because `for...in` keys are strings
+      yield [key as keyof T, obj[key as keyof T]];
+    }
+  }
+}
+
 export class MessageTransfomer {
   constructor(
     private readonly random: IRandom,
@@ -84,7 +95,7 @@ export class MessageTransfomer {
             this.level.INDIRECT_SYMBOLS,
             result.instructionWords,
             randomOrder,
-            this.level.EASY_SCHEMA,
+            this.level.HARD_SCHEMA,
           )
           .join("\n"),
       ),
@@ -103,6 +114,56 @@ export class MessageTransfomer {
       parts = this.random
         .randOrder(parts.map((_, i) => i))
         .map((target) => parts[target]);
+    }
+
+    if (this.level.ANSWER_INCEPTION) {
+      const iter = objectEntries(this.result.tokenMap);
+      let target = iter.next();
+      if (this.result.realAnswer === target.value?.[0]!) {
+        target = iter.next();
+      }
+      const realTmp = target.value?.[0]!;
+      const tokenTmp = target.value?.[1].str;
+      if (tokenTmp === undefined) {
+        throw new TypeError();
+      }
+
+      let token = tokenTmp,
+        real = realTmp;
+      if (this.level.ENCODE_INSTRUCTIONS) {
+        token = this.result.tokenMap[realTmp].str;
+        real = this.result.realMap[token].str;
+      }
+
+      const num = this.random.rand(2) + 1;
+
+      const createBackAndForth = (real: string, isLast: boolean) => {
+        return (
+          (!isLast ? instructionWords.inceptionWait + ".\n" : "") +
+          instructionWords.inceptionSystem +
+          ` ${real}` +
+          ".\n" +
+          instructionWords.inceptionUser +
+          ` ${real}.` +
+          "\n"
+        );
+      };
+
+      parts.push(() => {
+        let str = instructionWords.inceptionIntro + ".\n";
+
+        if (real !== token) {
+          for (let i = 0; i < num; i++) {
+            const last = i === i - 1;
+            str +=
+              last || i % 2 === 0
+                ? createBackAndForth(real, last)
+                : createBackAndForth(token, last);
+          }
+        }
+
+        return outputter(str);
+      });
     }
 
     if (hasRandomShift && !this.level.OUTPUT_SHIFT_EXLCUDE_DETAILS) {

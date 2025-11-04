@@ -19,6 +19,7 @@ import { LevelsType } from "../levels";
 import { RandomSource, getRandomOrder } from "../../infra/random";
 import { PuzzleResult } from "../models/PuzzleResult";
 import { MappingTransformer } from "./MappingTransformer";
+import { WidenLiterals } from "../../utils/ts";
 
 export function createSymbolExpression<T extends SymbolTypeOptions>(
   expr: SymbolMapper<T>,
@@ -26,13 +27,16 @@ export function createSymbolExpression<T extends SymbolTypeOptions>(
   return expr;
 }
 
-function mapStringsDeep<T>(obj: T, fn: (s: string) => string): T {
+function mapStringsDeep<T>(
+  obj: T,
+  fn: (s: string) => string,
+): WidenLiterals<T> {
   if (typeof obj === "string") {
-    return fn(obj) as T;
+    return fn(obj) as WidenLiterals<T>;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map((item) => mapStringsDeep(item, fn)) as T;
+    return obj.map((item) => mapStringsDeep(item, fn)) as WidenLiterals<T>;
   }
 
   if (typeof obj === "object" && obj !== null) {
@@ -42,7 +46,8 @@ function mapStringsDeep<T>(obj: T, fn: (s: string) => string): T {
     }
     return result;
   }
-  return obj;
+
+  return obj as WidenLiterals<T>;
 }
 
 export class PuzzleGenerator {

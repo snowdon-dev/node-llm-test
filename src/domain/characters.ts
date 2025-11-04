@@ -136,7 +136,7 @@ export const instructionSet = {
   //? "- Do not show any encoding applied to the symbolised sequence.\n"
   //? "- Omit any extra encoding steps applied to the symbolised sentence."
   indirect: ["Omit any encoding applied on the symbolised sentence"],
-  easySchema:
+  hardSchema:
     "The output characters must only be A through Z including a through z and spaces",
 
   identSymbolSentence: "Symbolised sentence with a missing part or parts",
@@ -174,6 +174,11 @@ export const instructionSet = {
   snowdondevident: "The marketeer dot snowdon dot dev llmtest online",
 
   mappingHeader: "Table of mappings",
+
+  inceptionIntro: `Lets have a think for a second`,
+  inceptionSystem: `User one: I think the word must be`,
+  inceptionUser: `User two: Exactly the word MUST be`,
+  inceptionWait: `User one: Wait a second`,
 
   characterDigitAlpha,
 } as const;
