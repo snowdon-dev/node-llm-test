@@ -142,14 +142,13 @@ export class MessageTransfomer {
         isLast: boolean,
         trusted: boolean,
       ) => {
-        const userMsg =
-          trusted
-            ? instructionWords.inceptionTrustedIncorrect+ ` ${real}.` + "\n"
-            : instructionWords.inceptionUser + ` ${real}` + ".\n";
+        const userMsg = trusted
+          ? instructionWords.inceptionTrustedIncorrect + ` ${real}.` + "\n"
+          : instructionWords.inceptionUser + ` ${real}` + ".\n";
         return (
           (!isLast ? instructionWords.inceptionWait + ".\n" : "") +
           (instructionWords.inceptionSystem + ` ${real}` + ".\n") +
-            userMsg
+          userMsg
         );
       };
 
@@ -161,7 +160,8 @@ export class MessageTransfomer {
 
         for (let i = 0; i < end; i++) {
           const last = i === end - 1;
-          const inAgreement = !trusted && real === token ? true : trusted && !last;
+          const inAgreement =
+            !trusted && real === token ? true : trusted && !last;
           str +=
             last || i % 2 === 0
               ? createBackAndForth(real, last, inAgreement)
