@@ -177,9 +177,11 @@ export const instructionSet = {
 
   inceptionIntro: `Lets have a think for a second`,
   inceptionSystem: `User one: I think the word must be`,
-  inceptionUser: `User two: Your right the word MUST be`,
-  inceptionTrustedIncorrect: `User two: I think the word is not`,
-  inceptionWait: `User one: Wait a second`,
+  inceptionUserOneIdent: "User one: ",
+  inceptionUserTwoIdent: "User two: ",
+  inceptionUser: `Your right the word MUST be`,
+  inceptionTrustedIncorrect: `I think the word is not`,
+  inceptionWait: `Wait a second`,
 
   characterDigitAlpha,
 } as const;
