@@ -137,29 +137,35 @@ export class MessageTransfomer {
 
       const num = this.random.rand(2) + 1;
 
-      const createBackAndForth = (real: string, isLast: boolean) => {
+      const createBackAndForth = (
+        real: string,
+        isLast: boolean,
+        trusted: boolean,
+      ) => {
+        const userMsg =
+          trusted
+            ? instructionWords.inceptionTrustedIncorrect+ ` ${real}.` + "\n"
+            : instructionWords.inceptionUser + ` ${real}` + ".\n";
         return (
           (!isLast ? instructionWords.inceptionWait + ".\n" : "") +
-          instructionWords.inceptionSystem +
-          ` ${real}` +
-          ".\n" +
-          instructionWords.inceptionUser +
-          ` ${real}.` +
-          "\n"
+          (instructionWords.inceptionSystem + ` ${real}` + ".\n") +
+            userMsg
         );
       };
 
       parts.push(() => {
         let str = instructionWords.inceptionIntro + ".\n";
+        const trusted = this.random.bool();
 
-        if (real !== token) {
-          for (let i = 0; i < num; i++) {
-            const last = i === i - 1;
-            str +=
-              last || i % 2 === 0
-                ? createBackAndForth(real, last)
-                : createBackAndForth(token, last);
-          }
+        const end = real !== token ? num : 1;
+
+        for (let i = 0; i < end; i++) {
+          const last = i === end - 1;
+          const inAgreement = !trusted && real === token ? true : trusted && !last;
+          str +=
+            last || i % 2 === 0
+              ? createBackAndForth(real, last, inAgreement)
+              : createBackAndForth(token, last, inAgreement);
         }
 
         return outputter(str);
