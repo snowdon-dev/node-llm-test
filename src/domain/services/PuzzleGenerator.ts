@@ -57,7 +57,7 @@ export class PuzzleGenerator {
     private readonly random: RandomSource,
     private readonly mapFactory: MappingTransformer,
     public readonly level: LevelsType,
-    private ctx: PuzzleContextFactory,
+    private readonly ctx: PuzzleContextFactory,
   ) {}
 
   prepare(): PuzzleResult {
