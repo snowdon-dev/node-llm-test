@@ -176,7 +176,7 @@ export const instructionSet = {
   mappingHeader: "Table of mappings",
 
   inceptionIntro: `Lets have a think for a second`,
-  inceptionSystem: `User one: I think the word must be`,
+  inceptionSystem: `I think the word must be`,
   inceptionUserOneIdent: "User one",
   inceptionUserTwoIdent: "User two",
   inceptionUser: `Your right the word MUST be`,
