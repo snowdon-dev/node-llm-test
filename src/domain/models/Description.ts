@@ -36,7 +36,7 @@ export class Description {
     expressionChange: false | "reverse" | "order",
   ): string {
     const { opening, closing } = poorCodingStandards
-      ? delms[Math.floor(Math.random() * 3)]
+      ? delms[Math.floor(Math.random() * delms.length)]
       : delms[0];
 
     const parts = {
