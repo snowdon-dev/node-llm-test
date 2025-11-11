@@ -17,6 +17,7 @@ export class ContextSource implements IContextSource {
   private readonly bucketIds: string[];
 
   constructor(private readonly ctx: PuzzleContext) {
+    //if (ctx.totalWords.length < 3) throw new TypeError("not enough words");
     this.buckets = [];
     this.bucketIds = [];
 
@@ -72,11 +73,11 @@ export class ContextSource implements IContextSource {
     return this.ctx.totalWords[idx];
   }
 
-  randNot(idx: number, word: string[] | null): string {
+  randNot(idx: number, words: string[] | null): string {
     const { totalWords } = this.ctx;
-    if (word !== null && word.includes(totalWords[idx])) {
+    if (words !== null && words.includes(totalWords[idx])) {
       idx = (idx + 1) % totalWords.length;
-      if (word.includes(totalWords[idx])) idx = (idx + 1) % totalWords.length;
+      if (words.includes(totalWords[idx])) idx = (idx + 1) % totalWords.length;
     }
     return this.atAll(idx);
   }

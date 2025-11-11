@@ -1,3 +1,4 @@
+import { Context } from "node:vm";
 import { ContextSource } from "../domain/reader/ContextSource";
 import { SymbolMutable } from "../domain/reader/interface";
 
@@ -5,6 +6,20 @@ const sentence = "the the one";
 const sentenceWords = <readonly string[]>sentence.split(" ");
 
 const createContext = () => {
+  return {
+    chosen: sentenceWords,
+    active: [],
+    otherWords: [],
+    totalWordsBuckets: [sentenceWords],
+    totallen: sentenceWords.length,
+    minCount: sentenceWords.length,
+    totalWords: Array.from(new Set(sentenceWords)),
+  };
+};
+
+const createContextThreeWords = () => {
+  const sentence = "the the one two";
+  const sentenceWords = <readonly string[]>sentence.split(" ");
   return {
     chosen: sentenceWords,
     active: [],
@@ -31,6 +46,32 @@ const createMultiBucketContext = () => {
 };
 
 describe("ContextSource", () => {
+  describe("rand not", () => {
+    let source: ContextSource;
+
+    it("works", () => {
+      source = new ContextSource(createContext());
+      const res = source.randNot(0, ["the"]);
+      expect(res).toBe("one");
+    });
+
+    it("missing second word", () => {
+      const ctx = createContext();
+      source = new ContextSource(ctx);
+      const excludes = ["the", "one"];
+      const res = source.randNot(0, excludes);
+      expect(excludes.includes(res)).toBe(true);
+    });
+
+    it("finds third word", () => {
+      const ctx = createContextThreeWords();
+      source = new ContextSource(ctx);
+      const excludes = ["the", "one"];
+      const res = source.randNot(0, excludes);
+      expect(excludes.includes(res)).toBe(false);
+    });
+  });
+
   describe("basic reads", () => {
     let source: ContextSource;
 

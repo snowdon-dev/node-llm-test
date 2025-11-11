@@ -263,7 +263,6 @@ seq -f "%.0f" 1000000 1000010 | \
 | `--no-answer`                | Do not wait for an answer on stdin                |
 | `--verbose`                  | Print more debug information                      |
 
-
 ### Programmatic
 
 ```javascript
@@ -274,13 +273,9 @@ async function run() {
   const seed = Math.floor(Math.random() * (2 ** 31 - 1));
   const wordList = await getRandomWords(600, seed);
   const level = Feature.CHAOS_WORDS | Feature.EXTRA_WORDS;
-  const puzzle = Puzzle.New(
-    seed,
-    level,
-    [
-      /*someWordList*/
-    ],
-  );
+  const puzzle = Puzzle.New(seed, level, [
+    /*someWordList*/
+  ]);
   //const puzzle2 = Puzzle.New();
 
   puzzle.print(puzzle.result(), console.log);
@@ -299,24 +294,24 @@ version.
 
 ### Reference
 
-| Flag name           | Value (decimal) | What it does  | Example behavior | Difficulty |
-| :----------------------------- | -----------------------: | :------------------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------------------- | ---------- |
-| `CHAOS_WORDS`                  |              `1` | Increases output word count (roughly `words_in_domain * 2`) to make text longer/more chaotic.     | If domain has 50 words, output may include ~50 extra words scattered through the text.        | Easy       |
+| Flag name                      | Value (decimal) | What it does                                                                                      | Example behavior                                                                              | Difficulty |
+| :----------------------------- | --------------: | :------------------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------------------- | ---------- |
+| `CHAOS_WORDS`                  |             `1` | Increases output word count (roughly `words_in_domain * 2`) to make text longer/more chaotic.     | If domain has 50 words, output may include ~50 extra words scattered through the text.        | Easy       |
 | `MULTIZE_TOKENS`               |             `2` | Duplicates tokens used to increase token density/length.                                          | A token like `cat` might become `cat cat`.                                                    | Medium     |
-| `EXCLUDE_MAPPING_INFO`         |            `4`  | Omits mapping/metadata information (e.g., token→map direction) from output.                       | Instead of returning the details in text, the response omits the info.                        | Easy       |
-| `MULTIZE_I_TOKENS`             |           `8` | Similar to `MULTIZE_TOKENS` but targets `input words`.                                            | `quick` becomes `quick brown`                                                                 | Medium     |
-| `PARTIAL_REASINING`            |         `16` | Missing words may be partial instead of full                                                      | 'full word' becomes '[..] word'                                                               | Medium     |
-| `INDIRECT_SYMBOLS`             |        `32` | Transforms tokens via a symbol function (e.g., ROT13 or other symbolisation) to obfuscate tokens. | Words may be ROT13-encoded or replaced with binary equivalents.                               | Medium     |
-| `EXCLUDE_SENTENCE_SPACES`      |       `64` | Removes spaces between words.                                                                     | `"one two"` → `"onetwo"`                                                                      | Hard       |
-| `INSTRUCTION_ORDER`            |     `128` | Randomly alters the order of instructions before printing.                                        | Instruction list may be reordered, affecting how instructions are interpreted/executed.       | Easy       |
-| `OUTPUT_SHIFT`                 |    `256` | Applies a character/token shift (e.g., Caesar-like) to the output; decoding is required.          | Plain text is shifted by N characters; consumer must reverse the shift to read original text. | Medium     |
-| `OUTPUT_SHIFT_EXLCUDE_DETAILS` |   `512` | With `OUTPUT_SHIFT`, additionally excludes metadata about the shift (magnitude/direction).        | Output is shifted and no shift metadata is returned; decoder must infer shift by analysis.    | Hard       |
-| `MAPPING_INFO_PUZZLE`          |   `1024` | The expression order is changed based on a maths puzzle. | A expression like, 'one' > 'two' may change to 'two' > 'one'. The ordering is swapped | Medium |
-| `POOR_CODING_PRACTICES`        |  `2048` | Emulates poor coding standards                                                                    | For example, alternates more deliminators. '' becomes "" etc                                  | Easy       |
-| `EXTRA_WORDS`                  | `4096` | Adds extra words from a pre defined list designed to complement the default                       | Adds words like "glib" which can be used to form novel solutions                              | Medium     |
-| `ENCODE_INSTRUCTIONS` |  `8192` | Encodes the instructions when `Feature.MULTIZE_I_TOKENS and Feature.MULTIZE_TOKENS` are equal  | Instruction are gibberish, unless the task is understood ahead of time  | Medium |
-| `HARD_SCHEMA` | `16384` | Does not displays a schema of the anser | |  Medium |
-| `ANSWER_INCEPTION` | `32768` | Tries to fool the LLM into chosing a trusted source | Is given sentence like 'The answer is one' | Easy |
+| `EXCLUDE_MAPPING_INFO`         |             `4` | Omits mapping/metadata information (e.g., token→map direction) from output.                       | Instead of returning the details in text, the response omits the info.                        | Easy       |
+| `MULTIZE_I_TOKENS`             |             `8` | Similar to `MULTIZE_TOKENS` but targets `input words`.                                            | `quick` becomes `quick brown`                                                                 | Medium     |
+| `PARTIAL_REASINING`            |            `16` | Missing words may be partial instead of full                                                      | 'full word' becomes '[..] word'                                                               | Medium     |
+| `INDIRECT_SYMBOLS`             |            `32` | Transforms tokens via a symbol function (e.g., ROT13 or other symbolisation) to obfuscate tokens. | Words may be ROT13-encoded or replaced with binary equivalents.                               | Medium     |
+| `EXCLUDE_SENTENCE_SPACES`      |            `64` | Removes spaces between words.                                                                     | `"one two"` → `"onetwo"`                                                                      | Hard       |
+| `INSTRUCTION_ORDER`            |           `128` | Randomly alters the order of instructions before printing.                                        | Instruction list may be reordered, affecting how instructions are interpreted/executed.       | Easy       |
+| `OUTPUT_SHIFT`                 |           `256` | Applies a character/token shift (e.g., Caesar-like) to the output; decoding is required.          | Plain text is shifted by N characters; consumer must reverse the shift to read original text. | Medium     |
+| `OUTPUT_SHIFT_EXLCUDE_DETAILS` |           `512` | With `OUTPUT_SHIFT`, additionally excludes metadata about the shift (magnitude/direction).        | Output is shifted and no shift metadata is returned; decoder must infer shift by analysis.    | Hard       |
+| `MAPPING_INFO_PUZZLE`          |          `1024` | The expression order is changed based on a maths puzzle.                                          | A expression like, 'one' > 'two' may change to 'two' > 'one'. The ordering is swapped         | Medium     |
+| `POOR_CODING_PRACTICES`        |          `2048` | Emulates poor coding standards                                                                    | For example, alternates more deliminators. '' becomes "" etc                                  | Easy       |
+| `EXTRA_WORDS`                  |          `4096` | Adds extra words from a pre defined list designed to complement the default                       | Adds words like "glib" which can be used to form novel solutions                              | Medium     |
+| `ENCODE_INSTRUCTIONS`          |          `8192` | Encodes the instructions when `Feature.MULTIZE_I_TOKENS and Feature.MULTIZE_TOKENS` are equal     | Instruction are gibberish, unless the task is understood ahead of time                        | Medium     |
+| `HARD_SCHEMA`                  |         `16384` | Does not displays a schema of the anser                                                           |                                                                                               | Medium     |
+| `ANSWER_INCEPTION`             |         `32768` | Tries to fool the LLM into chosing a trusted source                                               | Is given sentence like 'The answer is one'                                                    | Easy       |
 
 ### Usage tips
 
@@ -422,6 +417,7 @@ Symbolised sentence with a missing part or parts:
 ```
 
 FYI:
+
 ```
 +-------+-------------+-------+-------------+
 | Big   | fjords vex  | quick | waltz nymph |

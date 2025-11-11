@@ -16,10 +16,10 @@ import {
   ExpressionDefinitionType,
 } from "../interface";
 import { LevelsType } from "../levels";
-import { RandomSource, getRandomOrder } from "../../infra/random";
 import { PuzzleResult } from "../models/PuzzleResult";
 import { MappingTransformer } from "./MappingTransformer";
 import { WidenLiterals } from "../../utils/ts";
+import { IRandom } from "../IRandom";
 
 export function createSymbolExpression<T extends SymbolTypeOptions>(
   expr: SymbolMapper<T>,
@@ -54,7 +54,7 @@ export class PuzzleGenerator {
   public result?: PuzzleResult;
 
   constructor(
-    private readonly random: RandomSource,
+    private readonly random: IRandom,
     private readonly mapFactory: MappingTransformer,
     public readonly level: LevelsType,
     private readonly ctx: PuzzleContextFactory,
@@ -224,14 +224,11 @@ export class PuzzleGenerator {
   private buildExpresion(): IExpressionResult {
     const equalSymbol =
       equalSymblsSet[this.random.rand(equalSymblsSet.length - 1)];
-    const expressionDefinition = getRandomOrder(
-      [
-        ExpressionPart.OLD_OPARAND,
-        ExpressionPart.OPERATOR,
-        ExpressionPart.NEW_OPARAND,
-      ] as ExpressionDefinitionType,
-      this.random.rand,
-    );
+    const expressionDefinition = this.random.randOrder([
+      ExpressionPart.OLD_OPARAND,
+      ExpressionPart.OPERATOR,
+      ExpressionPart.NEW_OPARAND,
+    ] as ExpressionDefinitionType);
     const idx = expressionDefinition.indexOf(ExpressionPart.OPERATOR);
     const expressionType =
       idx === 0 ? "prefix" : idx === 1 ? "infix" : "postfix";

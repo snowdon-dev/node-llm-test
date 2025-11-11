@@ -46,7 +46,7 @@ jobs:
 
       - run: mkdir -p coverage/site/badges/
       - run: npx coverage-badges --output coverage/site/badges/badges.svg
-      
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -63,7 +63,7 @@ jobs:
       #  with:
       #    path: coverage/site/
 
- # deploy:
- #   needs: test
- #   runs-on: ubuntu-latest
- #   steps:
+  # deploy:
+  #   needs: test
+  #   runs-on: ubuntu-latest
+  #   steps:

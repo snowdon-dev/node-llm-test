@@ -36,7 +36,7 @@ export class MessageTransfomer {
       : (str: string) => str;
     let parts: (() => string)[] = [];
 
-    let instructionWords = result.instructionWords;
+    const instructionWords = result.instructionWords;
 
     const isMappingPuzzle = this.level.MAPPING_INFO_PUZZLE;
 

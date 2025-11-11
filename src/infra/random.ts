@@ -91,7 +91,7 @@ export class RandomSource implements IRandom {
     return Boolean(this.rand(1));
   }
 
-  randOrder<T>(input: T[]) {
+  randOrder<T extends unknown[]>(input: T) {
     return getRandomOrder(input, this.rand);
   }
 }

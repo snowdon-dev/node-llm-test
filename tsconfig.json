@@ -2,14 +2,9 @@
   "compilerOptions": {
     "target": "es2024",
     "module": "commonjs",
-    "types": [
-      "node",
-      "jest"
-    ],
+    "types": ["node", "jest"],
     "isolatedModules": true,
-    "strictNullChecks": true,
+    "strictNullChecks": true
   },
-  "include": [
-    "src/**/*.ts"
-  ]
+  "include": ["src/**/*.ts"]
 }

@@ -19,13 +19,11 @@ export class MappingTransformer {
     const tokenMap: Record<string, ISymbols> = Object.create(null);
     const realMap: Record<string, ISymbols> = Object.create(null);
 
-    const { totalSymbols } = symResult;
-
-    const totalTokens = symResult.tokens;
+    const { totalSymbols, tokens } = symResult;
 
     for (let i = 0; i < totalSymbols.length; i++) {
       const symbolObj = totalSymbols[i];
-      const tokenObj = totalTokens[totalTokens.length - 1 - i];
+      const tokenObj = tokens[tokens.length - 1 - i];
 
       tokenMap[symbolObj.str] = tokenObj;
       realMap[tokenObj.str] = symbolObj;
