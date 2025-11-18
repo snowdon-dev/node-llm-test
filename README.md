@@ -5,22 +5,52 @@ Status](https://github.com/snowdon-dev/node-llm-test/actions/workflows/main-push
 ![Coverage Status](https://snowdon-dev.github.io/node-llm-test/badges/badges.svg)
 [![Npm version](https://img.shields.io/npm/v/node-llm-test.svg)](https://www.npmjs.com/package/node-llm-test)
 [![Download NPM](https://img.shields.io/npm/dm/node-llm-test.svg?style=flat)](https://www.npmjs.com/package/node-llm-test/)
-
-A test to evaluate the various intelligence modes of large language models. A
-linear-time algorithm for generating infinitely many test instances.
-
-Using the most token-efficient method and the simplest token format, the test
-presents an easy logical puzzle, with a domain and steps that are native and
-natural to a computer agent. The puzzle may involve few or many steps, and may
-permit the usage of simple tool calls. The solution requires reasoning rather
-than computation, and the design eliminates reliance on memorization to ensure
-that the test cannot be solved by prior training.
-
 - See the web app at: <https://marketeer.snowdon.dev/tools/llmtest-online/>.
 - Don't want to keep running tests. Sign up to the periodic newsletter
   containing results from the leading agents. And stay informed without spinning
   up infra. Just email: <llmtest@snowdon.dev>.
+- The latest information is available on the web app
 - Issue reports welcome. Just let me know.
+
+| Make   | Model | Level  | Improvement |
+|--------|-------|--------|-------------|
+| ChatGPT | 4     | Seeker | +1          |
+| ChatGPT | 5     | Scholar| +1          |
+| ChatGPT | 5.1   | Warden | +1          |
+| Gemini  | 2     | Seeker | +1          |
+| Gemini  | 2.5   | Warden | +2          |
+| Sonnet  | 4     | Unable | -1          |
+
+
+A test to evaluate the various intelligence modes of large language models. A
+linear-time algorithm for generating infinitely many test instances.
+
+Traditional evaluation methods often rely on assessing a model’s ability to
+answer previously known questions—tasks that can frequently be addressed using
+older information-retrieval approaches. Contemporary benchmarks therefore
+emphasize agentic workflows, interactive environments, and long-horizon tasks
+intended to measure an AI system’s capacity for planning, adaptation, and
+multi-step reasoning.
+
+However, current agentic evaluations exhibit several limitations. Test
+instructions are typically conveyed through inefficient or verbose formats,
+resulting in unnecessarily high token usage. In addition, such benchmarks have
+been shown to permit unintended shortcuts: models may consult strategy guides,
+analyze repository histories, or otherwise circumvent the intended reasoning
+process.
+
+The test proposed here offers a more efficient and controlled alternative.
+
+It provides an agent-like experience while using a minimal and token-efficient
+prompt format. The evaluation consists of a concise logical puzzle defined
+within a domain that is natural for computational agents. The task may involve
+multiple steps and may allow limited tool usage, but its structure is
+intentionally designed so that success requires authentic reasoning rather than
+memorization or external lookup.
+
+This approach yields a benchmark that can generate unlimited test instances and
+is lightweight, cost-effective, resistant to exploitation, and better aligned
+with the objective of evaluating true reasoning capabilities.
 
 ## Installation
 

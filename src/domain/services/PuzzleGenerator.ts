@@ -140,6 +140,8 @@ export class PuzzleGenerator {
 
     const expression = this.buildExpresion();
 
+    // TODO: this could currenty be not I tokens, without changing the mapper
+    // missing words need to be included for i words
     const instructionWords =
       this.level.MULTIZE_I_TOKENS === this.level.MULTIZE_TOKENS &&
       this.level.ENCODE_INSTRUCTIONS

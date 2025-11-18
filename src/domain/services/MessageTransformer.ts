@@ -110,11 +110,18 @@ export class MessageTransfomer {
       ),
     );
 
-    if (randomOrder) {
-      parts = this.random
-        .randOrder(parts.map((_, i) => i))
-        .map((target) => parts[target]);
+    const reasoningText: string[] = [];
+    if (this.level.REASNING_MODE) {
+      reasoningText.push(...instructionWords.instructionReasoning);
+    } else {
+      reasoningText.push(...instructionWords.instructionsNonReasoning);
     }
+    const reasoningPart = () =>
+      reasoningText.map((value) => "- " + value + ".").join("\n");
+
+    parts = [reasoningPart].concat(
+      randomOrder ? this.random.randOrder(parts) : parts,
+    );
 
     if (this.level.ANSWER_INCEPTION) {
       const iter = objectEntries(this.result.tokenMap);

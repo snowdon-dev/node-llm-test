@@ -32,6 +32,8 @@ export enum Feature {
 
   ANSWER_INCEPTION = 1 << 15,
 
+  REASNING_MODE = 1 << 16,
+
   //MISSING_SENTENCE = 1 << 7,
 }
 
