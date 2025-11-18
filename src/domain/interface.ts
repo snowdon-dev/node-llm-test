@@ -59,11 +59,13 @@ export interface IPuzzleResult extends IPrepareResult {
         exact: boolean;
         possible: boolean;
         possibleReal?: undefined;
+        correctFormat: boolean,
       }
     | {
         exact: boolean;
         possible: boolean;
         possibleReal: ISymbols;
+        correctFormat: boolean,
       };
 }
 

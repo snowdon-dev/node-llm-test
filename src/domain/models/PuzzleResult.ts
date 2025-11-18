@@ -1,6 +1,5 @@
 import {
   blankWordToken,
-  instructionSet,
   isFirstCharCapital,
 } from "../characters";
 import {
@@ -50,20 +49,22 @@ export class PuzzleResult implements IPuzzleResult {
   }
 
   answer(strIn: string) {
+    const correctFormat = /^[A-Za-z]+(?: [A-Za-z]+)?$/.test(strIn);
     if (strIn === this.correctAnswer) {
       // if the word equals the correct word. HURRAH
       return {
         exact: true,
         possible: false,
+        correctFormat,
       };
     }
-    if (strIn.length > 0) {
+    if (correctFormat) {
       const wordSequence = this.realMap[strIn]; // token to real
       if (wordSequence === undefined) {
-        return { exact: false, possible: false };
+        return { exact: false, possible: false, correctFormat };
       }
       if (this.tokenMap[wordSequence.str] === undefined) {
-        return { exact: false, possible: false };
+        return { exact: false, possible: false, correctFormat };
       }
 
       // check it completes the sentence
@@ -75,7 +76,7 @@ export class PuzzleResult implements IPuzzleResult {
       if (
         isFirstCharCapital(realWord) !== isFirstCharCapital(wordSequence.str)
       ) {
-        return { exact: false, possible: false };
+        return { exact: false, possible: false, correctFormat };
       }
 
       // insert into the partial sentence
@@ -84,13 +85,14 @@ export class PuzzleResult implements IPuzzleResult {
         tmpRealWords.join("").replaceAll(" ", "").toLowerCase().split(""),
       );
       if (charsSet.size !== 26) {
-        return { exact: false, possible: false };
+        return { exact: false, possible: false, correctFormat };
       }
 
       // not true, but potentially true
       // word sequence should be checked to see if it's in the dictionary
-      return { exact: false, possible: true, possibleReal: wordSequence };
+      return { exact: false, possible: true, possibleReal: wordSequence, correctFormat };
     }
-    throw Error("Answer failure");
+
+    return { exact: false, possible: false, correctFormat };
   }
 }
