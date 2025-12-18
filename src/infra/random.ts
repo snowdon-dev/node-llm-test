@@ -13,22 +13,6 @@ export function mulberry32(seed: number) {
 export const simpleRandom = (len: number) =>
   Math.floor(Math.random() * (len + 1));
 
-export function pickRandomBucket<T>(
-  arrays: readonly (readonly T[])[],
-  totalLength: number,
-  rand: (num: number) => number,
-): [number, readonly T[]] {
-  let randIndex = rand(totalLength - 1);
-  for (const arr of arrays) {
-    if (randIndex < arr.length) {
-      return [randIndex, arr];
-    }
-    randIndex -= arr.length;
-  }
-
-  throw new Error("Should never reach here");
-}
-
 function cryptoRandom() {
   const array = new Uint32Array(1);
   crypto.getRandomValues(array);
