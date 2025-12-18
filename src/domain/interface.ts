@@ -14,11 +14,14 @@ export type InstructionWordType =
 
 export interface IPrepareResult {
   /** Map from the real to the tokenizedWords */
+  readonly getToken: (str: string) => ISymbols;
   tokenMap: Readonly<Record<string, ISymbols>>;
+
   /** Map from the tokenized words to the real words */
+  readonly getReal: (str: string) => ISymbols;
   realMap: Readonly<Record<string, ISymbols>>;
 
-  tokenizedWords: ISymbols[];
+  readonly tokenizedWords: ISymbols[];
 
   /** Sentence as tokens (symbols) */
   readonly tokenizedSentence: string;
@@ -45,11 +48,11 @@ export interface IPrepareResult {
   readonly instructionWords: InstructionWordType;
 
   /** Persistent rules */
-  testComplex: {
+  readonly testComplex: Readonly<{
     identLocationOrder: number;
     identLocationType: number;
     puzzleType: false | "reverse" | "order";
-  };
+  }>;
 }
 
 export interface IPuzzleResult extends IPrepareResult {
@@ -59,13 +62,13 @@ export interface IPuzzleResult extends IPrepareResult {
         exact: boolean;
         possible: boolean;
         possibleReal?: undefined;
-        correctFormat: boolean,
+        correctFormat: boolean;
       }
     | {
         exact: boolean;
         possible: boolean;
         possibleReal: ISymbols;
-        correctFormat: boolean,
+        correctFormat: boolean;
       };
 }
 

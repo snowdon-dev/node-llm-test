@@ -34,6 +34,10 @@ export enum Feature {
 
   REASNING_MODE = 1 << 16,
 
+  MAPPING_DEPTH = 1 << 17,
+
+  MULTIIZE_PLACEMENT = 1 << 18,
+
   //MISSING_SENTENCE = 1 << 7,
 }
 

@@ -138,8 +138,8 @@ export class MessageTransfomer {
       let token = tokenTmp,
         real = realTmp;
       if (this.level.ENCODE_INSTRUCTIONS) {
-        token = this.result.tokenMap[realTmp].str;
-        real = this.result.realMap[token].str;
+        token = this.result.getToken(realTmp).str;
+        real = this.result.getReal(token).str;
       }
 
       const num = this.random.rand(2) + 1;

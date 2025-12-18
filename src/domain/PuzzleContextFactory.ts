@@ -2,7 +2,7 @@ import { instructionSet, pangramsDefault } from "./characters";
 import { PuzzleContext } from "./models/PuzzleContext";
 import { OtherWordsService } from "./services/OtherWordsService";
 import { LevelsType } from "./levels";
-import { RandomSource } from "../infra/random";
+import { IRandom } from "./IRandom";
 
 function collectWords(obj: any, words = new Set<string>()): Set<string> {
   for (const value of Object.values(obj)) {
@@ -23,7 +23,7 @@ function collectWords(obj: any, words = new Set<string>()): Set<string> {
 export class PuzzleContextFactory {
   constructor(
     private readonly otherWordsFact: OtherWordsService,
-    private readonly random: RandomSource,
+    private readonly random: IRandom,
     private readonly pangrams: readonly string[],
     private readonly inputWords: readonly string[],
     public readonly level: Pick<
@@ -33,9 +33,7 @@ export class PuzzleContextFactory {
   ) {}
 
   create() {
-    const { words, pangramsWordsList, minCount } = this.prepareActivePangram(
-      this.pangrams,
-    );
+    const { words, pangramsWordsList, minCount } = this.prepareActivePangram();
 
     const instructioWords = this.level.ENCODE_INSTRUCTIONS
       ? Array.from(collectWords(instructionSet))
@@ -70,17 +68,17 @@ export class PuzzleContextFactory {
     return context;
   }
 
-  private prepareActivePangram(pangrams: readonly string[]) {
-    const sentenceIdx = this.random.rand(pangrams.length - 1);
+  private prepareActivePangram() {
+    const sentenceIdx = this.random.rand(this.pangrams.length - 1);
 
     let pangramsWordsList: readonly string[] | undefined;
     let words: readonly string[];
 
     let tmpPangrams: readonly (readonly string[])[];
-    const usingDefault = pangrams === pangramsDefault;
+    const usingDefault = this.pangrams === pangramsDefault;
 
     if (!usingDefault) {
-      tmpPangrams = pangrams.map((p) => p.split(/\s/));
+      tmpPangrams = this.pangrams.map((p) => p.split(/\s/));
     } else {
       if (pangramsDefaultCache === undefined) {
         tmpPangrams = pangramsDefaultCache = pangramsDefault.map((p) =>

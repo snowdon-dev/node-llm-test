@@ -1,6 +1,7 @@
 export interface ScanOpts {
   missingWords: boolean;
   multiInput: boolean;
+  placementIdx: number;
 }
 
 export interface SymbolManagerOpts {

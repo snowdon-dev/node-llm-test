@@ -1,5 +1,7 @@
+export type RandMaxRangeCallable = (len: number) => number;
+
 export interface IRandom {
-  rand(num: number): number;
+  rand: RandMaxRangeCallable;
   bool(): boolean;
   randOrder<T extends unknown[]>(input: T): T;
 }

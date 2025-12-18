@@ -51,15 +51,15 @@ export const pangramsDefault = [
   "Big fjords vex quick waltz nymph",
 
   // again without first capital
-  "the quick brown fox jumps over the lazy dog",
-  "pack my box with five dozen liquor jugs",
-  "how vexingly quick daft zebras jump",
-  "the five boxing wizards jump quickly",
-  "jackdaws love my big sphinx of quartz",
-  "two driven jocks help fax my big quiz",
-  "grumpy wizards make toxic brew for the evil queen and Jack",
-  "just keep examining every low bid quoted for zinc etchings",
-  "big fjords vex quick waltz nymph",
+  //"the quick brown fox jumps over the lazy dog",
+  //"pack my box with five dozen liquor jugs",
+  //"how vexingly quick daft zebras jump",
+  //"the five boxing wizards jump quickly",
+  //"jackdaws love my big sphinx of quartz",
+  //"two driven jocks help fax my big quiz",
+  //"grumpy wizards make toxic brew for the evil queen and Jack",
+  //"just keep examining every low bid quoted for zinc etchings",
+  //"big fjords vex quick waltz nymph",
 
   // Can't use this because comma breaks the words.join(' ') logic
   //"Sphinx of black quartz, judge my vow",
@@ -143,12 +143,13 @@ export const instructionSet = {
     "The answer must be a strict match with case and character sensitively",
     //"- Think for as long as needed and only reply when confident.\n"
   ],
-  instructionReasoning: [
-    "Think carefully and respond only when confident",
-  ],
+  instructionReasoning: ["Think carefully and respond only when confident"],
   instructionsNonReasoning: [
-    "Respond with the final answer only", "No reasoning", "No steps","No explanations",
-    "Using flash mode"
+    "Respond with the final answer only",
+    "No reasoning",
+    "No steps",
+    "No explanations",
+    "Using flash mode",
   ],
   //? "- Do not show any encoding applied to the symbolised sequence.\n"
   //? "- Omit any extra encoding steps applied to the symbolised sentence."
@@ -175,7 +176,7 @@ export const instructionSet = {
   mappingDetails: {
     start: "The",
     ending:
-      "operator defines a mapping between two character sequences enclosed within a delemiter",
+      "operator defines a mapping between two character sequences enclosed within a delimiter",
 
     delemiter:
       "Each mapping entry in the table is separated by a newline character",

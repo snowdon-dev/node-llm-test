@@ -1,12 +1,12 @@
 import { ISymbols, SymbolRaw } from "../interface";
 import { SymbolScanner } from "./SymbolScanner";
-import { RandomSource } from "../../infra/random";
 import { IContextSource, ScanOpts, SymbolManagerOpts } from "./interface";
 import { SymbolObj } from "../models/SymbolObj";
+import { IRandom } from "../IRandom";
 
 export class SymbolManager {
   static New(
-    random: RandomSource,
+    random: IRandom,
     source: IContextSource,
     options: SymbolManagerOpts,
   ) {
@@ -19,17 +19,18 @@ export class SymbolManager {
   }
 
   constructor(
-    private readonly random: RandomSource,
+    private readonly random: IRandom,
     private readonly source: IContextSource,
     private readonly scanFactory: (op: ScanOpts) => SymbolScanner,
     private readonly options: SymbolManagerOpts,
   ) {}
 
-  public run() {
+  public run(placementIdx: number) {
     const scanOpts = {
       // missing words when its multi input
       missingWords: this.options.multiInput && this.options.multiTokens,
       multiInput: this.options.multiInput,
+      placementIdx: placementIdx,
     };
 
     const scanner = this.scanFactory(scanOpts);
@@ -39,7 +40,7 @@ export class SymbolManager {
     const tokens =
       this.options.multiTokens === this.options.multiInput
         ? this.random.randOrder(totalSymbols.slice())
-        : this.buildFlatTokens(totalSymbols.length);
+        : this.buildFlatTokens(totalSymbols.length, placementIdx);
 
     return {
       totalSymbols,
@@ -48,7 +49,14 @@ export class SymbolManager {
     };
   }
 
-  private buildFlatTokens(symSize: number) {
+  private placementModifier<T extends any[]>(vals: T, placementIdx: number): T {
+    if (placementIdx === 0) {
+      return vals;
+    }
+    return vals.reverse() as T;
+  }
+
+  private buildFlatTokens(symSize: number, placementIdx: number) {
     const totalWords = this.random.randOrder(this.source.all());
     let tokens: ISymbols[] = [];
 
@@ -60,7 +68,10 @@ export class SymbolManager {
       let symbols: SymbolRaw;
       if (this.options.multiTokens && this.random.bool()) {
         const idx = this.random.rand(totalWords.length - 1);
-        symbols = [totalWords[i], totalWords[idx]];
+        symbols = this.placementModifier(
+          [totalWords[i], totalWords[idx]] as [string, string],
+          placementIdx,
+        );
       } else {
         symbols = [totalWords[i]];
       }

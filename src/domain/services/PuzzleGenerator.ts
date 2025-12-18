@@ -6,7 +6,6 @@ import {
   instructionSet,
 } from "../characters";
 import { SymbolMapper } from "../models/SymbolMapper";
-import { PuzzleContextFactory } from "../PuzzleContextFactory";
 import {
   ISymbols,
   SymbolRaw,
@@ -17,9 +16,11 @@ import {
 } from "../interface";
 import { LevelsType } from "../levels";
 import { PuzzleResult } from "../models/PuzzleResult";
-import { MappingTransformer } from "./MappingTransformer";
 import { WidenLiterals } from "../../utils/ts";
-import { IRandom } from "../IRandom";
+import { IRandom, RandMaxRangeCallable } from "../IRandom";
+import { IMappingTransfomer } from "../IMappingTransfomer";
+import { IFactory } from "../IFactory";
+import { PuzzleContext } from "../models/PuzzleContext";
 
 export function createSymbolExpression<T extends SymbolTypeOptions>(
   expr: SymbolMapper<T>,
@@ -50,38 +51,132 @@ function mapStringsDeep<T>(
   return obj as WidenLiterals<T>;
 }
 
+interface IConfig {
+  readonly maxCycleDepth: number;
+  readonly level: Readonly<LevelsType>;
+}
+
+export function chooseRemoveIndex(
+  totalPosition: number,
+  minIndex: number,
+  rand: RandMaxRangeCallable,
+): number {
+  if (totalPosition > minIndex && rand(2) > 0) {
+    return rand(minIndex);
+  }
+  return totalPosition;
+}
+
+export function generatePartialTokenized(
+  isPartialReason: boolean,
+  activePartial: [string] | [string, string],
+  placementIdx: number,
+  randomBool: () => boolean,
+): [string] | [string, string] {
+  if (isPartialReason && activePartial.length !== 1 && randomBool()) {
+    activePartial[placementIdx] = blankWordToken;
+    return activePartial;
+  } else {
+    return [blankWordToken];
+  }
+}
+
+export function buildSymbolMapper(
+  rand: (max: number) => number,
+  indirectSymbolsFlag: boolean,
+): SymbolMapper<SymbolTypeOptions> {
+  type MappedSymbol = [string] | [string, string];
+
+  const type = !indirectSymbolsFlag ? 0 : rand(2) + 1;
+
+  switch (type) {
+    case 1: {
+      const shift = rand(24) + 1;
+      return createSymbolExpression({
+        mapper: (w) => w.map((wIn) => rotN(wIn, shift)) as MappedSymbol,
+        options: {
+          type: "rot",
+          rotNNum: shift,
+        },
+      });
+    }
+    case 2: {
+      return createSymbolExpression({
+        mapper: (w) => w.map((wIn) => toBinary(wIn)) as MappedSymbol,
+        options: { type: "binary" },
+      });
+    }
+    case 3: {
+      const shift = rand(24) + 1;
+      return createSymbolExpression({
+        mapper: (w) =>
+          w.map((wIn) => toBinary(rotN(wIn, shift))) as MappedSymbol,
+        options: {
+          type: "binaryrot",
+          rotNNum: shift,
+        },
+      });
+    }
+    default: {
+      return createSymbolExpression({
+        mapper: (w) => w,
+        options: { type: "none" },
+      });
+    }
+  }
+}
+
 export class PuzzleGenerator {
-  public result?: PuzzleResult;
+  public readonly result?: PuzzleResult;
+  public readonly level: Readonly<LevelsType>;
 
   constructor(
     private readonly random: IRandom,
-    private readonly mapFactory: MappingTransformer,
-    public readonly level: LevelsType,
-    private readonly ctx: PuzzleContextFactory,
-  ) {}
+    private readonly mapFactory: IMappingTransfomer,
+    private readonly ctx: IFactory<PuzzleContext>,
+    private readonly config: IConfig,
+  ) {
+    this.level = config.level;
+  }
 
   prepare(): PuzzleResult {
     const ctx = this.ctx.create();
-    const { tokenMap, realMap, wordsSeqs } = this.mapFactory.create(ctx);
+
+    const mappingDepth = this.level.MAPPING_DEPTH
+      ? this.random.rand(this.config.maxCycleDepth - 1) + 1
+      : 1;
+
+    // TODO: configure enabling 50 percent activation
+    const placementIdx =
+      this.level.PARTIAL_REASINING &&
+      this.level.MULTIIZE_PLACEMENT &&
+      this.level.MULTIZE_TOKENS
+        ? this.random.rand(1)
+        : 0;
+
+    // might as well compute a cycle, large models seem to check anyway
+    const { getToken, getReal, wordsSeqs, realMap, tokenMap } =
+      this.mapFactory.create(ctx, mappingDepth, placementIdx);
 
     const tokenizedSequenceWords: ISymbols[] = [];
     for (const word of wordsSeqs) {
-      const el = tokenMap[word.str];
+      const el = getToken(word.str);
       tokenizedSequenceWords.push(el);
     }
 
-    const totalPosition = this.random.rand(tokenizedSequenceWords.length - 1);
-
-    const minIndex = ctx.minCount - 1;
-    const tokenRefRemoveIdx =
-      totalPosition > minIndex && this.random.rand(2) > 0
-        ? this.random.rand(minIndex)
-        : totalPosition;
+    const tokenRefRemoveIdx = chooseRemoveIndex(
+      this.random.rand(tokenizedSequenceWords.length - 1),
+      ctx.minCount - 1,
+      this.random.rand,
+    );
 
     const correctAnswer = tokenizedSequenceWords[tokenRefRemoveIdx].str;
     const realAnswer = wordsSeqs[tokenRefRemoveIdx].str;
 
-    const symbolExpression = this.buildSymbolMapper();
+    const symbolExpression = buildSymbolMapper(
+      this.random.rand,
+      this.level.INDIRECT_SYMBOLS,
+    );
 
     // insert a missing identifier
     const partialWords = wordsSeqs.map((v) => v.str);
@@ -92,17 +187,13 @@ export class PuzzleGenerator {
     for (const obj of tokenizedSequenceWords) {
       partialTokenizedWords.push(symbolExpression.mapper(obj.els));
     }
-    const isPartialReason = this.level.PARTIAL_REASINING;
-    const activePartial: [string] | [string, string] = [
-      ...partialTokenizedWords[tokenRefRemoveIdx],
-    ];
-    if (isPartialReason && activePartial.length !== 1 && this.random.bool()) {
-      activePartial[0] = blankWordToken;
-      partialTokenizedWords[tokenRefRemoveIdx] = activePartial;
-    } else {
-      // TODO: hide half a word
-      partialTokenizedWords[tokenRefRemoveIdx] = [blankWordToken];
-    }
+
+    partialTokenizedWords[tokenRefRemoveIdx] = generatePartialTokenized(
+      this.level.PARTIAL_REASINING,
+      [...partialTokenizedWords[tokenRefRemoveIdx]],
+      placementIdx,
+      this.random.bool,
+    );
 
     const seperator = this.level.EXCLUDE_SENTENCE_SPACES ? "" : " ";
 
@@ -150,14 +241,16 @@ export class PuzzleGenerator {
             s
               .trim()
               .split(/\s+/)
-              .map((w) => tokenMap[w].str)
+              .map((w) => getToken(w).str)
               .join(" "),
           )
         : instructionSet;
 
     const res = {
       realMap,
+      getReal,
       tokenMap,
+      getToken,
 
       tokenizedWords: tokenizedSequenceWords,
       tokenizedSentence,
@@ -181,46 +274,6 @@ export class PuzzleGenerator {
     };
 
     return new PuzzleResult(res);
-  }
-
-  private buildSymbolMapper(): SymbolMapper<SymbolTypeOptions> {
-    type MappedSymbol = [string] | [string, string];
-    const type = !this.level.INDIRECT_SYMBOLS ? 0 : this.random.rand(2) + 1;
-    switch (type) {
-      case 1: {
-        const shift = this.random.rand(24) + 1;
-        return createSymbolExpression({
-          mapper: (w) => w.map((wIn) => rotN(wIn, shift)) as MappedSymbol,
-          options: {
-            type: "rot",
-            rotNNum: shift,
-          },
-        });
-      }
-      case 2: {
-        return createSymbolExpression({
-          mapper: (w) => w.map((wIn) => toBinary(wIn)) as MappedSymbol,
-          options: { type: "binary" },
-        });
-      }
-      case 3: {
-        const shift = this.random.rand(24) + 1;
-        return createSymbolExpression({
-          mapper: (w) =>
-            w.map((wIn) => toBinary(rotN(wIn, shift))) as MappedSymbol,
-          options: {
-            type: "binaryrot",
-            rotNNum: shift,
-          },
-        });
-      }
-      default: {
-        return createSymbolExpression({
-          mapper: (w) => w,
-          options: { type: "none" },
-        });
-      }
-    }
   }
 
   private buildExpresion(): IExpressionResult {

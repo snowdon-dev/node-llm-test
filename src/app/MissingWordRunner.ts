@@ -1,15 +1,15 @@
 import { IPuzzleResult } from "../domain/interface";
 import { IRandom } from "../domain/IRandom";
-import { LevelsType } from "../domain/levels";
 import { Description } from "../domain/models/Description";
 import { MessageTransfomer } from "../domain/services/MessageTransformer";
 import { simpleRandom } from "../infra/random";
+import { AppConfig } from "./interface";
 import { makeResultFactory } from "./ResultFactory";
 
 export default class MissingWordRunner {
   constructor(
     private readonly random: IRandom,
-    private readonly level: LevelsType,
+    private readonly config: AppConfig,
     private readonly inputWords: readonly string[],
     private readonly pangrams: readonly string[],
   ) {}
@@ -17,7 +17,7 @@ export default class MissingWordRunner {
   result() {
     return makeResultFactory(
       this.random,
-      this.level,
+      this.config,
       this.inputWords,
       this.pangrams,
     ).prepare();
@@ -30,7 +30,7 @@ export default class MissingWordRunner {
       simpleRandom,
       description,
       result,
-      this.level,
+      this.config.level,
     );
 
     const parts = message.transfom();

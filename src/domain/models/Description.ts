@@ -45,11 +45,10 @@ export class Description {
       [ExpressionPart.OPERATOR]: `${symbol}`,
     };
 
-    const shouldChangeOrder = () =>
-      computeMathExpression(i, 3) !== identLocation;
+    const shouldChangeOrder = computeMathExpression(i, 3) !== identLocation;
 
     let expression = expressionDefinition.slice();
-    if (expressionChange === "order" && shouldChangeOrder()) {
+    if (expressionChange === "order" && shouldChangeOrder) {
       const finder = (part: ExpressionPart) => (value: ExpressionPart) =>
         value === part;
 
@@ -67,7 +66,7 @@ export class Description {
 
     let build = expression.map((key) => parts[key]);
 
-    if (expressionChange === "reverse" && shouldChangeOrder()) {
+    if (expressionChange === "reverse" && shouldChangeOrder) {
       build = build.reverse();
     }
 

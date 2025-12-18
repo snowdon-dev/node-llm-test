@@ -14,8 +14,7 @@ export class WordSelector {
 export function parseValidWords(lines: string[]): string[] {
   return lines
     .map((line) => line.trim())
-    .filter((line) => line.length > 2 && line.length < 8)
-    .map((line) => line);
+    .filter((line) => line.length > 2 && line.length < 10);
 }
 
 export interface DictionaryRepository {

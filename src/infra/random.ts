@@ -13,21 +13,6 @@ export function mulberry32(seed: number) {
 export const simpleRandom = (len: number) =>
   Math.floor(Math.random() * (len + 1));
 
-// Shuffle using Fisher-Yates algorithm
-export function getRandomOrder<T extends unknown[]>(
-  shuffled: T,
-  rand: (len: number) => number,
-  steps = 1,
-) {
-  for (let k = 0; k < steps; k++) {
-    for (let i = shuffled.length - 1; i >= 1; i--) {
-      const j = rand(i);
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-  }
-  return shuffled;
-}
-
 export function pickRandomBucket<T>(
   arrays: readonly (readonly T[])[],
   totalLength: number,
@@ -80,24 +65,32 @@ export class RandomSource implements IRandom {
   ) {
     const randH = RandomSource.createHandler(type)(seed);
     const rand = (len: number) => Math.floor(randH() * (len + 1));
-    return new RandomSource(rand);
+    return new RandomSource(randH, rand);
   }
 
   static SimpleSource = (start: number = 0) => new SimpleSourceImpl(start);
 
-  constructor(public readonly rand: (num: number) => number) {}
+  constructor(
+    public readonly randH: () => number,
+    public readonly rand: (len: number) => number,
+  ) {}
 
-  bool() {
-    return Boolean(this.rand(1));
-  }
+  bool = () => Boolean(this.rand(1));
 
   randOrder<T extends unknown[]>(input: T) {
-    return getRandomOrder(input, this.rand);
+    for (let i = input.length - 1; i >= 1; i--) {
+      const j = this.rand(i);
+      [input[i], input[j]] = [input[j], input[i]];
+    }
+    return input;
   }
 }
 
 class SimpleSourceImpl extends RandomSource {
   constructor(private counter: number) {
-    super((num) => this.counter++ % num);
+    super(
+      () => this.counter++,
+      (num) => this.counter++ % num,
+    );
   }
 }

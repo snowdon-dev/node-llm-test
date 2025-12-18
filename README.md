@@ -5,22 +5,21 @@ Status](https://github.com/snowdon-dev/node-llm-test/actions/workflows/main-push
 ![Coverage Status](https://snowdon-dev.github.io/node-llm-test/badges/badges.svg)
 [![Npm version](https://img.shields.io/npm/v/node-llm-test.svg)](https://www.npmjs.com/package/node-llm-test)
 [![Download NPM](https://img.shields.io/npm/dm/node-llm-test.svg?style=flat)](https://www.npmjs.com/package/node-llm-test/)
+
 - See the web app at: <https://marketeer.snowdon.dev/tools/llmtest-online/>.
 - Don't want to keep running tests. Sign up to the periodic newsletter
   containing results from the leading agents. And stay informed without spinning
   up infra. Just email: <llmtest@snowdon.dev>.
-- The latest information is available on the web app
+- The latest information is available on the web app.
 - Issue reports welcome. Just let me know.
 
-| Make   | Model | Level  | Improvement |
-|--------|-------|--------|-------------|
-| ChatGPT | 4     | Seeker | +1          |
-| ChatGPT | 5     | Scholar| +1          |
-| ChatGPT | 5.1   | Warden | +1          |
-| Gemini  | 2     | Seeker | +1          |
-| Gemini  | 2.5   | Warden | +2          |
+| Make    | Model | Level  | Score       |
+| ------- | ----- | ------ | ----------- |
+| ChatGPT | 5.1   | Warden | 3           |
+| Gemini  | 3     | Expert | 5           |
+| Kimi    | k2    | Warden | 3 (warning) |
+| Grok    | 4     | Warden | 3 (warning) |
 | Sonnet  | 4     | Unable | -1          |
-
 
 A test to evaluate the various intelligence modes of large language models. A
 linear-time algorithm for generating infinitely many test instances.
@@ -340,8 +339,11 @@ version.
 | `POOR_CODING_PRACTICES`        |          `2048` | Emulates poor coding standards                                                                    | For example, alternates more deliminators. '' becomes "" etc                                  | Easy       |
 | `EXTRA_WORDS`                  |          `4096` | Adds extra words from a pre defined list designed to complement the default                       | Adds words like "glib" which can be used to form novel solutions                              | Medium     |
 | `ENCODE_INSTRUCTIONS`          |          `8192` | Encodes the instructions when `Feature.MULTIZE_I_TOKENS and Feature.MULTIZE_TOKENS` are equal     | Instruction are gibberish, unless the task is understood ahead of time                        | Medium     |
-| `HARD_SCHEMA`                  |         `16384` | Does not displays a schema of the anser                                                           |                                                                                               | Medium     |
+| `HARD_SCHEMA`                  |         `16384` | Does not displays a schema of the answer                                                          | Adds some test to instruct the llm                                                            | Medium     |
 | `ANSWER_INCEPTION`             |         `32768` | Tries to fool the LLM into chosing a trusted source                                               | Is given sentence like 'The answer is one'                                                    | Easy       |
+| `REASNING_MODE`                |         `65536` | Prompt the LLM to use reasoning mode instead of flash mode.                                       | Adds some text to instruct the llm                                                            | Easy       |
+| `MAPPING_DEPTH`                |        `131072` | The token answer at random depth of token(token(...                                               | Nothing looks different                                                                       | Easy       |
+| `MULTIIZE_PLACEMENT`           |        `262144` | Randomise the placement of pivot words within multized token.                                     | (unique symbol, random symbol) or reversed                                                    | Easy       |
 
 ### Usage tips
 

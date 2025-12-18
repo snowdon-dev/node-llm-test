@@ -1,6 +1,20 @@
 import MissingWordRunner from "../app/MissingWordRunner";
 import { enumFlagsToBooleans, Feature, levelMax } from "../domain/levels";
 import { RandomSource } from "./random";
+import * as config from "./config";
+import { AppConfig } from "../app/interface";
+
+function createConfig(
+  level: number,
+  pangrams: readonly string[],
+  seed: number | null,
+): AppConfig {
+  validateSeed(seed);
+  validateLevel(level);
+  validatePangrams(pangrams);
+  const levelType = enumFlagsToBooleans(Feature, level);
+  return { ...config, level: levelType, pangrams, seed };
+}
 
 export function createApp(
   level: number,
@@ -8,16 +22,13 @@ export function createApp(
   inputWords: readonly string[],
   pangrams: readonly string[],
 ) {
-  validateLevel(level);
-  validateSeed(seed);
-  validatePangrams(pangrams);
+  const config = createConfig(level, pangrams, seed);
 
   const random = RandomSource.New(
     seed !== null ? RandomSource.TYPES[0] : RandomSource.TYPES[1],
     seed,
   );
-  const levels = enumFlagsToBooleans(Feature, level);
-  return new MissingWordRunner(random, levels, inputWords, pangrams);
+  return new MissingWordRunner(random, config, inputWords, pangrams);
 }
 
 const validatePangrams = (list: readonly string[]) => {

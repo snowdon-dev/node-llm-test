@@ -1,7 +1,4 @@
-import {
-  blankWordToken,
-  isFirstCharCapital,
-} from "../characters";
+import { blankWordToken, isFirstCharCapital } from "../characters";
 import {
   IExpressionResult,
   InstructionWordType,
@@ -14,6 +11,8 @@ import {
 } from "../interface";
 
 export class PuzzleResult implements IPuzzleResult {
+  getToken: (str: string) => ISymbols;
+  getReal: (str: string) => ISymbols;
   tokenMap: Readonly<Record<string, ISymbols>>;
   realMap: Readonly<Record<string, ISymbols>>;
   tokenizedWords: ISymbols[];
@@ -59,11 +58,11 @@ export class PuzzleResult implements IPuzzleResult {
       };
     }
     if (correctFormat) {
-      const wordSequence = this.realMap[strIn]; // token to real
+      const wordSequence = this.getReal(strIn); // token to real
       if (wordSequence === undefined) {
         return { exact: false, possible: false, correctFormat };
       }
-      if (this.tokenMap[wordSequence.str] === undefined) {
+      if (this.getToken(wordSequence.str) === undefined) {
         return { exact: false, possible: false, correctFormat };
       }
 
@@ -90,7 +89,12 @@ export class PuzzleResult implements IPuzzleResult {
 
       // not true, but potentially true
       // word sequence should be checked to see if it's in the dictionary
-      return { exact: false, possible: true, possibleReal: wordSequence, correctFormat };
+      return {
+        exact: false,
+        possible: true,
+        possibleReal: wordSequence,
+        correctFormat,
+      };
     }
 
     return { exact: false, possible: false, correctFormat };

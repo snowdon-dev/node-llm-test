@@ -1,5 +1,5 @@
 import { ISymbols } from "../interface";
-import { IContextSource } from "./interface";
+import { IContextSource, ScanOpts } from "./interface";
 import { SymbolObj } from "../models/SymbolObj";
 import { IRandom } from "../IRandom";
 
@@ -10,17 +10,14 @@ export class SymbolScanner {
   constructor(
     private readonly random: IRandom,
     private readonly source: IContextSource,
-    private readonly options: Readonly<{
-      missingWords: boolean;
-      multiInput: boolean;
-    }>,
+    private readonly options: Readonly<ScanOpts>,
   ) {
     this.used = new Set<string>();
-    this.find = this.makeFind();
+    this.find = this.prepareFind();
   }
 
   scan() {
-    let totalSymbols: SymbolObj[] = [];
+    const totalSymbols: SymbolObj[] = [];
 
     const reader = () => {
       const step = this.options.multiInput ? this.random.rand(1) + 1 : 1;
@@ -69,7 +66,7 @@ export class SymbolScanner {
     return { totalSymbols, wordsSeqs };
   }
 
-  private makeFind() {
+  private prepareFind() {
     return this.options.missingWords ? this.findMissing : this.findNull;
   }
 
@@ -93,6 +90,13 @@ export class SymbolScanner {
     return tmp;
   }
 
+  private placementModifier<T extends any[]>(vals: T): T {
+    if (this.options.placementIdx === 0) {
+      return vals;
+    }
+    return vals.reverse() as T;
+  }
+
   private pickMissingSymbol(
     tmp: ISymbols[],
     words: ISymbols,
@@ -103,9 +107,11 @@ export class SymbolScanner {
     if (nextWord !== null) consumedWords.push(nextWord);
     const other = this.source.randNot(idx, consumedWords);
     consumedWords.push(other);
-    tmp.push(new SymbolObj([words.els[0], other]));
+    let vals: [string, string] = [words.els[0], other];
+    tmp.push(new SymbolObj(this.placementModifier(vals)));
     const secondOther = this.source.randNot(idx, consumedWords);
-    tmp.push(new SymbolObj([words.els[0], secondOther]));
+    vals = [words.els[0], secondOther];
+    tmp.push(new SymbolObj(this.placementModifier(vals)));
 
     return tmp;
   }
