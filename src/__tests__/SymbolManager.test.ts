@@ -99,7 +99,7 @@ describe("SymbolManager", () => {
   it("works", () => {
     const context = createContext();
     const symbols = createSimple(context, 0, 0);
-    const result = symbols.run();
+    const result = symbols.run(0);
     expect(result !== undefined).toBeTruthy();
     const tokenSet = new Set(result.tokens);
     expect(tokenSet.size === 2);
@@ -110,7 +110,7 @@ describe("SymbolManager", () => {
 
   it("works 2", () => {
     const symbols = createSimple(createActiveInput(), 1, 0);
-    const result = symbols.run();
+    const result = symbols.run(0);
     expect(result !== undefined).toBeTruthy();
     const tokenSet = new Set(result.tokens);
     expect(tokenSet.size === 2);
@@ -122,7 +122,7 @@ describe("SymbolManager", () => {
   it.skip("fails when other words contains dupes", () => {
     const context = createInvalidInputContext();
     const symbols = createSimple(context, 2, 1);
-    const result = symbols.run();
+    const result = symbols.run(0);
     expect(result !== undefined).toBeTruthy();
     expect(result.tokens.length === result.totalSymbols.length).toBeFalsy();
   });
@@ -132,7 +132,7 @@ describe("SymbolManager", () => {
       it("works: " + level.toString(2) + " - " + counter, () => {
         const context = createContext();
         const symbols = createSimple(context, level, counter);
-        const result = symbols.run();
+        const result = symbols.run(0);
         expect(result !== undefined).toBeTruthy();
 
         const tokenSet = new Set(result.tokens);
@@ -158,7 +158,7 @@ describe("SymbolManager", () => {
         () => {
           const context = contextFn();
           const symbols = createSimple(context, level, counter);
-          const result = symbols.run();
+          const result = symbols.run(0);
           expect(result !== undefined).toBeTruthy();
 
           const tokenSet = new Set(result.tokens);
@@ -172,3 +172,5 @@ describe("SymbolManager", () => {
     }
   }
 });
+
+// TODO: test placement index
