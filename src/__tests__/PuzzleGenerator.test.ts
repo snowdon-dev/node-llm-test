@@ -18,7 +18,6 @@ import { pangramsDefault, rotN, toBinary } from "../domain/characters";
 import {
   buildSymbolMapper,
   chooseRemoveIndex,
-  createSymbolExpression,
   generatePartialTokenized,
   PuzzleGenerator,
 } from "../domain/services/PuzzleGenerator";

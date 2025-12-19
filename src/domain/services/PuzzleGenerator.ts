@@ -148,7 +148,6 @@ export class PuzzleGenerator {
 
     // TODO: configure enabling 50 percent activation
     const placementIdx =
-      this.level.PARTIAL_REASINING &&
       this.level.MULTIIZE_PLACEMENT &&
       this.level.MULTIZE_TOKENS
         ? this.random.rand(1)
