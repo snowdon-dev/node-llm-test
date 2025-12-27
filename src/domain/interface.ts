@@ -13,28 +13,31 @@ export type InstructionWordType =
   | typeof instructionSet;
 
 export interface IPrepareResult {
-  /** Map from the real to the tokenizedWords */
+  /** Map from the real to the tokenizedWords. */
   readonly getToken: (str: string) => ISymbols;
-  tokenMap: Readonly<Record<string, ISymbols>>;
+  readonly tokenMap: Readonly<Record<string, ISymbols>>;
 
-  /** Map from the tokenized words to the real words */
+  /** Map from the tokenized words to the real words. */
   readonly getReal: (str: string) => ISymbols;
-  realMap: Readonly<Record<string, ISymbols>>;
+  readonly realMap: Readonly<Record<string, ISymbols>>;
 
   readonly tokenizedWords: ISymbols[];
 
-  /** Sentence as tokens (symbols) */
+  /** Sentence as tokens (symbols). */
   readonly tokenizedSentence: string;
 
-  /** Encoding after symbol expression */
+  /** Encoding after symbol expression. */
   readonly partialTokenizedSentence: string;
 
-  /** Token sequence chunks */
+  /** Token sequence chunks. */
   readonly partialTokenizedWords: SymbolRaw[];
 
   readonly sentence: string;
   readonly sentenceWords: readonly string[];
   readonly partialWords: readonly string[];
+
+  /** The array index where the missing word is placed. **/
+  readonly tokenRefRemoveIdx: number;
 
   /** Word sequence chunks */
   readonly wordsSeqs: ISymbols[];

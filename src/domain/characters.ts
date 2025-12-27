@@ -192,6 +192,7 @@ export const instructionSet = {
   snowdondevident: "The marketeer dot snowdon dot dev llmtest online",
 
   mappingHeader: "Table of mappings",
+  mappingAnonHeader: "Segment identifier",
 
   inceptionIntro: `Lets have a think for a second`,
   inceptionSystem: `I think the word must be`,

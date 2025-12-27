@@ -4,14 +4,11 @@ import { IRandom } from "../IRandom";
 import { LevelsType } from "../levels";
 import { Description } from "../models/Description";
 
-function* objectEntries<T extends object>(
-  obj: T,
-): Generator<[keyof T, T[keyof T]], void, unknown> {
-  for (const key in obj) {
-    if (Object.hasOwn(obj, key)) {
-      // TypeScript needs a small cast because `for...in` keys are strings
-      yield [key as keyof T, obj[key as keyof T]];
-    }
+function* objectEntries<K extends PropertyKey, V>(
+  entries: Iterable<readonly [K, V]>,
+): Generator<[K, V], void, unknown> {
+  for (const [key, value] of entries) {
+    yield [key, value];
   }
 }
 
@@ -58,35 +55,93 @@ export class MessageTransfomer {
       ),
     );
 
-    parts.push(() => {
-      let messages: string = "";
-      const poorCodingStandards = this.level.POOR_CODING_STANDARDS;
+    const poorCodingStandards = this.level.POOR_CODING_STANDARDS;
+    const lineSource = this.random.randOrder(Object.entries(result.tokenMap));
+    const numberOfPartitions = this.level.SPLIT_MAPPING
+      ? this.random.rand(
+          Math.min(9, Math.max(1, Math.floor(lineSource.length / 2))),
+        ) + 1
+      : 1;
+    const partitionSize = Math.ceil(lineSource.length / numberOfPartitions);
 
-      if (!isExcludeMappingInfo) {
-        messages += outputter(
-          this.description.getTableMappingHeader(instructionWords),
-        );
-        messages += "\n";
-      }
+    for (let p = 0; p < numberOfPartitions; p++) {
+      const start = p * partitionSize;
+      const end = start + partitionSize;
+      const partition = lineSource.slice(start, end);
 
-      const lineSource = this.random.randOrder(Object.entries(result.tokenMap));
-      let lines = "";
-      for (const [index, [old, newS]] of lineSource.entries()) {
-        lines += this.description.getMappingMessage(
-          old,
-          newS.str,
-          symbol,
-          result.expression.expressionDefinition,
-          index,
-          result.testComplex.identLocationType,
-          poorCodingStandards,
-          result.testComplex.puzzleType,
-        );
-        if (index !== lineSource.length - 1) lines += "\n";
-      }
-      messages += outputter(lines);
-      return messages;
-    });
+      if (partition.length === 0) continue;
+
+      // TODO: After order randomisation during INSTRUCTION_ORDER, group neighbour values
+      parts.push(() => {
+        let messages = "";
+
+        if (!isExcludeMappingInfo) {
+          if (this.level.SPLIT_MAPPING && !this.level.INSTRUCTION_ORDER) {
+            messages += outputter(
+              instructionWords.mappingAnonHeader +
+                " " +
+                instructionWords.characterDigitAlpha[p + 1] +
+                ":",
+            );
+            messages += "\n";
+          } else if (!this.level.INSTRUCTION_ORDER) {
+            messages += outputter(
+              this.description.getTableMappingHeader(instructionWords),
+            );
+            messages += "\n";
+          }
+        }
+
+        let lines = "";
+        // TODO: index global over partitions, must keep order after randomisation placement?
+        for (const [index, [old, newS]] of partition.entries()) {
+          const tmpLines: string[] = [];
+          tmpLines.push(
+            this.description.getMappingMessage(
+              old,
+              newS.str,
+              symbol,
+              result.expression.expressionDefinition,
+              index,
+              result.testComplex.identLocationType,
+              poorCodingStandards,
+              result.testComplex.puzzleType,
+            ),
+          );
+
+          const lastLine = index !== partition.length - 1;
+
+          const symbols = "!@£$%^&*(){}:<>?".split("");
+          if (this.level.MAPPING_REDUNDANT && this.random.bool()) {
+            const bitmask = this.random.rand(0xfffffff);
+            tmpLines.push(
+              this.description.getMappingMessage(
+                old,
+                Array.from(
+                  { length: 4 + this.random.rand(3) },
+                  (i: number) => symbols[(bitmask >> (i * 4)) & 0b1111],
+                ).join(""),
+                symbol,
+                result.expression.expressionDefinition,
+                index,
+                result.testComplex.identLocationType,
+                poorCodingStandards,
+                result.testComplex.puzzleType,
+              ),
+            );
+
+            this.random.randOrder(tmpLines);
+          }
+          lines += tmpLines.join("\n");
+          if (lastLine) {
+            lines += "\n";
+          }
+        }
+
+        messages += outputter(lines);
+        return messages;
+      });
+    }
 
     parts.push(() =>
       outputter(
@@ -110,21 +165,32 @@ export class MessageTransfomer {
       ),
     );
 
-    const reasoningText: string[] = [];
-    if (this.level.REASNING_MODE) {
-      reasoningText.push(...instructionWords.instructionReasoning);
-    } else {
-      reasoningText.push(...instructionWords.instructionsNonReasoning);
-    }
-    const reasoningPart = () =>
-      reasoningText.map((value) => "- " + value + ".").join("\n");
+    const preamblePart: string[] = [];
 
-    parts = [reasoningPart].concat(
+    if (hasRandomShift && !this.level.OUTPUT_SHIFT_EXLCUDE_DETAILS) {
+      preamblePart.push(
+        `The following message [a-zA-Z] characters have been encoded with ROT ${instructionWords.characterDigitAlpha[randomShift]}`,
+      );
+    }
+
+    if (this.level.REASNING_MODE) {
+      preamblePart.push(
+        ...instructionWords.instructionReasoning.map(outputter),
+      );
+    } else {
+      preamblePart.push(
+        ...instructionWords.instructionsNonReasoning.map(outputter),
+      );
+    }
+
+    const genPreamblePart = () =>
+      preamblePart.map((value) => "- " + value + ".").join("\n");
+    parts = [genPreamblePart].concat(
       randomOrder ? this.random.randOrder(parts) : parts,
     );
 
     if (this.level.ANSWER_INCEPTION) {
-      const iter = objectEntries(this.result.tokenMap);
+      const iter = objectEntries(lineSource);
       let target = iter.next();
       if (this.result.realAnswer === target.value?.[0]!) {
         target = iter.next();
@@ -186,13 +252,6 @@ export class MessageTransfomer {
 
         return outputter(str);
       });
-    }
-
-    if (hasRandomShift && !this.level.OUTPUT_SHIFT_EXLCUDE_DETAILS) {
-      parts.push(
-        () =>
-          `The following message [a-zA-Z] characters have been encoded with ROT ${instructionWords.characterDigitAlpha[randomShift]}:\n`,
-      );
     }
 
     return parts;

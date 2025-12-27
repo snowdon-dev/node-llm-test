@@ -23,6 +23,7 @@ import {
 } from "../domain/services/PuzzleGenerator";
 import { PuzzleContextFactory } from "../domain/PuzzleContextFactory";
 import { OtherWordsService } from "../domain/services/OtherWordsService";
+import { IRandom } from "../domain/IRandom";
 
 type CreateReturnType = ReturnType<MappingTransformer["create"]>;
 
@@ -117,24 +118,123 @@ describe("puzzle generator", () => {
   describe("generatePartialTokenized", () => {
     const blank: string = "[...]";
 
+    const makeRand = (boolValue: boolean): IRandom => ({
+      bool: jest.fn().mockReturnValue(boolValue),
+      rand: jest.fn(),
+      randOrder: jest.fn(),
+    });
+
     it("returns [blankWordToken] if isPartialReason is false", () => {
-      const result = generatePartialTokenized(false, ["a", "b"], 0, () => true);
+      const rand = makeRand(false);
+      const vals = [["a", "b"]] as SymbolRaw[];
+
+      const result = generatePartialTokenized(
+        false, // isPartialReason
+        vals,
+        0, // tokenRefRemoveIdx
+        0, // placementIdx
+        0, // dummyIdx
+        rand,
+      );
+
       expect(result).toEqual([blank]);
     });
 
     it("returns [blankWordToken] if activePartial.length === 1", () => {
-      const result = generatePartialTokenized(true, ["a"], 0, () => true);
-      expect(result).toEqual([blank]);
+      const rand = makeRand(true);
+      const vals = [["a"]] as SymbolRaw[];
+
+      const result = generatePartialTokenized(true, vals, 0, 0, 0, rand);
+
+      expect(result).toEqual(["a"]);
     });
 
     it("replaces placementIdx when randomBool returns true", () => {
-      const result = generatePartialTokenized(true, ["a", "b"], 1, () => true);
-      expect(result).toEqual(["a", blank]);
+      const rand = makeRand(true);
+      const vals = [
+        ["a", "b"], // activePartial
+        ["x", "y"], // tmp (dummyIdx)
+      ] as SymbolRaw[];
+
+      const result = generatePartialTokenized(
+        true,
+        vals,
+        0, // tokenRefRemoveIdx
+        1, // placementIdx
+        1, // dummyIdx
+        rand,
+      );
+
+      expect(result).toEqual(["a", "y"]);
     });
 
-    it("returns [blankWordToken] when randomBool returns false", () => {
-      const result = generatePartialTokenized(true, ["a", "b"], 1, () => false);
-      expect(result).toEqual([blank]);
+    it("returns single-token array when randomBool returns false", () => {
+      const rand = makeRand(false);
+      const vals = [
+        ["a", "b"], // activePartial
+        ["x", "y"], // tmp (dummyIdx)
+      ] as SymbolRaw[];
+
+      const result = generatePartialTokenized(true, vals, 0, 1, 1, rand);
+
+      expect(result).toEqual(["y"]);
+    });
+
+    it("does not corrupt array when placementIdx is out of bounds", () => {
+      const rand = makeRand(true);
+      const vals = [
+        ["a", "b"],
+        ["x", "y"],
+      ] as SymbolRaw[];
+
+      const result = generatePartialTokenized(
+        true,
+        vals,
+        0,
+        5, // invalid index
+        1,
+        rand,
+      );
+
+      expect(result).toEqual(["a", "b"]);
+    });
+
+    it("uses index 0 when dummy token length is 1", () => {
+      const rand = makeRand(true);
+      const vals = [["a", "b"], ["x"]] as SymbolRaw[];
+
+      const result = generatePartialTokenized(true, vals, 0, 1, 1, rand);
+
+      expect(result).toEqual(["a", "x"]);
+    });
+
+    it("does not call rand.bool when activePartial.length === 1", () => {
+      const rand = makeRand(true);
+      const vals = [["a"]] as SymbolRaw[];
+
+      generatePartialTokenized(true, vals, 0, 0, 0, rand);
+
+      expect(rand.bool).not.toHaveBeenCalled();
+    });
+
+    it("uses separate indices for active and dummy tokens", () => {
+      const rand = makeRand(true);
+      const vals = [
+        ["a", "b"],
+        ["x", "y"],
+        ["m", "n"],
+      ] as SymbolRaw[];
+
+      const result = generatePartialTokenized(
+        true,
+        vals,
+        2, // activePartial
+        0,
+        1, // dummy
+        rand,
+      );
+
+      expect(result).toEqual(["x", "n"]);
     });
   });
 
@@ -258,7 +358,7 @@ describe("puzzle generator", () => {
           ~(
             Feature.MULTIZE_I_TOKENS |
             Feature.MULTIZE_TOKENS |
-            Feature.MULTIIZE_PLACEMENT
+            Feature.MULTIZE_PLACEMENT
           ),
       );
 

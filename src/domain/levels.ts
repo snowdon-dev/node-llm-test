@@ -36,9 +36,11 @@ export enum Feature {
 
   MAPPING_DEPTH = 1 << 17,
 
-  MULTIIZE_PLACEMENT = 1 << 18,
+  MULTIZE_PLACEMENT = 1 << 18,
 
-  //MISSING_SENTENCE = 1 << 7,
+  SPLIT_MAPPING = 1 << 19,
+
+  MAPPING_REDUNDANT = 1 << 20,
 }
 
 export const levelMax = Object.values(Feature)
@@ -49,7 +51,7 @@ export function hasFeature(level: number, feature: Feature): boolean {
   return (level & feature) !== 0;
 }
 
-export type LevelsType = Record<keyof typeof Feature, boolean>;
+export type LevelsType = Readonly<Record<keyof typeof Feature, boolean>>;
 
 export function enumFlagsToBooleans<E extends Record<string, number | string>>(
   enumType: E,

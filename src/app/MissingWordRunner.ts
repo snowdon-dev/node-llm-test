@@ -2,7 +2,6 @@ import { IPuzzleResult } from "../domain/interface";
 import { IRandom } from "../domain/IRandom";
 import { Description } from "../domain/models/Description";
 import { MessageTransfomer } from "../domain/services/MessageTransformer";
-import { simpleRandom } from "../infra/random";
 import { AppConfig } from "./interface";
 import { makeResultFactory } from "./ResultFactory";
 
@@ -27,7 +26,7 @@ export default class MissingWordRunner {
     const description = new Description(this.random);
     const message = new MessageTransfomer(
       this.random,
-      simpleRandom,
+      this.random.rand,
       description,
       result,
       this.config.level,

@@ -6,19 +6,6 @@ import { ContextSource } from "../reader/ContextSource";
 import { SymbolManagerOpts } from "../reader/interface";
 import { SymbolManager } from "../reader/SymbolManager";
 
-// TODO: mapping using one array or two
-class SymbolMapping<T extends string, K> {
-  constructor(
-    private readonly symbolsDense: [K],
-    private readonly symbolsSparse: Record<T, number>,
-    //public readonly reals: [K],
-  ) {}
-
-  token(real: T): K | undefined {
-    return this.symbolsDense[this.symbolsSparse[real]];
-  }
-}
-
 export class MappingTransformer implements IMappingTransfomer {
   constructor(
     private readonly random: IRandom,

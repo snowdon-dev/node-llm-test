@@ -1,8 +1,8 @@
 import { Bench } from "tinybench";
 import * as PuzzleMod from "../dist/index.js";
-import * as RandomSourceMod from "../dist/infra/random.js";
+//import * as RandomSourceMod from "../dist/infra/random.js";
 const { Puzzle } = PuzzleMod.default;
-const { RandomSource, mulberry32 } = RandomSourceMod.default;
+//const { RandomSource, mulberry32 } = RandomSourceMod.default;
 import packageData from "../package.json" with { type: "json" };
 
 const bench = new Bench({ name: "simple benchmark", time: 10_000 });

@@ -22,6 +22,7 @@ export class PuzzleResult implements IPuzzleResult {
   sentence: string;
   sentenceWords: readonly string[];
   partialWords: readonly string[];
+  tokenRefRemoveIdx: number;
   wordsSeqs: ISymbols[];
   correctAnswer: string;
   realAnswer: string;
@@ -44,11 +45,14 @@ export class PuzzleResult implements IPuzzleResult {
       this.partialTokenizedWords.map((s) => s.join(" ")),
       this.tokenizedWords.map((s) => s.str),
     ];
+    rows[0][this.tokenRefRemoveIdx] = blankWordToken;
     return { headers, rows };
   }
 
+  protected static ANSWER_FORMAT = /^[A-Za-z]+(?: [A-Za-z]+)?$/;
+
   answer(strIn: string) {
-    const correctFormat = /^[A-Za-z]+(?: [A-Za-z]+)?$/.test(strIn);
+    const correctFormat = PuzzleResult.ANSWER_FORMAT.test(strIn);
     if (strIn === this.correctAnswer) {
       // if the word equals the correct word. HURRAH
       return {
@@ -67,10 +71,12 @@ export class PuzzleResult implements IPuzzleResult {
       }
 
       // check it completes the sentence
-      const idx = this.partialWords.indexOf(blankWordToken);
+      const idx = this.tokenRefRemoveIdx;
       const tmpRealWords = [...this.partialWords];
 
       const realWord = this.sentenceWords[idx];
+
+      console.log(idx, tmpRealWords, realWord);
 
       if (
         isFirstCharCapital(realWord) !== isFirstCharCapital(wordSequence.str)

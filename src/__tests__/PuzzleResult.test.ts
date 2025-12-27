@@ -186,6 +186,7 @@ describe("PuzzleResult", () => {
       "[...]",
       "etchings",
     ],
+    tokenRefRemoveIdx: 8,
     sentenceWords: [
       "Just",
       "keep",
@@ -234,13 +235,15 @@ describe("PuzzleResult", () => {
       my: createISymbol("of"),
       of: createISymbol("quartz"),
     },
+    tokenRefRemoveIdx: 3,
     partialWords: ["Jackdaws", "love", "my", "[...]", "sphinx", "of", "quartz"],
     sentenceWords: ["Jackdaws", "love", "my", "big", "sphinx", "of", "quartz"],
     correctAnswer: "big Jackdaws",
   };
 
-  it("answers multi token words not expacted", () => {
+  it("answers multi token words not expected", () => {
     const puzzle = createPuzzle(multiRealWordsNotExpected);
+    console.log(puzzle);
     const res = puzzle.answer("test test");
     expect(res.exact).toBe(false);
     expect(res.possible).toBe(true);

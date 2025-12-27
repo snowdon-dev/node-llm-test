@@ -51,7 +51,7 @@ function mapStringsDeep<T>(
   return obj as WidenLiterals<T>;
 }
 
-interface IConfig {
+export interface IConfig {
   readonly maxCycleDepth: number;
   readonly level: Readonly<LevelsType>;
 }
@@ -69,15 +69,26 @@ export function chooseRemoveIndex(
 
 export function generatePartialTokenized(
   isPartialReason: boolean,
-  activePartial: [string] | [string, string],
+  partialTokenizedWords: SymbolRaw[],
+  tokenRefRemoveIdx: number,
   placementIdx: number,
-  randomBool: () => boolean,
+  dummyIdx: number,
+  rand: IRandom,
 ): [string] | [string, string] {
-  if (isPartialReason && activePartial.length !== 1 && randomBool()) {
-    activePartial[placementIdx] = blankWordToken;
+  if (!isPartialReason) {
+    return [blankWordToken];
+  }
+  let activePartial: [string] | [string, string] = [
+    ...partialTokenizedWords[tokenRefRemoveIdx],
+  ];
+  const tmp = partialTokenizedWords[dummyIdx];
+  const replacementIdx = tmp.length === 2 ? placementIdx : 0;
+  const replacement = tmp[replacementIdx];
+  if (activePartial.length !== 1 && rand.bool()) {
+    activePartial[placementIdx] = replacement;
     return activePartial;
   } else {
-    return [blankWordToken];
+    return [replacement];
   }
 }
 
@@ -127,8 +138,7 @@ export function buildSymbolMapper(
 }
 
 export class PuzzleGenerator {
-  public readonly result?: PuzzleResult;
-  public readonly level: Readonly<LevelsType>;
+  public readonly level: LevelsType;
 
   constructor(
     private readonly random: IRandom,
@@ -148,19 +158,16 @@ export class PuzzleGenerator {
 
     // TODO: configure enabling 50 percent activation
     const placementIdx =
-      this.level.MULTIIZE_PLACEMENT &&
-      this.level.MULTIZE_TOKENS
+      this.level.MULTIZE_PLACEMENT && this.level.MULTIZE_TOKENS
         ? this.random.rand(1)
         : 0;
 
-    // might as well compute a cycle, large models seem to check anyway
     const { getToken, getReal, wordsSeqs, realMap, tokenMap } =
       this.mapFactory.create(ctx, mappingDepth, placementIdx);
 
     const tokenizedSequenceWords: ISymbols[] = [];
-    for (const word of wordsSeqs) {
-      const el = getToken(word.str);
-      tokenizedSequenceWords.push(el);
+    for (let i = 0; i < wordsSeqs.length; i++) {
+      tokenizedSequenceWords.push(getToken(wordsSeqs[i].str));
     }
 
     const tokenRefRemoveIdx = chooseRemoveIndex(
@@ -177,22 +184,33 @@ export class PuzzleGenerator {
       this.level.INDIRECT_SYMBOLS,
     );
 
-    // insert a missing identifier
-    const partialWords = wordsSeqs.map((v) => v.str);
-    partialWords[tokenRefRemoveIdx] = blankWordToken;
-
     // insert missing tokenized part
     const partialTokenizedWords: SymbolRaw[] = [];
-    for (const obj of tokenizedSequenceWords) {
-      partialTokenizedWords.push(symbolExpression.mapper(obj.els));
+    for (let i = 0; i < tokenizedSequenceWords.length; i++) {
+      partialTokenizedWords.push(
+        symbolExpression.mapper(tokenizedSequenceWords[i].els),
+      );
     }
 
+    const len = partialTokenizedWords.length;
+    let dummyIdx = this.random.rand(len - 1);
+    if (dummyIdx === tokenRefRemoveIdx) {
+      dummyIdx = (dummyIdx + 1) % len;
+    }
     partialTokenizedWords[tokenRefRemoveIdx] = generatePartialTokenized(
       this.level.PARTIAL_REASINING,
-      [...partialTokenizedWords[tokenRefRemoveIdx]],
+      partialTokenizedWords,
+      tokenRefRemoveIdx,
       placementIdx,
-      this.random.bool,
+      dummyIdx,
+      this.random,
     );
+
+    // insert a missing identifier
+    const partialWords = wordsSeqs.map((v) => v.str);
+    partialWords[tokenRefRemoveIdx] = this.level.PARTIAL_REASINING
+      ? partialWords[dummyIdx]
+      : blankWordToken;
 
     const seperator = this.level.EXCLUDE_SENTENCE_SPACES ? "" : " ";
 
@@ -261,6 +279,7 @@ export class PuzzleGenerator {
       sentenceWords: ctx.chosen,
       partialWords,
       wordsSeqs,
+      tokenRefRemoveIdx,
 
       correctAnswer,
       realAnswer,

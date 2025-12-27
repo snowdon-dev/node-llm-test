@@ -344,6 +344,8 @@ version.
 | `REASNING_MODE`                |         `65536` | Prompt the LLM to use reasoning mode instead of flash mode.                                       | Adds some text to instruct the llm                                                            | Easy       |
 | `MAPPING_DEPTH`                |        `131072` | The token answer at random depth of token(token(...                                               | Nothing looks different                                                                       | Easy       |
 | `MULTIIZE_PLACEMENT`           |        `262144` | Randomise the placement of pivot words within multized token.                                     | (unique symbol, random symbol) or reversed                                                    | Easy       |
+| `SPLIT_MAPPING` | `1 << 19`| Split the mapping table into mulltiple tables | | Easy |
+| `MAPPING_REDUNDANT` | `1 << 20`| Insert dummy mapping entries into the table | Require reasoning to handle multiple entires | Easy |
 
 ### Usage tips
 
