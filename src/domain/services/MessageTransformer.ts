@@ -71,7 +71,6 @@ export class MessageTransfomer {
     const globalIndex = this.random.bool();
     for (let p = 0; p < numberOfPartitions; p++) {
       const start = p * partitionSize;
-      const end = start + partitionSize;
 
       // TODO: After order randomisation during INSTRUCTION_ORDER, group neighbour values
       const partCallable = () => {
