@@ -60,7 +60,9 @@ export class MessageTransfomer {
     const lineSource = this.random.randOrder(result.tokenEntries.slice());
     const maxPartitions =
       lineSource.length <= 6 ? 0 : lineSource.length <= 11 ? 1 : 3;
-    const numberOfPartitions = this.random.rand(maxPartitions) + 1;
+    const numberOfPartitions = this.level.SPLIT_MAPPING
+      ? this.random.rand(maxPartitions) + 1
+      : 1;
     const partitionSize = Math.ceil(lineSource.length / numberOfPartitions);
 
     const partCallables: (() => string)[] = [];
