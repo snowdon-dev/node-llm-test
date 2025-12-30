@@ -97,7 +97,7 @@ export class MessageTransfomer {
 
         let lines = "";
         for (const [index, [old, newS]] of partition.entries()) {
-          const usedIndex = globalIndex ? end : index;
+          const usedIndex = globalIndex ? start + index: index;
           const tmpLines: string[] = [];
           tmpLines.push(
             this.description.getMappingMessage(
