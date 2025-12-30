@@ -20,6 +20,13 @@ function collectWords(obj: any, words = new Set<string>()): Set<string> {
   return words;
 }
 
+let instructionWordCache: string[];
+
+function getInstructionWords() {
+  if (instructionWordCache) return instructionWordCache;
+  return (instructionWordCache = Array.from(collectWords(instructionSet)));
+}
+
 export class PuzzleContextFactory {
   constructor(
     private readonly otherWordsFact: OtherWordsService,
@@ -36,7 +43,7 @@ export class PuzzleContextFactory {
     const { words, pangramsWordsList, minCount } = this.prepareActivePangram();
 
     const instructioWords = this.level.ENCODE_INSTRUCTIONS
-      ? Array.from(collectWords(instructionSet))
+      ? getInstructionWords()
       : null;
 
     const input = [this.inputWords];

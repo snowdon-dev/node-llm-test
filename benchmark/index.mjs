@@ -1,13 +1,14 @@
 import { Bench } from "tinybench";
 import * as PuzzleMod from "../dist/index.js";
-//import * as RandomSourceMod from "../dist/infra/random.js";
 const { Puzzle } = PuzzleMod.default;
-//const { RandomSource, mulberry32 } = RandomSourceMod.default;
 import packageData from "../package.json" with { type: "json" };
 
 const bench = new Bench({ name: "simple benchmark", time: 10_000 });
 
 const wordsTmp = Array.from({ length: 600 }).map((_, i) => String(i));
+
+// warm cache
+void Puzzle.New(1, 5247, wordsTmp).result();
 
 bench
   .add("Empty list, zero level", () => {
@@ -22,99 +23,6 @@ bench
   .add("Large list, high level", () => {
     Puzzle.New(1, 5247, wordsTmp).result();
   });
-//.add("large list simple source", () => {
-//  const random = RandomSource.SimpleSource();
-//  const list = wordsTmp.slice();
-//  for (let i = 0; i < 2; i++) {
-//    random.randOrder(list);
-//  }
-//  for (let i = 0; i < list.length; i++) {
-//    const words = [];
-//    words.push(list[i]);
-//    if (i < list.length - 1 && random.bool()) {
-//      words.push(list[i + 1]);
-//    }
-//    const _ = words.join(" ");
-//  }
-//})
-//.add("large list simple source + operator", () => {
-//  const random = RandomSource.SimpleSource();
-//  const list = wordsTmp.slice();
-//  for (let i = 0; i < 2; i++) {
-//    random.randOrder(list);
-//  }
-//  for (let i = 0; i < list.length; i++) {
-//    let tmp = list[i];
-//    if (i < list.length - 1 && random.bool()) {
-//      tmp += " " + list[i+1];
-//    }
-//  }
-//})
-//.add("large list simple source for + operator", () => {
-//  const random = RandomSource.SimpleSource();
-//  const list = wordsTmp.slice();
-//  for (let i = 0; i < 2; i++) {
-//    random.randOrder(list);
-//  }
-//  for (let i = 0; i < list.length; i++) {
-//    const words = [];
-//    words.push(list[i])
-//    if (i < list.length - 1 && random.bool()) {
-//      words.push(list[i+1]);
-//    }
-//    let tmp = '';
-//    for (let i = 0; i < words.length; i++) {
-//      tmp += words[i];
-//      if (i < words.length - 1) tmp += ' ';
-//    }
-//  }
-//})
-//// for comparison
-//.add("Large list mulberry", () => {
-//  const random = new RandomSource(mulberry32(1));
-//  const list = wordsTmp.slice();
-//  for (let i = 0; i < 2; i++) {
-//    random.randOrder(list);
-//  }
-//  for (let i = 0; i < list.length; i++) {
-//    const words = [];
-//    words.push(list[i]);
-//    if (i < list.length - 1 && random.bool()) {
-//      words.push(list[i + 1]);
-//    }
-//    const _ = words.join(" ");
-//  }
-//})
-//.add("Large list random", () => {
-//  const random = new RandomSource(Math.random);
-//  const list = wordsTmp.slice();
-//  for (let i = 0; i < 2; i++) {
-//    random.randOrder(list);
-//  }
-//  for (let i = 0; i < list.length; i++) {
-//    const words = [];
-//    words.push(list[i]);
-//    if (i < list.length - 1 && random.bool()) {
-//      words.push(list[i + 1]);
-//    }
-//    const _ = words.join(" ");
-//  }
-//})
-//.add("Large list crypto random", () => {
-//  const random = RandomSource.New(RandomSource.TYPES.smallcrypto, null);
-//  const list = wordsTmp.slice();
-//  for (let i = 0; i < 2; i++) {
-//    random.randOrder(list);
-//  }
-//  for (let i = 0; i < list.length; i++) {
-//    const words = [];
-//    words.push(list[i]);
-//    if (i < list.length - 1 && random.bool()) {
-//      words.push(list[i + 1]);
-//    }
-//    const _ = words.join(" ");
-//  }
-//});
 
 await bench.run();
 

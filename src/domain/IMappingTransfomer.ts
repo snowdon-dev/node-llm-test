@@ -10,6 +10,7 @@ export interface IMappingTransfomer {
     wordsSeqs: ISymbols[];
     tokenMap: Record<string, ISymbols>;
     realMap: Record<string, ISymbols>;
+    tokenEntries: [string, ISymbols][];
     getToken: (str: string) => ISymbols;
     getReal: (str: string) => ISymbols;
   };

@@ -5,11 +5,12 @@ import { LevelsType } from "../levels";
 import { Description } from "../models/Description";
 
 function* objectEntries<K extends PropertyKey, V>(
-  entries: Iterable<readonly [K, V]>,
+  entries: readonly (readonly [K, V])[],
+  startPos: number = 0,
 ): Generator<[K, V], void, unknown> {
-  for (const [key, value] of entries) {
-    yield [key, value];
-  }
+  let i = startPos;
+  yield entries[i] as [K, V];
+  yield entries[(i + 1) % entries.length] as [K, V];
 }
 
 export class MessageTransfomer {
@@ -31,7 +32,7 @@ export class MessageTransfomer {
     const outputter = hasRandomShift
       ? (str: string) => rotN(str, randomShift)
       : (str: string) => str;
-    let parts: (() => string)[] = [];
+    let parts: ((() => string) | Symbol)[] = [];
 
     const instructionWords = result.instructionWords;
 
@@ -56,14 +57,16 @@ export class MessageTransfomer {
     );
 
     const poorCodingStandards = this.level.POOR_CODING_STANDARDS;
-    const lineSource = this.random.randOrder(Object.entries(result.tokenMap));
-    const numberOfPartitions = this.level.SPLIT_MAPPING
-      ? this.random.rand(
-          Math.min(9, Math.max(1, Math.floor(lineSource.length / 2))),
-        ) + 1
-      : 1;
+    const lineSource = this.random.randOrder(result.tokenEntries.slice());
+    const maxPartitions =
+      lineSource.length <= 6 ? 0 : lineSource.length <= 11 ? 1 : 3;
+    const numberOfPartitions = this.random.rand(maxPartitions) + 1;
     const partitionSize = Math.ceil(lineSource.length / numberOfPartitions);
 
+    const partCallables: (() => string)[] = [];
+    const partSymbol = Symbol();
+
+    const globalIndex = this.random.bool();
     for (let p = 0; p < numberOfPartitions; p++) {
       const start = p * partitionSize;
       const end = start + partitionSize;
@@ -72,7 +75,7 @@ export class MessageTransfomer {
       if (partition.length === 0) continue;
 
       // TODO: After order randomisation during INSTRUCTION_ORDER, group neighbour values
-      parts.push(() => {
+      const partCallable = () => {
         let messages = "";
 
         if (!isExcludeMappingInfo) {
@@ -93,8 +96,8 @@ export class MessageTransfomer {
         }
 
         let lines = "";
-        // TODO: index global over partitions, must keep order after randomisation placement?
         for (const [index, [old, newS]] of partition.entries()) {
+          const usedIndex = globalIndex ? end : index;
           const tmpLines: string[] = [];
           tmpLines.push(
             this.description.getMappingMessage(
@@ -102,7 +105,7 @@ export class MessageTransfomer {
               newS.str,
               symbol,
               result.expression.expressionDefinition,
-              index,
+              usedIndex,
               result.testComplex.identLocationType,
               poorCodingStandards,
               result.testComplex.puzzleType,
@@ -140,7 +143,10 @@ export class MessageTransfomer {
 
         messages += outputter(lines);
         return messages;
-      });
+      };
+
+      parts.push(partSymbol);
+      partCallables.push(partCallable);
     }
 
     parts.push(() =>
@@ -185,12 +191,21 @@ export class MessageTransfomer {
 
     const genPreamblePart = () =>
       preamblePart.map((value) => "- " + value + ".").join("\n");
-    parts = [genPreamblePart].concat(
+    parts = ([genPreamblePart] as (Symbol | (() => string))[]).concat(
       randomOrder ? this.random.randOrder(parts) : parts,
     );
 
+    // inject the mapping table callables
+    const partCallableBuffer = partCallables.reverse();
+    parts = parts.map((v) =>
+      v === partSymbol ? partCallableBuffer.pop()! : v,
+    );
+
     if (this.level.ANSWER_INCEPTION) {
-      const iter = objectEntries(lineSource);
+      const iter = objectEntries(
+        lineSource,
+        this.random.rand(lineSource.length - 1),
+      );
       let target = iter.next();
       if (this.result.realAnswer === target.value?.[0]!) {
         target = iter.next();
@@ -254,6 +269,6 @@ export class MessageTransfomer {
       });
     }
 
-    return parts;
+    return parts as (() => string)[];
   }
 }

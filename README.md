@@ -283,7 +283,7 @@ seq -f "%.0f" 1000000 1000010 | \
 | ---------------------------- | ------------------------------------------------- |
 | `--number <number>`          | The number of words in the wordlist (default: 0)  |
 | `--write [filepath]`         | Write to a temporary file or the target path      |
-| `--level <integer>`          | Features enabled (0=none, 65535=all, default: 0)  |
+| `--level <integer>`          | Features enabled (0=none, 2097151=all, default: 0)  |
 | `--seed <integer>`           | A seed to preserve reproducibility                |
 | `--no-print`                 | Do not print the output for the LLM               |
 | `-i, --interactive`          | Run in interactive mode                           |

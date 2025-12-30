@@ -1,3 +1,23 @@
+/*
+ * TODO: move to files
+
+├── models/
+│   ├── SymbolMapper.ts
+│   ├── buildSymbolMapper.ts        ← NEW
+│   └── PuzzleResult.ts
+│
+├── services/
+│   ├── PuzzleGenerator.ts          ← slimmed down
+│   ├── PuzzlePlan.ts               ← NEW
+│   ├── PuzzlePlanBuilder.ts        ← NEW
+│   ├── PartialTokenService.ts      ← NEW
+│   └── MappingTransformer.ts
+│
+├── utils/
+│   ├── chooseRemoveIndex.ts         ← NEW
+│   └── mapStringsDeep.ts            ← NEW
+*/
+
 import {
   blankWordToken,
   rotN,
@@ -13,6 +33,7 @@ import {
   IExpressionResult,
   ExpressionPart,
   ExpressionDefinitionType,
+  InstructionWordType,
 } from "../interface";
 import { LevelsType } from "../levels";
 import { PuzzleResult } from "../models/PuzzleResult";
@@ -28,7 +49,7 @@ export function createSymbolExpression<T extends SymbolTypeOptions>(
   return expr;
 }
 
-function mapStringsDeep<T>(
+export function mapStringsDeep<T>(
   obj: T,
   fn: (s: string) => string,
 ): WidenLiterals<T> {
@@ -137,38 +158,124 @@ export function buildSymbolMapper(
   }
 }
 
-export class PuzzleGenerator {
-  public readonly level: LevelsType;
+export interface PuzzlePlan {
+  readonly mappingDepth: () => number;
+  readonly placementIdx: () => number;
+  readonly buildSymbolMapper: () => SymbolMapper<SymbolTypeOptions>;
+  readonly buildInstructionWords: (
+    getToken: (s: string) => ISymbols,
+  ) => InstructionWordType;
+  readonly generatePartialTokenized: (
+    partialTokenizedWords: SymbolRaw[],
+    tokenRefRemoveIdx: number,
+    placementIdx: number,
+    dummyIdx: number,
+  ) => SymbolRaw;
+  readonly blankPartialWord: (dummyWord: string) => string;
+  readonly wordSeparator: string;
+  readonly binarySeparator: (type: SymbolTypeOptions["type"]) => string;
+  readonly buildTestComplex: () => {
+    identLocationOrder: number;
+    identLocationType: number;
+    puzzleType: "reverse" | "order" | false;
+  };
+}
 
+export class PuzzlePlanBuilder {
+  constructor(
+    private readonly random: IRandom,
+    private readonly config: IConfig,
+  ) {}
+
+  build(level: LevelsType): PuzzlePlan {
+    const hasMappingDepth = !!level.MAPPING_DEPTH;
+    const hasMultiPlacement = level.MULTIZE_PLACEMENT && level.MULTIZE_TOKENS;
+
+    const enablePartialReasoning = level.PARTIAL_REASINING;
+    const encodeInstructions =
+      level.MULTIZE_I_TOKENS === level.MULTIZE_TOKENS &&
+      level.ENCODE_INSTRUCTIONS;
+
+    const wordSeparator = level.EXCLUDE_SENTENCE_SPACES ? "" : " ";
+
+    return {
+      mappingDepth: () =>
+        hasMappingDepth
+          ? this.random.rand(this.config.maxCycleDepth - 1) + 1
+          : 1,
+
+      placementIdx: () => (hasMultiPlacement ? this.random.rand(1) : 0),
+
+      buildSymbolMapper: () =>
+        buildSymbolMapper(this.random.rand, level.INDIRECT_SYMBOLS),
+
+      buildInstructionWords: (getToken) =>
+        encodeInstructions
+          ? mapStringsDeep(instructionSet, (s) =>
+              s
+                .trim()
+                .split(/\s+/)
+                .map((w) => getToken(w).str)
+                .join(" "),
+            )
+          : instructionSet,
+
+      generatePartialTokenized: (
+        partialTokenizedWords,
+        tokenRefRemoveIdx,
+        placementIdx,
+        dummyIdx,
+      ) =>
+        generatePartialTokenized(
+          enablePartialReasoning,
+          partialTokenizedWords,
+          tokenRefRemoveIdx,
+          placementIdx,
+          dummyIdx,
+          this.random,
+        ),
+
+      blankPartialWord: (dummyWord) =>
+        enablePartialReasoning ? dummyWord : blankWordToken,
+
+      wordSeparator,
+
+      binarySeparator: (type) =>
+        ["binary", "binaryrot"].includes(type) ? " " : wordSeparator,
+
+      buildTestComplex: () => ({
+        identLocationOrder: this.random.rand(1),
+        identLocationType: this.random.rand(1),
+        puzzleType: level.MAPPING_INFO_PUZZLE
+          ? this.random.bool()
+            ? ("reverse" as const)
+            : ("order" as const)
+          : (false as const),
+      }),
+    };
+  }
+}
+
+export class PuzzleGenerator {
   constructor(
     private readonly random: IRandom,
     private readonly mapFactory: IMappingTransfomer,
     private readonly ctx: IFactory<PuzzleContext>,
-    private readonly config: IConfig,
-  ) {
-    this.level = config.level;
-  }
+    private readonly plan: PuzzlePlan,
+  ) {}
 
   prepare(): PuzzleResult {
     const ctx = this.ctx.create();
 
-    const mappingDepth = this.level.MAPPING_DEPTH
-      ? this.random.rand(this.config.maxCycleDepth - 1) + 1
-      : 1;
+    const mappingDepth = this.plan.mappingDepth();
+    const placementIdx = this.plan.placementIdx();
 
-    // TODO: configure enabling 50 percent activation
-    const placementIdx =
-      this.level.MULTIZE_PLACEMENT && this.level.MULTIZE_TOKENS
-        ? this.random.rand(1)
-        : 0;
-
-    const { getToken, getReal, wordsSeqs, realMap, tokenMap } =
+    const { getToken, getReal, wordsSeqs, realMap, tokenMap, tokenEntries } =
       this.mapFactory.create(ctx, mappingDepth, placementIdx);
 
-    const tokenizedSequenceWords: ISymbols[] = [];
-    for (let i = 0; i < wordsSeqs.length; i++) {
-      tokenizedSequenceWords.push(getToken(wordsSeqs[i].str));
-    }
+    const tokenizedSequenceWords: ISymbols[] = wordsSeqs.map((w) =>
+      getToken(w.str),
+    );
 
     const tokenRefRemoveIdx = chooseRemoveIndex(
       this.random.rand(tokenizedSequenceWords.length - 1),
@@ -179,95 +286,56 @@ export class PuzzleGenerator {
     const correctAnswer = tokenizedSequenceWords[tokenRefRemoveIdx].str;
     const realAnswer = wordsSeqs[tokenRefRemoveIdx].str;
 
-    const symbolExpression = buildSymbolMapper(
-      this.random.rand,
-      this.level.INDIRECT_SYMBOLS,
+    const symbolExpression = this.plan.buildSymbolMapper();
+
+    // build partial tokenized words (mapped form)
+    const partialTokenizedWords: SymbolRaw[] = tokenizedSequenceWords.map((t) =>
+      symbolExpression.mapper(t.els),
     );
 
-    // insert missing tokenized part
-    const partialTokenizedWords: SymbolRaw[] = [];
-    for (let i = 0; i < tokenizedSequenceWords.length; i++) {
-      partialTokenizedWords.push(
-        symbolExpression.mapper(tokenizedSequenceWords[i].els),
-      );
-    }
-
+    // pick dummy index different from removed index
     const len = partialTokenizedWords.length;
     let dummyIdx = this.random.rand(len - 1);
-    if (dummyIdx === tokenRefRemoveIdx) {
-      dummyIdx = (dummyIdx + 1) % len;
-    }
-    partialTokenizedWords[tokenRefRemoveIdx] = generatePartialTokenized(
-      this.level.PARTIAL_REASINING,
-      partialTokenizedWords,
-      tokenRefRemoveIdx,
-      placementIdx,
-      dummyIdx,
-      this.random,
+    if (dummyIdx === tokenRefRemoveIdx) dummyIdx = (dummyIdx + 1) % len;
+
+    partialTokenizedWords[tokenRefRemoveIdx] =
+      this.plan.generatePartialTokenized(
+        partialTokenizedWords,
+        tokenRefRemoveIdx,
+        placementIdx,
+        dummyIdx,
+      );
+
+    const partialWords = wordsSeqs.map((v) => v.str);
+    partialWords[tokenRefRemoveIdx] = this.plan.blankPartialWord(
+      partialWords[dummyIdx],
     );
 
-    // insert a missing identifier
-    const partialWords = wordsSeqs.map((v) => v.str);
-    partialWords[tokenRefRemoveIdx] = this.level.PARTIAL_REASINING
-      ? partialWords[dummyIdx]
-      : blankWordToken;
-
-    const seperator = this.level.EXCLUDE_SENTENCE_SPACES ? "" : " ";
-
-    const binarySeperator = ["binary", "binaryrot"].includes(
+    const binarySeperator = this.plan.binarySeparator(
       symbolExpression.options.type,
-    )
-      ? " "
-      : seperator;
+    );
 
-    let partialTokenizedSentence = "";
-    for (let i = 0; i < partialTokenizedWords.length; i++) {
-      const arr = partialTokenizedWords[i];
-      for (let j = 0; j < arr.length; j++) {
-        if (partialTokenizedSentence)
-          partialTokenizedSentence += binarySeperator;
-        partialTokenizedSentence += arr[j];
-      }
-    }
+    // flatten partial tokenized words into sentence
+    const partialTokenizedSentence = partialTokenizedWords
+      .map((arr) => arr.join(binarySeperator))
+      .join(this.plan.wordSeparator);
 
-    let tokenizedSentence = "";
-    for (let i = 0; i < tokenizedSequenceWords.length; i++) {
-      if (i > 0) tokenizedSentence += seperator;
-      tokenizedSentence += tokenizedSequenceWords[i].str;
-    }
+    const tokenizedSentence = tokenizedSequenceWords
+      .map((w) => w.str)
+      .join(this.plan.wordSeparator);
 
-    const testComplex = {
-      identLocationOrder: this.random.rand(1),
-      identLocationType: this.random.rand(1),
-      puzzleType: this.level.MAPPING_INFO_PUZZLE
-        ? this.random.bool()
-          ? ("reverse" as const)
-          : ("order" as const)
-        : (false as const),
-    };
+    const testComplex = this.plan.buildTestComplex();
 
     const expression = this.buildExpresion();
 
-    // TODO: this could currenty be not I tokens, without changing the mapper
-    // missing words need to be included for i words
-    const instructionWords =
-      this.level.MULTIZE_I_TOKENS === this.level.MULTIZE_TOKENS &&
-      this.level.ENCODE_INSTRUCTIONS
-        ? mapStringsDeep(instructionSet, (s) =>
-            // TODO: pphhhhb
-            s
-              .trim()
-              .split(/\s+/)
-              .map((w) => getToken(w).str)
-              .join(" "),
-          )
-        : instructionSet;
+    const instructionWords = this.plan.buildInstructionWords(getToken);
 
     const res = {
       realMap,
       getReal,
       tokenMap,
       getToken,
+      tokenEntries,
 
       tokenizedWords: tokenizedSequenceWords,
       tokenizedSentence,
@@ -311,4 +379,20 @@ export class PuzzleGenerator {
       equalSymbol,
     };
   }
+}
+
+/*
+  Factory helper: build a plan + generator from primitive deps. This is useful
+  for tests where you want to easily create controlled PuzzleGenerators.
+*/
+export function createGeneratorWithPlan(
+  random: IRandom,
+  mapFactory: IMappingTransfomer,
+  ctxFactory: IFactory<PuzzleContext>,
+  config: IConfig,
+): { plan: PuzzlePlan; generator: PuzzleGenerator } {
+  const builder = new PuzzlePlanBuilder(random, config);
+  const plan = builder.build(config.level);
+  const generator = new PuzzleGenerator(random, mapFactory, ctxFactory, plan);
+  return { plan, generator };
 }

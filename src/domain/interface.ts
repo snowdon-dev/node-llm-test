@@ -20,6 +20,7 @@ export interface IPrepareResult {
   /** Map from the tokenized words to the real words. */
   readonly getReal: (str: string) => ISymbols;
   readonly realMap: Readonly<Record<string, ISymbols>>;
+  readonly tokenEntries: readonly Readonly<[string, ISymbols]>[];
 
   readonly tokenizedWords: ISymbols[];
 

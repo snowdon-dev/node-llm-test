@@ -1,7 +1,7 @@
 import { IRandom } from "../domain/IRandom";
 import { OtherWordsService } from "../domain/services/OtherWordsService";
 import { PuzzleContextFactory } from "../domain/PuzzleContextFactory";
-import { PuzzleGenerator } from "../domain/services/PuzzleGenerator";
+import { createGeneratorWithPlan } from "../domain/services/PuzzleGenerator";
 import { MappingTransformer } from "../domain/services/MappingTransformer";
 import { AppConfig } from "./interface";
 
@@ -30,5 +30,12 @@ export function makeResultFactory(
   };
 
   const mappings = new MappingTransformer(random, opts);
-  return new PuzzleGenerator(random, mappings, context, config);
+
+  const { generator } = createGeneratorWithPlan(
+    random,
+    mappings,
+    context,
+    config,
+  );
+  return generator;
 }

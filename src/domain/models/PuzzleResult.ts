@@ -15,6 +15,7 @@ export class PuzzleResult implements IPuzzleResult {
   getReal: (str: string) => ISymbols;
   tokenMap: Readonly<Record<string, ISymbols>>;
   realMap: Readonly<Record<string, ISymbols>>;
+  tokenEntries: readonly Readonly<[string, ISymbols]>[];
   tokenizedWords: ISymbols[];
   tokenizedSentence: string;
   partialTokenizedSentence: string;
@@ -75,8 +76,6 @@ export class PuzzleResult implements IPuzzleResult {
       const tmpRealWords = [...this.partialWords];
 
       const realWord = this.sentenceWords[idx];
-
-      console.log(idx, tmpRealWords, realWord);
 
       if (
         isFirstCharCapital(realWord) !== isFirstCharCapital(wordSequence.str)

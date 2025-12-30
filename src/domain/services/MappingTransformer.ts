@@ -17,19 +17,30 @@ export class MappingTransformer implements IMappingTransfomer {
     const symbols = SymbolManager.New(this.random, source, this.opts);
     const symResult = symbols.run(placementIdx);
 
-    const tokenMap: Record<string, ISymbols> = Object.create(null);
-    const realMap: Record<string, ISymbols> = Object.create(null);
-
     const { totalSymbols, tokens, wordsSeqs } = symResult;
     const count = totalSymbols.length;
     const maxTokenIdx = tokens.length - 1;
+
+    const tokenEntries: [string, ISymbols][] = new Array(count);
+    const realEntries: [string, ISymbols][] = new Array(count);
 
     for (let i = 0; i < count; i++) {
       const symbolObj = totalSymbols[i];
       const tokenObj = tokens[maxTokenIdx - i];
 
-      tokenMap[symbolObj.str] = tokenObj;
-      realMap[tokenObj.str] = symbolObj;
+      tokenEntries[i] = [symbolObj.str, tokenObj];
+      realEntries[i] = [tokenObj.str, symbolObj];
+    }
+
+    const tokenMap: Record<string, ISymbols> = Object.create(null);
+    const realMap: Record<string, ISymbols> = Object.create(null);
+
+    for (let i = 0; i < count; i++) {
+      const [k1, v1] = tokenEntries[i];
+      tokenMap[k1] = v1;
+
+      const [k2, v2] = realEntries[i];
+      realMap[k2] = v2;
     }
 
     const createGetter = (baseMap: Readonly<Record<string, ISymbols>>) => {
@@ -57,6 +68,7 @@ export class MappingTransformer implements IMappingTransfomer {
     };
 
     return {
+      tokenEntries,
       wordsSeqs,
       tokenMap,
       realMap,
