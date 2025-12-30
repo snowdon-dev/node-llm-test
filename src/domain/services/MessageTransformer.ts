@@ -99,7 +99,7 @@ export class MessageTransfomer {
         for (let index = 0; index < partitionCount; index++) {
           const currentIndex = start + index;
           const [old, newS] = lineSource[currentIndex];
-          const lastLine = currentIndex !== actualEnd - 1;
+          const lastLine = currentIndex !== partitionCount - 1;
           const usedIndex = globalIndex ? currentIndex : index;
           const tmpLines: string[] = [];
           tmpLines.push(
