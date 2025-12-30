@@ -70,9 +70,6 @@ export class MessageTransfomer {
     for (let p = 0; p < numberOfPartitions; p++) {
       const start = p * partitionSize;
       const end = start + partitionSize;
-      const partition = lineSource.slice(start, end);
-
-      if (partition.length === 0) continue;
 
       // TODO: After order randomisation during INSTRUCTION_ORDER, group neighbour values
       const partCallable = () => {
@@ -96,9 +93,14 @@ export class MessageTransfomer {
         }
 
         let lines = "";
-        for (let index = 0; index < end - start; index++) {
-          const [old, newS] = lineSource[start + index];
-          const usedIndex = globalIndex ? start + index : index;
+        const actualEnd = Math.min(start + partitionSize, lineSource.length);
+        const partitionCount = actualEnd - start;
+
+        for (let index = 0; index < partitionCount; index++) {
+          const currentIndex = start + index;
+          const [old, newS] = lineSource[currentIndex];
+          const lastLine = currentIndex !== actualEnd - 1;
+          const usedIndex = globalIndex ? currentIndex : index;
           const tmpLines: string[] = [];
           tmpLines.push(
             this.description.getMappingMessage(
@@ -112,8 +114,6 @@ export class MessageTransfomer {
               result.testComplex.puzzleType,
             ),
           );
-
-          const lastLine = index !== partition.length - 1;
 
           const symbols = "!@£$%^&*(){}:<>?".split("");
           if (this.level.MAPPING_REDUNDANT && this.random.bool()) {
