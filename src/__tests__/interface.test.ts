@@ -1,10 +1,10 @@
-import { createSymbolExpression } from "../domain/services/PuzzleGenerator";
 import { ExpressionPart, ISymbols } from "../domain/interface";
 import { IPrepareResult } from "../domain/interface";
 import { levelMax } from "../domain/levels";
 import { instructionSet, pangramsDefault } from "../domain/characters";
 import { PuzzleResult } from "../domain/models/PuzzleResult";
 import { createApp } from "../infra/create";
+import { createSymbolExpression } from "../domain/services/PuzzlePlanBuilder";
 
 function createISymbol(words: string): ISymbols {
   const [first, second] = words.split(" ");
@@ -173,6 +173,7 @@ describe("print", () => {
 
     const result = createPuzzle({
       symbolExpression: mockSymbolExpression,
+      tokenEntries: Object.entries(mockTokenMap),
       expression: mockExpression,
       tokenMap: mockTokenMap,
       partialTokenizedSentence: mockPartialTokenizedSentence,

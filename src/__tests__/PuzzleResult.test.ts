@@ -243,7 +243,6 @@ describe("PuzzleResult", () => {
 
   it("answers multi token words not expected", () => {
     const puzzle = createPuzzle(multiRealWordsNotExpected);
-    console.log(puzzle);
     const res = puzzle.answer("test test");
     expect(res.exact).toBe(false);
     expect(res.possible).toBe(true);

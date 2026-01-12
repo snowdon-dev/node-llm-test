@@ -1,7 +1,7 @@
 import { instructionSet } from "../domain/characters";
 import { ExpressionPart } from "../domain/interface";
 import { Description } from "../domain/models/Description";
-import { createSymbolExpression } from "../domain/services/PuzzleGenerator";
+import { createSymbolExpression } from "../domain/services/PuzzlePlanBuilder";
 import { RandomSource } from "../infra/random";
 
 describe("Description", () => {

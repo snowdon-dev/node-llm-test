@@ -32,6 +32,10 @@ program
     "--answer <string>",
     "Instead of printing a test, check the given answer",
   )
+  .option(
+    "--excludeinfo",
+    "Exlude any extra information that should not be shown to the LLM from being printed",
+  )
   .option("-i, --interactive", "Run in interactive mode")
   .option("--wordlist-file <filepath>", "Load wordlist from a file")
   .option("--verbose", "Print more details about the test")
@@ -60,6 +64,7 @@ async function run(options: any) {
     answer: typeof options.answer === "string" ? options.answer : undefined,
     noAnswer: options.answer === false,
     verbose: options.verbose,
+    exludeinfo: options.exludeinfo === true,
   };
 
   // TODO: validate args when not interactive
@@ -307,7 +312,9 @@ async function run(options: any) {
     console.log("seed: " + seedToUse);
   }
 
-  console.log(puzzle.printWork(result));
+  if (!options.excludeinfo) {
+    console.log(puzzle.printWork(result));
+  }
 
   if (noAnswer) {
     process.exit();

@@ -87,6 +87,7 @@ AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
   - [Implementation notes](#implementation-notes)
   - [Why was this created](#why-was-this-created)
   - [Usage](#usage)
+    - [Prerequisites](#prerequisites)
     - [CLI Reference](#cli-reference)
     - [Programmatic](#programmatic)
   - [Test Levels](#test-levels)
@@ -236,6 +237,12 @@ proves it. This was prior to Chat GPT 5.
 
 ## Usage
 
+### Prerequisites
+
+- Install node and NPM (tested on >22)
+- You will also need a system wordlist file if not using the `--wordlist-file`
+option. For example, first install: (on Debian `sudo apt install wbritish`).
+
 ### CLI Reference
 
 To run the CLI:
@@ -256,6 +263,11 @@ npx llmtest --number 10 --write
 
 ```bash
 npx llmtest --number 10 --write ~/Documents/test1
+```
+
+```bash
+npx llmtest --excludeinfo --no-answer
+
 ```
 
 Or run in interactive mode:
@@ -291,6 +303,7 @@ seq -f "%.0f" 1000000 1000010 | \
 | `--answer <string>`          | Provide answer via arguments, implies --no-answer |
 | `--no-answer`                | Do not wait for an answer on stdin                |
 | `--verbose`                  | Print more debug information                      |
+| `--excludeinfo`            | Exclude any extra information that should not be shown to the LLM from being printed |
 
 ### Programmatic
 
@@ -329,12 +342,12 @@ version.
 | `MULTIZE_TOKENS`               |             `2` | Duplicates tokens used to increase token density/length.                                          | A token like `cat` might become `cat cat`.                                                    | Medium     |
 | `EXCLUDE_MAPPING_INFO`         |             `4` | Omits mapping/metadata information (e.g., token→map direction) from output.                       | Instead of returning the details in text, the response omits the info.                        | Easy       |
 | `MULTIZE_I_TOKENS`             |             `8` | Similar to `MULTIZE_TOKENS` but targets `input words`.                                            | `quick` becomes `quick brown`                                                                 | Medium     |
-| `PARTIAL_REASINING`            |            `16` | Missing words may be partial instead of full                                                      | 'full word' becomes '[..] word'                                                               | Medium     |
+| `PARTIAL_REASINING`            |            `16` | The chosen missing words is corrupted | 'full word' becomes 'somethingelse word' | Medium     |
 | `INDIRECT_SYMBOLS`             |            `32` | Transforms tokens via a symbol function (e.g., ROT13 or other symbolisation) to obfuscate tokens. | Words may be ROT13-encoded or replaced with binary equivalents.                               | Medium     |
 | `EXCLUDE_SENTENCE_SPACES`      |            `64` | Removes spaces between words.                                                                     | `"one two"` → `"onetwo"`                                                                      | Hard       |
 | `INSTRUCTION_ORDER`            |           `128` | Randomly alters the order of instructions before printing.                                        | Instruction list may be reordered, affecting how instructions are interpreted/executed.       | Easy       |
 | `OUTPUT_SHIFT`                 |           `256` | Applies a character/token shift (e.g., Caesar-like) to the output; decoding is required.          | Plain text is shifted by N characters; consumer must reverse the shift to read original text. | Medium     |
-| `OUTPUT_SHIFT_EXLCUDE_DETAILS` |           `512` | With `OUTPUT_SHIFT`, additionally excludes metadata about the shift (magnitude/direction).        | Output is shifted and no shift metadata is returned; decoder must infer shift by analysis.    | Hard       |
+| `OUTPUT_SHIFT_EXCLUDE_DETAILS` |           `512` | With `OUTPUT_SHIFT`, additionally excludes metadata about the shift (magnitude/direction).        | Output is shifted and no shift metadata is returned; decoder must infer shift by analysis.    | Hard       |
 | `MAPPING_INFO_PUZZLE`          |          `1024` | The expression order is changed based on a maths puzzle.                                          | A expression like, 'one' > 'two' may change to 'two' > 'one'. The ordering is swapped         | Medium     |
 | `POOR_CODING_PRACTICES`        |          `2048` | Emulates poor coding standards                                                                    | For example, alternates more deliminators. '' becomes "" etc                                  | Easy       |
 | `EXTRA_WORDS`                  |          `4096` | Adds extra words from a pre defined list designed to complement the default                       | Adds words like "glib" which can be used to form novel solutions                              | Medium     |

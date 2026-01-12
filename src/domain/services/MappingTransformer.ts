@@ -21,26 +21,20 @@ export class MappingTransformer implements IMappingTransfomer {
     const count = totalSymbols.length;
     const maxTokenIdx = tokens.length - 1;
 
+    const tokenMap: Record<string, ISymbols> = Object.create(null);
+    const realMap: Record<string, ISymbols> = Object.create(null);
     const tokenEntries: [string, ISymbols][] = new Array(count);
-    const realEntries: [string, ISymbols][] = new Array(count);
+    //const realEntries: [string, ISymbols][] = new Array(count);
 
     for (let i = 0; i < count; i++) {
       const symbolObj = totalSymbols[i];
       const tokenObj = tokens[maxTokenIdx - i];
 
       tokenEntries[i] = [symbolObj.str, tokenObj];
-      realEntries[i] = [tokenObj.str, symbolObj];
-    }
+      tokenMap[symbolObj.str] = tokenObj;
 
-    const tokenMap: Record<string, ISymbols> = Object.create(null);
-    const realMap: Record<string, ISymbols> = Object.create(null);
-
-    for (let i = 0; i < count; i++) {
-      const [k1, v1] = tokenEntries[i];
-      tokenMap[k1] = v1;
-
-      const [k2, v2] = realEntries[i];
-      realMap[k2] = v2;
+      //realEntries[i] =
+      realMap[tokenObj.str] = symbolObj;
     }
 
     const createGetter = (baseMap: Readonly<Record<string, ISymbols>>) => {

@@ -38,7 +38,7 @@ export enum Feature {
 
   MULTIZE_PLACEMENT = 1 << 18,
 
-  SPLIT_MAPPING = 1 << 19,
+  MAPPING_SPLIT = 1 << 19,
 
   MAPPING_REDUNDANT = 1 << 20,
 }

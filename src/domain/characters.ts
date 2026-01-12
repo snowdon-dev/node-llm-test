@@ -143,14 +143,6 @@ export const instructionSet = {
     "The answer must be a strict match with case and character sensitively",
     //"- Think for as long as needed and only reply when confident.\n"
   ],
-  instructionReasoning: ["Think carefully and respond only when confident"],
-  instructionsNonReasoning: [
-    "Respond with the final answer only",
-    "No reasoning",
-    "No steps",
-    "No explanations",
-    "Using flash mode",
-  ],
   //? "- Do not show any encoding applied to the symbolised sequence.\n"
   //? "- Omit any extra encoding steps applied to the symbolised sentence."
   indirect: ["Omit any encoding applied on the symbolised sentence"],

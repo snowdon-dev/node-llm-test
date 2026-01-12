@@ -1,4 +1,4 @@
-import { rotN } from "../characters";
+import { characterDigitAlpha, rotN } from "../characters";
 import { IPrepareResult } from "../interface";
 import { IRandom } from "../IRandom";
 import { LevelsType } from "../levels";
@@ -13,6 +13,17 @@ function* objectEntries<K extends PropertyKey, V>(
   yield entries[(i + 1) % entries.length] as [K, V];
 }
 
+const premambleWords = {
+  instructionReasoning: ["Think carefully and respond only when confident"],
+  instructionsNonReasoning: [
+    "Respond with the final answer only",
+    "No reasoning",
+    "No steps",
+    "No explanations",
+    "Using flash mode",
+  ],
+} as const;
+
 export class MessageTransfomer {
   constructor(
     private readonly random: IRandom,
@@ -21,6 +32,8 @@ export class MessageTransfomer {
     private readonly result: IPrepareResult,
     private readonly level: LevelsType,
   ) {}
+
+  protected static SYMBOLS = "!@£$%^&*(){}:<>?".split("");
 
   transfom() {
     const result = this.result;
@@ -60,7 +73,7 @@ export class MessageTransfomer {
     const lineSource = this.random.randOrder(result.tokenEntries.slice());
     const maxPartitions =
       lineSource.length <= 6 ? 0 : lineSource.length <= 11 ? 1 : 3;
-    const numberOfPartitions = this.level.SPLIT_MAPPING
+    const numberOfPartitions = this.level.MAPPING_SPLIT
       ? this.random.rand(maxPartitions) + 1
       : 1;
     const partitionSize = Math.ceil(lineSource.length / numberOfPartitions);
@@ -77,7 +90,7 @@ export class MessageTransfomer {
         let messages = "";
 
         if (!isExcludeMappingInfo) {
-          if (this.level.SPLIT_MAPPING && !this.level.INSTRUCTION_ORDER) {
+          if (this.level.MAPPING_SPLIT && !this.level.INSTRUCTION_ORDER) {
             messages += outputter(
               instructionWords.mappingAnonHeader +
                 " " +
@@ -116,16 +129,21 @@ export class MessageTransfomer {
             ),
           );
 
-          const symbols = "!@£$%^&*(){}:<>?".split("");
           if (this.level.MAPPING_REDUNDANT && this.random.bool()) {
             const bitmask = this.random.rand(0xfffffff);
+            const tokenOrMapping = this.random.bool();
+            const redundantChars = Array.from(
+              { length: 4 + this.random.rand(3) },
+              (i: number) =>
+                MessageTransfomer.SYMBOLS[(bitmask >> (i * 4)) & 0xf],
+            ).join("");
+            const [newOld, newNew] = tokenOrMapping
+              ? [old, redundantChars]
+              : [redundantChars, old];
             tmpLines.push(
               this.description.getMappingMessage(
-                old,
-                Array.from(
-                  { length: 4 + this.random.rand(3) },
-                  (i: number) => symbols[(bitmask >> (i * 4)) & 0b1111],
-                ).join(""),
+                newOld,
+                newNew,
                 symbol,
                 result.expression.expressionDefinition,
                 index,
@@ -177,31 +195,29 @@ export class MessageTransfomer {
 
     if (hasRandomShift && !this.level.OUTPUT_SHIFT_EXLCUDE_DETAILS) {
       preamblePart.push(
-        `The following message [a-zA-Z] characters have been encoded with ROT ${instructionWords.characterDigitAlpha[randomShift]}`,
+        `The following message [a-zA-Z] characters have been encoded with ROT ${characterDigitAlpha[randomShift]}`,
       );
     }
 
     if (this.level.REASNING_MODE) {
-      preamblePart.push(
-        ...instructionWords.instructionReasoning.map(outputter),
-      );
+      preamblePart.push(...premambleWords.instructionReasoning);
     } else {
-      preamblePart.push(
-        ...instructionWords.instructionsNonReasoning.map(outputter),
-      );
+      preamblePart.push(...premambleWords.instructionsNonReasoning);
     }
-
     const genPreamblePart = () =>
       preamblePart.map((value) => "- " + value + ".").join("\n");
-    parts = ([genPreamblePart] as (Symbol | (() => string))[]).concat(
+
+    // build the template parts
+    const partsStart: (Symbol | (() => string))[] = [genPreamblePart];
+    parts = partsStart.concat(
       randomOrder ? this.random.randOrder(parts) : parts,
     );
 
     // inject the mapping table callables
-    const partCallableBuffer = partCallables.reverse();
-    parts = parts.map((v) =>
-      v === partSymbol ? partCallableBuffer.pop()! : v,
-    );
+    for (let i = partsStart.length, cIdx = 0; i < parts.length; i++) {
+      if (parts[i] !== partSymbol) continue;
+      parts[i] = partCallables[cIdx++];
+    }
 
     if (this.level.ANSWER_INCEPTION) {
       const iter = objectEntries(
