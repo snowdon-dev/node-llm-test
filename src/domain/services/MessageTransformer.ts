@@ -139,7 +139,7 @@ export class MessageTransfomer {
             ).join("");
             const [newOld, newNew] = tokenOrMapping
               ? [old, redundantChars]
-              : [redundantChars, old];
+              : [redundantChars, newS.str];
             tmpLines.push(
               this.description.getMappingMessage(
                 newOld,
