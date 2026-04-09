@@ -40,7 +40,7 @@ jobs:
         uses: jaywcjlove/coverage-badges-cli@998665f7962b1a3935ba8c3e786171a99436e5d1
         with:
           style: flat
-          source: coverage/coverage-final.json
+          source: coverage/coverage-summary.json
           output: coverage/site/badges/badges.svg
           jsonPath: totals.percent_covered
 
