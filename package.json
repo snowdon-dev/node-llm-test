@@ -25,6 +25,7 @@
     "nodejs",
     "npm"
   ],
+  "url": "https://github.com/snowdon-dev/node-llm-test",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/snowdon-dev/node-llm-test.git"
