@@ -70,12 +70,25 @@ Commercial use of this code package requires permission—please contact me at
 however, is freely available at your convenience. To learn more from the Oxford
 AI Chair (not me) <https://www.youtube.com/watch?v=7-UzV9AZKeU>.
 
-## Quick CLI
+## Quick Usage
 
 - [Create a
   Codespace](https://docs.github.com/en/codespaces/developing-in-a-codespace/opening-an-existing-codespace)
   on this repository.
 - Then simply, run the command `llmtest` in the terminal.
+
+Or:
+```javascript
+import { Puzzle, Feature } from "node-llm-test";
+const puzzle = Puzzle.New();
+const result = puzzle.result();
+puzzle.print(result, console.log);
+const result = puzzle.answer(result, llmsAnswer);
+```
+```bash
+npx llmtest --interactive
+```
+
 
 ---
 
@@ -320,13 +333,13 @@ async function run() {
   ]);
 
   const result = puzzle.result();
-  puzzle.print(, console.log);
+  puzzle.print(result, console.log);
 
   const llmsAnswer = (function getLlmAnswer() {
     return 'somewronganswer';
   })();
 
-  puzzle.answer(result);
+  const result = puzzle.answer(result, llmsAnswer);
 
   //const puzzle2 = Puzzle.New();
 }
