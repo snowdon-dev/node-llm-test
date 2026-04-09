@@ -40,7 +40,6 @@ jobs:
           style: flat
           source: coverage/coverage-summary.json
           output: coverage/site/badges/badges.svg
-          jsonPath: totals.branches.percent_covered
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
@@ -114,7 +113,3 @@ jobs:
 
       - name: Publish to npm
         run: npm publish --provenance --access public
-        env:
-          # When using Trusted Publishers, the setup-node action
-          # provides this token automatically if registry-url is set.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
