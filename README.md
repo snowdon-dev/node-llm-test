@@ -311,16 +311,24 @@ seq -f "%.0f" 1000000 1000010 | \
 import { Puzzle, Feature } from "node-llm-test";
 import { getRandomWords } from "node-llm-test/app/getRandWords";
 
+const level = Feature.CHAOS_WORDS | Feature.EXTRA_WORDS;
 async function run() {
   const seed = Math.floor(Math.random() * (2 ** 31 - 1));
   const wordList = await getRandomWords(600, seed);
-  const level = Feature.CHAOS_WORDS | Feature.EXTRA_WORDS;
   const puzzle = Puzzle.New(seed, level, [
     /*someWordList*/
   ]);
-  //const puzzle2 = Puzzle.New();
 
-  puzzle.print(puzzle.result(), console.log);
+  const result = puzzle.result();
+  puzzle.print(, console.log);
+
+  const llmsAnswer = (function getLlmAnswer() {
+    return 'somewronganswer';
+  })();
+
+  puzzle.answer(result);
+
+  //const puzzle2 = Puzzle.New();
 }
 ```
 

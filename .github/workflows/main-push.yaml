@@ -14,10 +14,11 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  attestations: write
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     environment:
       name: github-pages
@@ -56,6 +57,28 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Pack npm package
+        run: npm pack
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign package
+        run: |
+          FILE=$(ls *.tgz)
+          echo "Signing $FILE"
+          cosign sign-blob --yes $FILE > $FILE.sig
+
+      - name: Generate provenance
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: "*.tgz"
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       #- name: Upload artifact
       #  uses: actions/upload-pages-artifact@v3
